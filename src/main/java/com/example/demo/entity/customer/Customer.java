@@ -23,6 +23,8 @@ public class Customer {
 
     private String provider;
 
+    private String nickName;
+
     @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CustomerPoint> customerPoint = new ArrayList<>();
 

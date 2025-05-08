@@ -30,16 +30,18 @@ public class KakaoLoginController {
         KakaoUserInfoResponseDto userInfo = kakaoService.getUserInfo(accessToken);
         String kakaoId = userInfo.getId().toString();
 
-        Optional<Customer> customer = Optional.of(customerRepository.findByEmail(kakaoId)
-                .orElseGet(() -> {
-                    Customer newCustomer = Customer.builder()
-                            .email(kakaoId)
-                            .provider("KAKAO")
-                            .build();
-                    // JWT 발급 후에 main으로 이동
-                    return customerRepository.save(newCustomer);
-                }));
-        //회원가입 되어있으면 JWT토큰 발급 로직 후에 main으로 이동
+        Optional<Customer> optionalCustomer = customerRepository.findByEmail(kakaoId);
+
+        if (optionalCustomer.isEmpty()) {
+            Customer newCustomer = Customer.builder()
+                    .email(kakaoId)
+                    .provider("KAKAO")
+                    .build();
+            customerRepository.save(newCustomer);
+            log.info("신규 회원 등록 완료");
+        } else {
+            log.info("기존 회원입니다.");
+        }
 
         return ResponseEntity.status(HttpStatus.FOUND)
                 .header("Location", "http://localhost:8080/menu-test")
