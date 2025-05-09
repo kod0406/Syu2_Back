@@ -1,5 +1,9 @@
 package com.example.demo.config;
 
+import com.example.demo.jwt.JwtAuthenticationFilter;
+import com.example.demo.jwt.JwtTokenProvider;
+import com.example.demo.repository.CustomerRepository;
+import com.example.demo.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,15 +22,28 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
+    private final JwtTokenProvider jwtTokenProvider;
+    private final CustomerRepository customerRepository;
+    private final StoreRepository storeRepository;
+
+    @Bean
+    public JwtAuthenticationFilter jwtAuthenticationFilter() {
+        return new JwtAuthenticationFilter(jwtTokenProvider, customerRepository, storeRepository);
+    }
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable()) // CSRF 보호 비활성화
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )// CSRF 보호 비활성화
                 .authorizeHttpRequests(authorizeRequests ->
                         authorizeRequests
                                 .requestMatchers("/**").permitAll() // 모든 요청 허용 (테스트용)
                                 .anyRequest().authenticated()
-                );
+                )
+                .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 }

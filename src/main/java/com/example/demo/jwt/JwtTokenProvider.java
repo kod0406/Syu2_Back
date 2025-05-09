@@ -1,17 +1,24 @@
 package com.example.demo.jwt;
 
+import com.example.demo.repository.CustomerRepository;
+import com.example.demo.repository.StoreRepository;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.annotation.Value;
 
 import java.security.Key;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 @Component
+@RequiredArgsConstructor
 public class JwtTokenProvider {
-
+    private final CustomerRepository customerRepository;
+    private final StoreRepository storeRepository;
     // JWT 비밀 키 (base64 인코딩 또는 하드코딩된 키)
     @Value("${jwt.secret}")
     private String secretKeyEncoded;
@@ -37,12 +44,27 @@ public class JwtTokenProvider {
         Date now = new Date();
         Date expiry = new Date(now.getTime() + expirationHours * 60 * 60 * 1000L); // 시간 → 밀리초
 
-        return Jwts.builder()
-                .setClaims(Jwts.claims().setSubject(userId))
-                .setIssuedAt(now)
-                .setExpiration(expiry)
-                .signWith(key, SignatureAlgorithm.HS256)
-                .compact();
+        String role;
+
+        if(storeRepository.findByOwnerEmail(userId).isPresent()) {
+            role = "ROLE_STORE";
+        }
+        else {
+            role = "ROLE_CUSTOMER";
+        }
+
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("sub", userId);       // 표준 클레임: subject
+        claims.put("role", role);
+
+
+            return Jwts.builder()
+                    .setClaims(claims)
+                    .setIssuedAt(now)
+                    .setExpiration(expiry)
+                    .signWith(key, SignatureAlgorithm.HS256)
+                    .compact();
+
     }
 
     /**
@@ -51,8 +73,21 @@ public class JwtTokenProvider {
      * @return 사용자 ID
      */
     public String getUserId(String token) {
-        return Jwts.parserBuilder().setSigningKey(key).build()
-                .parseClaimsJws(token).getBody().getSubject();
+        Claims claims = extractAllClaims(token);
+        return claims.get("sub", String.class);
+    }
+
+    public String getRole(String token) {
+        Claims claims = extractAllClaims(token);
+        return claims.get("role", String.class);
+    }
+
+    private Claims extractAllClaims(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
     }
 
     /**

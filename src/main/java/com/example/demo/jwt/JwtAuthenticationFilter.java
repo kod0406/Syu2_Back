@@ -1,21 +1,26 @@
 package com.example.demo.jwt;
 
+import com.example.demo.repository.CustomerRepository;
+import com.example.demo.repository.StoreRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.Arrays;
 
+@RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtTokenProvider jwtTokenProvider;
+    private final CustomerRepository customerRepository;
+    private final StoreRepository storeRepository;
 
-    public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider) {
-        this.jwtTokenProvider = jwtTokenProvider;
-    }
 
     private String extractToken(HttpServletRequest request) {
         if (request.getCookies() == null) return null;
@@ -35,17 +40,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         if (token != null && jwtTokenProvider.validateToken(token)) {
             String userId = jwtTokenProvider.getUserId(token);
-/*
-            memberRepository.findById(Long.parseLong(userId)).ifPresent(member -> {
-                UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(member, null, null);
-                SecurityContextHolder.getContext().setAuthentication(authToken);
-            });
-        }
+            String role = jwtTokenProvider.getRole(token);
 
- */
-
-            filterChain.doFilter(request, response);
+            if(role.equals("ROLE_STORE")) {
+                storeRepository.findByOwnerEmail(userId).ifPresent(store -> {
+                    UsernamePasswordAuthenticationToken authToken =
+                            new UsernamePasswordAuthenticationToken(store, null, null);
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                });
+            }
+            else if(role.equals("ROLE_CUSTOMER")) {
+                customerRepository.findByEmail(userId).ifPresent(customer -> {
+                    UsernamePasswordAuthenticationToken authToken =
+                            new UsernamePasswordAuthenticationToken(customer, null, null);
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                });
+            }
         }
+        filterChain.doFilter(request, response);
     }
 }
