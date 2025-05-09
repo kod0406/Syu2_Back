@@ -3,6 +3,7 @@ package com.example.demo.entity.customer;
 import com.example.demo.entity.common.CustomerReviewCollect;
 import com.example.demo.entity.common.CustomerStatistics;
 import com.example.demo.entity.common.OrderStatus;
+import com.example.demo.entity.entityInterface.AppUser;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -14,7 +15,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @Getter
-public class Customer {
+public class Customer implements AppUser {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long customerId;
@@ -39,4 +40,20 @@ public class Customer {
 
     @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CustomerStatistics> customerStatistics = new ArrayList<>();
+
+    @Override
+    public Long getId() {
+        return customerId;
+    }
+
+    @Override
+    public String getEmail() {
+        return email;
+    }
+
+    @Override
+    public String getRole() {
+        return "ROLE_CUSTOMER";
+    }
+
 }
