@@ -7,6 +7,8 @@ import com.example.demo.jwt.JwtTokenProvider;
 import com.example.demo.repository.CustomerRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +17,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Optional;
 
@@ -27,6 +31,16 @@ public class KakaoLoginController {
     private final KakaoService kakaoService;
     private final CustomerRepository customerRepository;
     private final JwtTokenProvider jwtTokenProvider;
+
+    @Value("${kakao.client_id}")
+    private String kakaoClientId;
+
+    @Value("${kakao.redirect_uri}")
+    private String kakaoRedirectUri;
+
+
+
+
     @GetMapping("OAuth2/login/kakao")
     public ResponseEntity<?> callback(@RequestParam("code") String code) {
         String accessToken = kakaoService.getAccessTokenFromKakao(code);
@@ -55,7 +69,19 @@ public class KakaoLoginController {
 
         return ResponseEntity.status(HttpStatus.FOUND)
                 .header("Set-Cookie", cookie.toString())
-                .header("Location", "http://localhost:8080/menu-test")
+                .header("Location", "http://localhost:3000/menu")
+                .build();
+    }
+
+    @GetMapping("/api/oauth2/kakao/login")
+    public ResponseEntity<Void> redirectToKakao() {
+        String kakaoUrl = "https://kauth.kakao.com/oauth/authorize"
+                + "?response_type=code"
+                + "&client_id=" + kakaoClientId
+                + "&redirect_uri=" + URLEncoder.encode(kakaoRedirectUri, StandardCharsets.UTF_8);
+
+        return ResponseEntity.status(HttpStatus.FOUND)
+                .header(HttpHeaders.LOCATION, kakaoUrl)
                 .build();
     }
 }
