@@ -78,7 +78,7 @@ public class KakaoLoginController {
         String kakaoUrl = "https://kauth.kakao.com/oauth/authorize"
                 + "?response_type=code"
                 + "&client_id=" + kakaoClientId
-                + "&redirect_uri=" + URLEncoder.encode(kakaoRedirectUri, StandardCharsets.UTF_8);
+                + "&redirect_uri=" + kakaoRedirectUri;
 
         return ResponseEntity.status(HttpStatus.FOUND)
                 .header(HttpHeaders.LOCATION, kakaoUrl)
