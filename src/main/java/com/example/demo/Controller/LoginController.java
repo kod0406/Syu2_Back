@@ -20,20 +20,33 @@ public class LoginController {
     private final KakaoService kakaoService;
 
     @Value("${kakao.client_id}")
-    private String clientId;
+    private String kakaoClientId;
 
     @Value("${kakao.redirect_uri}")
-    private String redirectUri;
+    private String kakaoRedirectUri;
+
+    @Value("${naver.redirect_uri}")
+    private String naverRedirectUri;
+
+    @Value("${naver.client_id}")
+    private String naverClientId;
 
     @GetMapping("/kakao")
     public String kakaoLogin(Model model) {
 
         String kakaoAuthUrl = "https://kauth.kakao.com/oauth/authorize?response_type=code"
-                + "&client_id=" + clientId
-                + "&redirect_uri=" + redirectUri;
+                + "&client_id=" + kakaoClientId
+                + "&redirect_uri=" + kakaoRedirectUri;
         model.addAttribute("kakaoAuthUrl", kakaoAuthUrl);
 
-        return "login";
+        String naverAuthUrl = "https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=" +
+                naverClientId +
+                "&state=1234" +
+                "&redirect_uri=" +
+                naverRedirectUri;
 
+        model.addAttribute("naverAuthUrl", naverAuthUrl);
+
+        return "login";
     }
 }
