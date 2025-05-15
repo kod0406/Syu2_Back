@@ -1,7 +1,7 @@
 package com.example.demo.Service;
 
-import com.example.demo.dto.KakaoTokenResponseDto;
-import com.example.demo.dto.KakaoUserInfoResponseDto;
+import com.example.demo.dto.socialDto.KakaoTokenResponseDto;
+import com.example.demo.dto.socialDto.KakaoUserInfoResponseDto;
 import io.netty.handler.codec.http.HttpHeaderValues;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

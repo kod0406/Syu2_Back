@@ -4,6 +4,7 @@ import lombok.Data;
 
 @Data
 public class MenuRequestDto {
+    //DB에 저장할 때
     private String menuName;
     private int price;
     private String description;
