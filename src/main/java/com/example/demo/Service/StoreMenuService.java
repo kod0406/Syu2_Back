@@ -21,6 +21,7 @@ public class StoreMenuService {
     private final StoreRepository storeRepository;
     private final StoreMenuRepository storeMenuRepository;
     private final QRCodeRepository qrCodeRepository;
+    private final StoreService storeService;
 
     //메뉴 생성
     @Transactional
@@ -34,6 +35,7 @@ public class StoreMenuService {
                 .description(menuRequestDto.getDescription())
                 .imageUrl(menuRequestDto.getImageUrl())
                 .available(menuRequestDto.isAvailable())
+                .category(menuRequestDto.getCategory()) // 카테고리 필드 추가
                 .rating(0.0) // 초기 평점
                 .dailySales(0) // 초기 판매량
                 .revenue(0L) // 초기 수익
@@ -49,7 +51,8 @@ public class StoreMenuService {
                 storeMenu.getPrice(),
                 storeMenu.getRating(),
                 storeMenu.getDescription(),
-                storeMenu.getImageUrl()
+                storeMenu.getImageUrl(),
+                storeMenu.getCategory()
         );
     }
 
@@ -70,7 +73,8 @@ public class StoreMenuService {
                 menuRequestDto.getPrice(),
                 menuRequestDto.getDescription(),
                 menuRequestDto.getImageUrl(),
-                menuRequestDto.isAvailable()
+                menuRequestDto.isAvailable(),
+                menuRequestDto.getCategory()
         );
 
         return new MenuResponseDto(
@@ -78,7 +82,8 @@ public class StoreMenuService {
                 storeMenu.getPrice(),
                 storeMenu.getRating(),
                 storeMenu.getDescription(),
-                storeMenu.getImageUrl()
+                storeMenu.getImageUrl(),
+                storeMenu.getCategory()
         );
     }
 
@@ -94,6 +99,7 @@ public class StoreMenuService {
         storeMenuRepository.delete(storeMenu);
     }
 
+    //모든 메뉴 조회
     @Transactional(readOnly = true)
     public List<MenuResponseDto> getAllMenus(Long storeId) {
         Store store = storeRepository.findById(storeId)
@@ -105,12 +111,38 @@ public class StoreMenuService {
                         menu.getPrice(),
                         menu.getRating(),
                         menu.getDescription(),
-                        menu.getImageUrl()
+                        menu.getImageUrl(),
+                        menu.getCategory()
                 ))
                 .collect(Collectors.toList());
     }
 
-    // QR 코드 생성 또는 업데이트
+    //카테고리별 메뉴 조회
+    @Transactional(readOnly = true)
+    public List<MenuResponseDto> getMenusByCategory(Long storeId, String category){
+        Store store = storeRepository.findById(storeId).orElseThrow(()-> new IllegalArgumentException("존재하지 않는 매장입니다."));
+
+        return storeMenuRepository.findByStoreAndCategory(store, category).stream()
+                .map(menu -> new MenuResponseDto(
+                        menu.getMenuName(),
+                        menu.getPrice(),
+                        menu.getRating(),
+                        menu.getDescription(),
+                        menu.getImageUrl(),
+                        menu.getCategory()
+                ))
+                .collect(Collectors.toList());
+    }
+    // 매장의 모든 카테고리 조회
+    @Transactional(readOnly = true)
+    public List<String> getAllCategories(Long storeId) {
+        Store store = storeRepository.findById(storeId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 매장입니다."));
+
+        return storeMenuRepository.findCategoriesByStore(store);
+    }
+
+    /*// QR 코드 생성 또는 업데이트
     private void generateOrUpdateQRCode(Store store) {
         // 매장의 QR 코드가 있는지 확인
         QR_Code qrCode = qrCodeRepository.findByStore(store)
@@ -131,5 +163,5 @@ public class StoreMenuService {
         }
 
         qrCodeRepository.save(qrCode);
-    }
+    }*/
 }

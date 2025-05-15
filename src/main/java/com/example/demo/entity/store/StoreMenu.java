@@ -36,11 +36,24 @@ public class StoreMenu {
     @JoinColumn(name = "store_id") // 외래키 이름
     private Store store;
 
-    public void updateMenu(String menuName, Integer price, String description, String imageUrl, Boolean available) {
+    public void updateMenu(String menuName, Integer price, String description, String imageUrl, Boolean available, String category) {
         this.menuName = menuName;
         this.price = price;
         this.description = description;
         this.imageUrl = imageUrl;
         this.available = available;
+        this.category = category;
     }
+
+    //일일 판매량 증가 매서드(주문 쪽에서 호출할걸로 예상)
+    public void increaseDailySales(int quantity) {
+        this.dailySales += quantity;
+        this.revenue += (long) this.price * quantity;
+    }
+
+    //일일 판매량 초기화
+    public void resetDailySales() {
+        this.dailySales = 0;
+    }
+
 }

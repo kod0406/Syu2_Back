@@ -8,11 +8,12 @@ import lombok.Getter;
 @AllArgsConstructor
 @Data
 public class MenuResponseDto {
-    private String name;
+    private String menuName;
     private int price;
     private double rating;
     private String description;
     private String imageUrl;
+    private String category;
 
 
 }

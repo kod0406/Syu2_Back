@@ -26,7 +26,8 @@ public class CustomerMenuService {
                         menu.getPrice(),
                         menu.getRating(),
                         menu.getDescription(),
-                        menu.getImageUrl()
+                        menu.getImageUrl(),
+                        menu.getCategory()
                 ))
                 .collect(Collectors.toList());
     }

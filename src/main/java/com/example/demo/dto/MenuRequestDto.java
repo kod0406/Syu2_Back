@@ -10,4 +10,5 @@ public class MenuRequestDto {
     private String description;
     private String imageUrl;
     private boolean available;
+    private String category;
 }

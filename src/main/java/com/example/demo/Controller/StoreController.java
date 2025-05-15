@@ -72,7 +72,7 @@ public class StoreController {
     public ResponseEntity<?> login(@RequestBody StoreLoginDTO loginDTO,
                                    HttpServletResponse response) {
         try {
-            // 실제 로그인 검증 로직 추가
+
             Store store = storeService.authenticateStore(loginDTO.getOwnerEmail(), loginDTO.getPassword());
 
             if (store == null) {
