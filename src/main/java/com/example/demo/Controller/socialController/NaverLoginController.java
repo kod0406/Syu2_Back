@@ -1,4 +1,4 @@
-package com.example.demo.Controller;
+package com.example.demo.Controller.socialController;
 
 import com.example.demo.Service.NaverLoginService;
 import com.example.demo.entity.customer.Customer;
@@ -13,7 +13,6 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.net.URI;
 import java.time.Duration;
 import java.util.Optional;
 

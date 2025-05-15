@@ -1,7 +1,7 @@
-package com.example.demo.Controller;
+package com.example.demo.Controller.socialController;
 
 import com.example.demo.Service.KakaoService;
-import com.example.demo.dto.KakaoUserInfoResponseDto;
+import com.example.demo.dto.socialDto.KakaoUserInfoResponseDto;
 import com.example.demo.entity.customer.Customer;
 import com.example.demo.jwt.JwtTokenProvider;
 import com.example.demo.repository.CustomerRepository;
@@ -17,8 +17,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Optional;
 

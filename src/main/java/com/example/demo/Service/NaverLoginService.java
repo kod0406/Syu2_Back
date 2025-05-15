@@ -1,7 +1,7 @@
 package com.example.demo.Service;
 
-import com.example.demo.dto.NaverProfileResponseDto;
-import com.example.demo.dto.NaverTokenResponseDto;
+import com.example.demo.dto.socialDto.NaverProfileResponseDto;
+import com.example.demo.dto.socialDto.NaverTokenResponseDto;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
