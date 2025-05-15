@@ -2,10 +2,11 @@ package com.example.demo.dto;
 
 import com.example.demo.entity.store.StoreMenu;
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.Getter;
 
-@Getter
 @AllArgsConstructor
+@Data
 public class MenuResponseDto {
     private String name;
     private int price;
