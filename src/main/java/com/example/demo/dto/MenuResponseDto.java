@@ -1,5 +1,6 @@
 package com.example.demo.dto;
 
+import com.example.demo.entity.store.StoreMenu;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -11,4 +12,6 @@ public class MenuResponseDto {
     private double rating;
     private String description;
     private String imageUrl;
+
+
 }
