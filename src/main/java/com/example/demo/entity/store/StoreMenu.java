@@ -30,6 +30,8 @@ public class StoreMenu {
     //사진
     private String imageUrl;
 
+    private String category;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "store_id") // 외래키 이름
     private Store store;
