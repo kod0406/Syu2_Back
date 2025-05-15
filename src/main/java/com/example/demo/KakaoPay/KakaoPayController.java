@@ -1,8 +1,5 @@
-package com.example.demo.Controller;
+package com.example.demo.KakaoPay;
 
-import com.example.demo.dto.KakaoPayProvider;
-import com.example.demo.dto.KakaoPayRequest;
-import com.example.demo.dto.KakaoPayResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 

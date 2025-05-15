@@ -1,4 +1,4 @@
-package com.example.demo.dto;
+package com.example.demo.KakaoPay;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
