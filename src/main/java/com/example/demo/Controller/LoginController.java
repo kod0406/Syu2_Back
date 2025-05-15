@@ -1,6 +1,8 @@
 package com.example.demo.Controller;
 
 import com.example.demo.Service.KakaoService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 @Controller
 @RequiredArgsConstructor
+@Tag(name = "��그인", description = "로그인 페이지 관련 API")
 public class LoginController {
 
     private final KakaoService kakaoService;
@@ -27,6 +30,7 @@ public class LoginController {
     @Value("${naver.client_id}")
     private String naverClientId;
 
+    @Operation(summary = "카카오 로그인 페이지", description = "카카오 로그인 페이지를 제공합니다.")
     @GetMapping("/kakao")
     public String kakaoLogin(Model model) {
 
@@ -46,10 +50,13 @@ public class LoginController {
         return "login";
     }
 
+    @Operation(summary = "점주 로그인 페이지", description = "점주 로그인 페이지를 제공합니다.")
     @GetMapping("/login/owner")
     public String ownerLogin() {
         return "owner-login";
     }
+
+    @Operation(summary = "점주 회원가입 페이지", description = "점주 회원가입 페이지를 제공합니다.")
     @GetMapping("/login/owner/register")
     public String ownerRegister() {
         return "Owner_register";
