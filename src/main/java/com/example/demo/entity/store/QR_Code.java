@@ -19,4 +19,8 @@ public class QR_Code {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "store_id") // 외래키 이름
     private Store store;
+
+    public void updateUrl(String url){
+        this.QR_Code = url;
+    }
 }
