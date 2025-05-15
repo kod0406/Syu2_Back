@@ -6,6 +6,8 @@ import com.example.demo.jwt.JwtTokenProvider;
 import com.example.demo.repository.CustomerRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +25,14 @@ public class NaverLoginController {
     private final NaverLoginService naverLoginService;
     private final CustomerRepository customerRepository;
     private final JwtTokenProvider jwtTokenProvider;
+
+    @Value("${naver.redirect_uri}")
+    private String naverRedirectUri;
+
+    @Value("${naver.client_id}")
+    private String naverClientId;
+
+
     @GetMapping("/login/naver")
     public ResponseEntity<?> naverCallback(@RequestParam String code, @RequestParam String state) {
         String tokenResponse = naverLoginService.getNaverAccessToken(code, state); // 네이버 토큰 요청 메서드 호출
@@ -50,7 +60,20 @@ public class NaverLoginController {
 
         return ResponseEntity.status(HttpStatus.FOUND)
                 .header("Set-Cookie", cookie.toString())
-                .header("Location", "http://localhost:8080/menu-test")
+                .header("Location", "http://localhost:3000/menu")
+                .build();
+    }
+
+    @GetMapping("/api/oauth2/naver/login")
+    public ResponseEntity<Void> redirectToNaver() {
+        String naverAuthUrl = "https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=" +
+                naverClientId +
+                "&state=1234" +
+                "&redirect_uri=" +
+                naverRedirectUri;
+
+        return ResponseEntity.status(HttpStatus.FOUND)
+                .header(HttpHeaders.LOCATION, naverAuthUrl)
                 .build();
     }
 }
