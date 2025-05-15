@@ -28,8 +28,6 @@ public class Store implements AppUser {
 
     private String provider;
 
-    private String password;
-
     @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<QR_Code> qr_Code = new ArrayList<>();
 
