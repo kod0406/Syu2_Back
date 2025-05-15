@@ -1,7 +1,9 @@
 package com.example.demo.Service;
 
 import com.example.demo.dto.StoreRegistrationDTO;
+import com.example.demo.entity.store.QR_Code;
 import com.example.demo.entity.store.Store;
+import com.example.demo.repository.QRCodeRepository;
 import com.example.demo.repository.StoreRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -9,10 +11,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class StoreService {
+    private final QRCodeRepository qrCodeRepository;
     private final StoreRepository storeRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public StoreService(StoreRepository storeRepository, PasswordEncoder passwordEncoder) {
+    public StoreService(QRCodeRepository qrCodeRepository, StoreRepository storeRepository, PasswordEncoder passwordEncoder) {
+        this.qrCodeRepository = qrCodeRepository;
         this.storeRepository = storeRepository;
         this.passwordEncoder = passwordEncoder;
     }
@@ -32,7 +36,11 @@ public class StoreService {
                 .provider("local")
                 .build();
 
-        return storeRepository.save(store);
+        store = storeRepository.save(store);
+
+        createQRCode(store); // QR코드 생성 로직 호출
+
+        return store;
     }
 
     @Transactional // 회원 탈퇴
@@ -44,6 +52,21 @@ public class StoreService {
         // (예: 매장 메뉴, 리뷰 등 삭제)
 
         storeRepository.delete(store);
+    }
+
+    public void createQRCode(Store store){
+        String menuUrl = "/menu/" + store.getStoreId();
+
+
+        // QR 코드 엔티티 생성
+        QR_Code qrCode = QR_Code.builder()
+                .QR_Code(menuUrl)
+                .store(store)
+                .build();
+
+        // QR 코드 저장
+        qrCodeRepository.save(qrCode);
+
     }
 
     public Store authenticateStore(String email, String password) {

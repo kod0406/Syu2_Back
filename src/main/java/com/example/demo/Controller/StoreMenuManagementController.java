@@ -18,7 +18,6 @@ import java.util.Map;
 @RequestMapping("/api/store")
 public class StoreMenuManagementController {
     private final StoreMenuService storeMenuService;
-    private final QRCodeRepository qrCodeRepository;
 
     // 메뉴 목록 조회
     @GetMapping("/{storeId}/menus")
@@ -41,7 +40,7 @@ public class StoreMenuManagementController {
     public ResponseEntity<MenuResponseDto> getMenu(
             @PathVariable Long storeId,
             @PathVariable Long menuId) {
-        // 여기에 특정 메뉴 조회 로직이 필요합니다
+        // 여기에 특정 메뉴 조회 로직이 필요
         return ResponseEntity.ok().build();
     }
 
@@ -64,22 +63,21 @@ public class StoreMenuManagementController {
         return ResponseEntity.ok().build();
     }
 
-    // QR 코드 정보 조회
-    @GetMapping("/{storeId}/qrcode")
-    public ResponseEntity<Map<String, String>> getQrCode(@PathVariable Long storeId) {
-        Map<String, String> response = new HashMap<>();
-
-        // 매장 QR 코드 정보 조회
-        qrCodeRepository.findByStoreStoreId(storeId).ifPresent(qrCode -> {
-            response.put("url", qrCode.getQR_Code());
-            response.put("qrImageUrl", "/api/store/" + storeId + "/qrcode/image");
-        });
-
-        if (response.isEmpty()) {
-            response.put("url", "/menu/" + storeId);
-            response.put("qrImageUrl", "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=/menu/" + storeId);
-        }
-
-        return ResponseEntity.ok(response);
+    //카테고리별 메뉴 조회
+    @GetMapping("/{storeId}/category/{category}/menus")
+    public ResponseEntity<List<MenuResponseDto>> getMenuByCategory(
+            @PathVariable Long storeId,
+            @PathVariable String category) {
+        List<MenuResponseDto> menuList = storeMenuService.getMenusByCategory(storeId, category);
+        return ResponseEntity.ok(menuList);
     }
+
+    //모든 카테고리 목록 조회
+    @GetMapping("/{storeId}/categories")
+    public ResponseEntity<List<String>> getAllCategories(@PathVariable Long storeId){
+        List<String> categories = storeMenuService.getAllCategories(storeId);
+        return ResponseEntity.ok(categories);
+
+    }
+
 }
