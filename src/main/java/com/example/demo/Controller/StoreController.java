@@ -71,9 +71,15 @@ public class StoreController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody StoreLoginDTO loginDTO,
                                    HttpServletResponse response) {
-
-
         try {
+            // 실제 로그인 검증 로직 추가
+            Store store = storeService.authenticateStore(loginDTO.getOwnerEmail(), loginDTO.getPassword());
+
+            if (store == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(Map.of("error", "이메일 또는 비밀번호가 일치하지 않습니다."));
+            }
+
             // JWT 토큰 생성
             String token = jwtTokenProvider.createToken(loginDTO.getOwnerEmail());
 
@@ -84,11 +90,15 @@ public class StoreController {
             cookie.setHttpOnly(true);
             response.addCookie(cookie);
 
-            return ResponseEntity.ok(Map.of("message", "로그인 성공",
-                    "token", token));
+            return ResponseEntity.ok(Map.of(
+                    "message", "로그인 성공",
+                    "token", token,
+                    "storeId", store.getStoreId()
+            ));
         } catch (Exception e) {
+            e.printStackTrace(); // 로그 확인용
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("error", "로그인에 실패했습니다."));
+                    .body(Map.of("error", "로그인에 실패했습니다: " + e.getMessage()));
         }
     }
 }
