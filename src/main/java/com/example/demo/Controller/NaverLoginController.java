@@ -60,7 +60,7 @@ public class NaverLoginController {
 
         return ResponseEntity.status(HttpStatus.FOUND)
                 .header("Set-Cookie", cookie.toString())
-                .header("Location", "http://localhost:8080/menu-test")
+                .header("Location", "http://localhost:3000/menu")
                 .build();
     }
 

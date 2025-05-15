@@ -24,6 +24,8 @@ public class Store implements AppUser {
 
     private String ownerEmail;
 
+    private String password;
+
     private String provider;
 
     @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, orphanRemoval = true)
