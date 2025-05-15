@@ -27,6 +27,7 @@ public class StoreMenuService {
     public MenuResponseDto createMenu(Long storeId, MenuRequestDto menuRequestDto){
         Store store = storeRepository.findById(storeId)
                 .orElseThrow(()-> new IllegalArgumentException("존재하지 않는 매장입니다."));
+
         StoreMenu storeMenu = StoreMenu.builder()
                 .menuName(menuRequestDto.getMenuName())
                 .price(menuRequestDto.getPrice())
@@ -41,7 +42,7 @@ public class StoreMenuService {
         storeMenuRepository.save(storeMenu);
 
         // QR코드 생성
-        generateOrUpdateQRCode(store);
+        //generateOrUpdateQRCode(store);
 
         return new MenuResponseDto(
                 storeMenu.getMenuName(),
