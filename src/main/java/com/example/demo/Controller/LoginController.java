@@ -1,13 +1,9 @@
 package com.example.demo.Controller;
 
 import com.example.demo.Service.KakaoService;
-import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -48,5 +44,14 @@ public class LoginController {
         model.addAttribute("naverAuthUrl", naverAuthUrl);
 
         return "login";
+    }
+
+    @GetMapping("/login/owner")
+    public String ownerLogin() {
+        return "owner-login";
+    }
+    @GetMapping("/login/owner/register")
+    public String ownerRegister() {
+        return "Owner_register";
     }
 }

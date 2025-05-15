@@ -27,6 +27,11 @@ public class SecurityConfig {
     private final StoreRepository storeRepository;
 
     @Bean
+    public PasswordEncoder passwordEncoder() {
+        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
+    }
+
+    @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
         return new JwtAuthenticationFilter(jwtTokenProvider, customerRepository, storeRepository);
     }

@@ -33,4 +33,12 @@ public class StoreMenu {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "store_id") // 외래키 이름
     private Store store;
+
+    public void updateMenu(String menuName, Integer price, String description, String imageUrl, Boolean available) {
+        this.menuName = menuName;
+        this.price = price;
+        this.description = description;
+        this.imageUrl = imageUrl;
+        this.available = available;
+    }
 }
