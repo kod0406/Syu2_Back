@@ -45,4 +45,16 @@ public class StoreService {
 
         storeRepository.delete(store);
     }
+
+    public Store authenticateStore(String email, String password) {
+        Store store = storeRepository.findByOwnerEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이메일입니다."));
+
+        // 비밀번호 검증 로직 (예: BCrypt 사용)
+        if (!passwordEncoder.matches(password, store.getPassword())) {
+            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
+        }
+
+        return store;
+    }
 }
