@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 @Controller
 @RequiredArgsConstructor
-@Tag(name = "��그인", description = "로그인 페이지 관련 API")
+@Tag(name = "로그인", description = "로그인 페이지 관련 API")
 public class LoginController {
 
     private final KakaoService kakaoService;
