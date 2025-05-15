@@ -6,6 +6,10 @@ import com.example.demo.dto.StoreRegistrationDTO;
 import com.example.demo.entity.entityInterface.AppUser;
 import com.example.demo.entity.store.Store;
 import com.example.demo.jwt.JwtTokenProvider;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +22,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/stores")
+@Tag(name = "매장 관리", description = "매장 계정 관리 API")
 public class StoreController {
     private final StoreService storeService;
     private final JwtTokenProvider jwtTokenProvider;
@@ -28,8 +33,10 @@ public class StoreController {
         this.jwtTokenProvider = jwtTokenProvider;
     }
 
+    @Operation(summary = "매장 회원가입", description = "신규 매장을 등록합니다.")
     @PostMapping("/register")
-    public ResponseEntity<?> registerStore(@RequestBody StoreRegistrationDTO registrationDTO) {
+    public ResponseEntity<?> registerStore(
+            @Parameter(description = "매장 등록 정보") @RequestBody StoreRegistrationDTO registrationDTO) {
         try {
             Store store = storeService.registerStore(registrationDTO);
             return ResponseEntity.ok(Map.of(
@@ -41,64 +48,6 @@ public class StoreController {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
-
-    @DeleteMapping("/withdraw")
-    public ResponseEntity<?> withdrawStore(@AuthenticationPrincipal AppUser user,
-                                           HttpServletResponse response) {
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("error", "로그인이 필요합니다."));
-        }
-
-        try {
-            // 매장 삭제
-            storeService.deleteStore(user.getId());
-
-            // 쿠키 초기화
-            Cookie cookie = new Cookie("access_token", null);
-            cookie.setMaxAge(0); // 즉시 만료
-            cookie.setPath("/");
-            // cookie.setSecure(true); // HTTPS 환경에서만 활성화
-            cookie.setHttpOnly(true);
-            response.addCookie(cookie);
-
-            return ResponseEntity.ok(Map.of("message", "회원탈퇴가 완료되었습니다."));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
-        }
-    }
-
-    @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody StoreLoginDTO loginDTO,
-                                   HttpServletResponse response) {
-        try {
-
-            Store store = storeService.authenticateStore(loginDTO.getOwnerEmail(), loginDTO.getPassword());
-
-            if (store == null) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(Map.of("error", "이메일 또는 비밀번호가 일치하지 않습니다."));
-            }
-
-            // JWT 토큰 생성
-            String token = jwtTokenProvider.createToken(loginDTO.getOwnerEmail());
-
-            // 쿠키에 토큰 저장
-            Cookie cookie = new Cookie("access_token", token);
-            cookie.setMaxAge(3600); // 1시간
-            cookie.setPath("/");
-            cookie.setHttpOnly(true);
-            response.addCookie(cookie);
-
-            return ResponseEntity.ok(Map.of(
-                    "message", "로그인 성공",
-                    "token", token,
-                    "storeId", store.getStoreId()
-            ));
-        } catch (Exception e) {
-            e.printStackTrace(); // 로그 확인용
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("error", "로그인에 실패했습니다: " + e.getMessage()));
-        }
-    }
 }
+
+   

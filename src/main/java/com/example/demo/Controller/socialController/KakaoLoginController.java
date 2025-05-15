@@ -5,6 +5,9 @@ import com.example.demo.dto.socialDto.KakaoUserInfoResponseDto;
 import com.example.demo.entity.customer.Customer;
 import com.example.demo.jwt.JwtTokenProvider;
 import com.example.demo.repository.CustomerRepository;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,6 +27,7 @@ import java.util.Optional;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("")
+@Tag(name = "카카오 로그인", description = "카카오 소셜 로그인 관련 API")
 public class KakaoLoginController {
 
     private final KakaoService kakaoService;
@@ -36,11 +40,10 @@ public class KakaoLoginController {
     @Value("${kakao.redirect_uri}")
     private String kakaoRedirectUri;
 
-
-
-
+    @Operation(summary = "카카오 로그인 콜백", description = "카카오 인증 코드를 받아 사용자 정보를 처리하고 JWT 토큰을 발급합니다.")
     @GetMapping("OAuth2/login/kakao")
-    public ResponseEntity<?> callback(@RequestParam("code") String code) {
+    public ResponseEntity<?> callback(
+            @Parameter(description = "카카오 인증 코드") @RequestParam("code") String code) {
         String accessToken = kakaoService.getAccessTokenFromKakao(code);
         KakaoUserInfoResponseDto userInfo = kakaoService.getUserInfo(accessToken);
         String kakaoId = userInfo.getId().toString();
@@ -71,6 +74,7 @@ public class KakaoLoginController {
                 .build();
     }
 
+    @Operation(summary = "카카오 로그인 리다이렉트", description = "카카오 로그인 페이지로 리다이렉트합니다.")
     @GetMapping("/api/oauth2/kakao/login")
     public ResponseEntity<Void> redirectToKakao() {
         String kakaoUrl = "https://kauth.kakao.com/oauth/authorize"
