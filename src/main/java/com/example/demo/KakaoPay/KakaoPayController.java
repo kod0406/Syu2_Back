@@ -17,6 +17,7 @@ public class KakaoPayController {
 
     @GetMapping("/approve")
     public KakaoPayResponse.ApproveResponse approve(@RequestParam("pg_token") String pgToken) {
+        //DB 저장 로직 추가
         return kakaoPayProvider.approve(pgToken);
     }
 }
