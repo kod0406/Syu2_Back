@@ -25,6 +25,7 @@ public class CustomerOrderService {
     private final CustomerPointRepository customerPointRepository;
     private final CustomerStatisticsRepository customerStatisticsRepository;
     private final StoreRepository storeRepository;
+
     @Transactional
     public KakaoPayRequest.OrderRequest order(List<OrderDTO> orders, Customer customer, Long storeId) {
         int totalAmount = 0;
