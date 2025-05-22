@@ -26,6 +26,9 @@ public class CustomerStatistics {
 
     private long orderAmount;
 
+    @Column(name = "customer_number")
+    private long customerNumber;
+
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id") // 외래키 이름
@@ -34,4 +37,6 @@ public class CustomerStatistics {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "store_id") // 외래키 이름
     private Store store;
+
+
 }
