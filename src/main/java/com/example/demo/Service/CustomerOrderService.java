@@ -38,7 +38,7 @@ public class CustomerOrderService {
                     .orderAmount(dto.getMenuAmount())
                     .date(LocalDate.now())
                     .orderPrice(dto.getMenuPrice())
-                    .customer(customer) // 로그인 회원만 연결, 비회원은 null
+                    .customerNumber(customer.getCustomerId())
                     .build();
 
             customerStatisticsRepository.save(customerStatistics);
