@@ -55,11 +55,13 @@ public class StoreService {
     }
 
     public void createQRCode(Store store){
-        String menuUrl = "/menu/" + store.getStoreId();
+        // QR 코드에 포함될 URL을 지정-> 나중에 원하는 URL로 변경 필
+        String menuUrl = "/api/Store/Menu?StoreNumber=" + store.getStoreId();
+
 
         // QR 코드 엔티티 생성
         QR_Code qrCode = QR_Code.builder()
-                .QR_Code(menuUrl)
+                .QR_Code(menuUrl) // QR_Code 필드에 menuUrl 저장
                 .store(store)
                 .build();
 
