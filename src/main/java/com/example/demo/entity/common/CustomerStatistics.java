@@ -26,8 +26,6 @@ public class CustomerStatistics {
 
     private long orderAmount;
 
-    @Column(name = "customer_number")
-    private long customerNumber;
 
 
     @ManyToOne(fetch = FetchType.LAZY)
