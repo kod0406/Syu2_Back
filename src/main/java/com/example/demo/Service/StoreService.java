@@ -57,7 +57,6 @@ public class StoreService {
     public void createQRCode(Store store){
         String menuUrl = "/menu/" + store.getStoreId();
 
-
         // QR 코드 엔티티 생성
         QR_Code qrCode = QR_Code.builder()
                 .QR_Code(menuUrl)
