@@ -25,6 +25,7 @@ public class KakaoPayController {
     @PostMapping("/ready")
     public KakaoPayResponse.ReadyResponse ready(@RequestBody List<OrderDTO> orders, @AuthenticationPrincipal Customer customer, @RequestParam Long storeId){
 
+        //저장 로직 변경 결제 후에 저장해야함. 현재는 결제 전에 저장
         KakaoPayRequest.OrderRequest request = customerOrderService.order(orders, customer, storeId);;
         return kakaoPayProvider.ready(request);
     }
@@ -32,6 +33,8 @@ public class KakaoPayController {
     @GetMapping("/approve")
     public KakaoPayResponse.ApproveResponse approve(@RequestParam("pg_token") String pgToken) {
         //DB 저장 로직 추가
+        //KakaoPayRequest.OrderRequest request = customerOrderService.order(orders, customer, storeId);;
+
         return kakaoPayProvider.approve(pgToken);
     }
 }
