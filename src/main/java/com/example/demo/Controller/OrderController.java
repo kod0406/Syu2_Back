@@ -15,8 +15,8 @@ import java.util.List;
 public class OrderController {
     private final CustomerOrderService customerOrderService;
     @PostMapping("/order")
-    public ResponseEntity<Void> order(@RequestBody List<OrderDTO> orders, @AuthenticationPrincipal Customer customer) {
-        customerOrderService.order(orders, customer);
+    public ResponseEntity<Void> order(@RequestBody List<OrderDTO> orders, @AuthenticationPrincipal Customer customer, @RequestParam Long storeId) {
+        customerOrderService.order(orders, customer, storeId);
         return ResponseEntity.ok().build();
     }
 }
