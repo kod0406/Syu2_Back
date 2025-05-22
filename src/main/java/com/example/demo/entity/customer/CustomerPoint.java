@@ -16,15 +16,16 @@ public class CustomerPoint {
     private long pointId;
 
     private long pointAmount;
-
-    private String savePoint;
-
-    private String usePoint;
-
-    private LocalDate usePointDate;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id") // 외래키 이름
     private Customer customer;
 
 
+    public void addPoint(long point) {
+        this.pointAmount += point;
+    }
+
+    public void usePoint(long point) {
+        this.pointAmount -= point;
+    }
 }
