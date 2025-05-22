@@ -38,7 +38,7 @@ public class CustomerOrderService {
                     .orderAmount(dto.getMenuAmount())
                     .date(LocalDate.now())
                     .orderPrice(dto.getMenuPrice())
-                    .customerNumber(customer.getCustomerId())
+                    .customer(customer)
                     .build();
 
             customerStatisticsRepository.save(customerStatistics);
