@@ -1,6 +1,7 @@
 package com.example.demo.dto;
 
 import com.example.demo.entity.customer.Customer;
+import com.example.demo.entity.entityInterface.AppUser;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -15,8 +16,8 @@ public class MemberResponseDTO {
     private String role;
 
 
-    public MemberResponseDTO(Customer customer) {
-        this.id = customer.getId();
-        this.role = customer.getRole();
+    public MemberResponseDTO(AppUser user) {
+        this.id = user.getId();
+        this.role = user.getRole();
     }
 }
