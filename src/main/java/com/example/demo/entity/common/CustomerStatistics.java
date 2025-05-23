@@ -26,7 +26,9 @@ public class CustomerStatistics {
 
     private long orderAmount;
 
-
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_group_id")
+    private OrderGroup orderGroup;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id") // 외래키 이름

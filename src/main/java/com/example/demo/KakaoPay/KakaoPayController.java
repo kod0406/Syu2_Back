@@ -38,9 +38,10 @@ public class KakaoPayController {
     }
 
     @GetMapping("/approve")
-    public ResponseEntity<Void> approve(@RequestParam("pg_token") String pgToken) {
+    public ResponseEntity<Void> approve(@RequestParam("pg_token") String pgToken,
+                                        @RequestParam("orderGroupId") Long orderGroupId) {
         //DB 저장 로직 추가
-        kakaoPayProvider.approve(pgToken);
+        kakaoPayProvider.approve(pgToken, orderGroupId);
         //KakaoPayRequest.OrderRequest request = customerOrderService.order(orders, customer, storeId);;
         HttpHeaders headers = new HttpHeaders();
         headers.setLocation(URI.create("http://localhost:3000/menu")); // ✅ 결제 완료 후 이동할 URL (React 메인 페이지 등)
@@ -48,4 +49,11 @@ public class KakaoPayController {
         return new ResponseEntity<>(headers, HttpStatus.FOUND); // 302 Redirect
 
     }
+
+    @GetMapping("/fail")
+    public ResponseEntity<String> fail(@RequestParam("orderGroupId") Long orderGroupId) {
+        customerOrderService.processPaymentFailure(orderGroupId);
+        return ResponseEntity.ok("결제 실패로 주문 삭제 완료");
+    }
+
 }

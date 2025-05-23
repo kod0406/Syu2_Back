@@ -1,5 +1,12 @@
 package com.example.demo.KakaoPay;
 
+import com.example.demo.entity.common.CustomerStatistics;
+import com.example.demo.entity.common.OrderGroup;
+import com.example.demo.entity.customer.Customer;
+import com.example.demo.entity.customer.CustomerPoint;
+import com.example.demo.repository.CustomerPointRepository;
+import com.example.demo.repository.CustomerStatisticsRepository;
+import com.example.demo.repository.OrderGroupRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,6 +18,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -19,6 +27,10 @@ import java.util.Objects;
 @Transactional
 @RequiredArgsConstructor
 public class KakaoPayProvider {
+    private final OrderGroupRepository orderGroupRepository;
+    private final CustomerPointRepository customerPointRepository;
+
+
     @Value("${kakaopay.secretKey}")
     private String secretKey;
 
@@ -38,7 +50,7 @@ public class KakaoPayProvider {
         parameters.put("quantity", request.getQuantity()); // 상품 수량
         parameters.put("total_amount", request.getTotalPrice()); // 상품 총액
         parameters.put("tax_free_amount", "0"); // 상품 비과세 금액
-        parameters.put("approval_url", "http://localhost:8080/api/v1/kakao-pay/approve"); // 결제 성공 시 redirct URL
+        parameters.put("approval_url", "http://localhost:8080/api/v1/kakao-pay/approve?orderGroupId=" + request.getOrderGroup().getId()); // 결제 성공 시 redirct URL
         parameters.put("cancel_url", "http://localhost:8080/api/v1/kakao-pay/cancel"); // 결제 취소 시
         parameters.put("fail_url", "http://localhost:8080/kakao-pay/fail"); // 결제 실패 시
 
@@ -60,7 +72,36 @@ public class KakaoPayProvider {
         return headers;
     }
 
-    public KakaoPayResponse.ApproveResponse approve(String pgToken) {
+    public KakaoPayResponse.ApproveResponse approve(String pgToken, Long orderGroupId) {
+
+        OrderGroup orderGroup = orderGroupRepository.findById(orderGroupId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 주문이 존재하지 않습니다."));
+
+        List<CustomerStatistics> stats = orderGroup.getCustomerStatisticsList();
+
+        int totalAmount = stats.stream()
+                .mapToInt(stat -> (int) (stat.getOrderPrice() * stat.getOrderAmount()))
+                .sum();
+
+        Customer customer = orderGroup.getCustomer();
+        if (customer != null) {
+            int point = (int) (totalAmount * 0.01);
+
+            CustomerPoint customerPoint = customerPointRepository.findByCustomer(customer)
+                    .orElseGet(() -> CustomerPoint.builder()
+                            .customer(customer)
+                            .pointAmount(0L)
+                            .build());
+
+            customerPoint.addPoint(point);
+            customerPointRepository.save(customerPoint);
+        }
+
+        // ✅ 필요 시 결제 성공 로그 추가
+        log.info("✅ 결제 승인 성공: 주문번호 {}, 총금액 {}, 포인트 {} 적립됨", orderGroupId, totalAmount, (int)(totalAmount * 0.01));
+
+
+
         Map<String, String> parameters = new HashMap<>();
         parameters.put("cid", cid);
         parameters.put("tid", tid);
@@ -72,7 +113,8 @@ public class KakaoPayProvider {
 
         RestTemplate restTemplate = new RestTemplate();
         String url = "https://open-api.kakaopay.com/online/v1/payment/approve";
-        ResponseEntity<KakaoPayResponse.ApproveResponse> response = restTemplate.postForEntity(url, entity, KakaoPayResponse.ApproveResponse.class);
+        ResponseEntity<KakaoPayResponse.ApproveResponse> response =
+                restTemplate.postForEntity(url, entity, KakaoPayResponse.ApproveResponse.class);
 
         return response.getBody();
     }
