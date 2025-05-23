@@ -84,4 +84,10 @@ public class CustomerOrderService {
             log.info("❌ 결제 실패: 주문 {} 관련 통계 및 그룹 삭제됨", orderGroupId);
         });
     }
+
+    public long getPoint(Customer customer) {
+        return customerPointRepository.findByCustomer(customer)
+                .map(CustomerPoint::getPointAmount)
+                .orElse(0L); // 포인트 정보 없으면 0
+    }
 }
