@@ -22,6 +22,9 @@ public interface StoreMenuRepository extends JpaRepository<StoreMenu, Long> {
 
     List<StoreMenu> findByStoreAndCategory(Store store, String category);
 
+    // 각 상점의 메뉴 개수를 조회
+    long countByStoreStoreId(Long storeId);
+
     @Query("SELECT DISTINCT m.category FROM StoreMenu m WHERE m.store = :store AND m.category IS NOT NULL")
     List<String> findCategoriesByStore(@Param("store")Store store);
 }
