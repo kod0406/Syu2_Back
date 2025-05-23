@@ -43,6 +43,11 @@ public class CustomerOrderService {
 
         //추후 느려질 때를 대비해야함.
         for (OrderDTO dto : orders) {
+            if ("UserPointUsedOrNotUsed".equals(dto.getMenuName()) && customer == null) {
+                log.warn("⚠️ 고객 없음 - 포인트 항목 저장 스킵: {}", dto);
+                continue;
+            }
+
             CustomerStatistics customerStatistics = CustomerStatistics.builder()
                     .store(store)
                     .orderDetails(dto.getMenuName())
@@ -56,23 +61,6 @@ public class CustomerOrderService {
             customerStatisticsRepository.save(customerStatistics);
             totalAmount += dto.getMenuPrice() * dto.getMenuAmount();
         }
-
-
-
-        // 로그인 회원일 경우에만 포인트 적립
-        //저장 로직
-//        if (customer != null) {
-//            int point = (int) (totalAmount * 0.01);
-//
-//            CustomerPoint customerPoint = customerPointRepository.findByCustomer(customer)
-//                    .orElseGet(() -> CustomerPoint.builder()
-//                            .customer(customer)
-//                            .pointAmount(0L)
-//                            .build());
-//
-//            customerPoint.addPoint(point);
-//            customerPointRepository.save(customerPoint);
-//        }
         
         String representativeMenu = orders.isEmpty() ? "메뉴 없음" : orders.get(0).getMenuName();
         if (orders.size() > 1) {

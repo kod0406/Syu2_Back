@@ -73,7 +73,7 @@ public class KakaoPayProvider {
     }
 
     public KakaoPayResponse.ApproveResponse approve(String pgToken, Long orderGroupId) {
-
+        log.info("orderGroupId는? " + orderGroupId);
         OrderGroup orderGroup = orderGroupRepository.findById(orderGroupId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 주문이 존재하지 않습니다."));
 
@@ -84,10 +84,31 @@ public class KakaoPayProvider {
                 .sum();
 
         Customer customer = orderGroup.getCustomer();
+        log.info("customer은?" + customer);
+
         if (customer != null) {
-            int point = (int) (totalAmount * 0.01);
+            int pointUsed = stats.stream()
+                    .filter(stat -> "UserPointUsedOrNotUsed".equals(stat.getOrderDetails()))
+                    .mapToInt(stat -> (int) (stat.getOrderPrice() * stat.getOrderAmount()))
+                    .sum();
 
             CustomerPoint customerPoint = customerPointRepository.findByCustomer(customer)
+                    .orElseGet(() -> CustomerPoint.builder()
+                            .customer(customer)
+                            .pointAmount(0L)
+                            .build());
+
+            if (pointUsed > 0) {
+                if (customerPoint.getPointAmount() < pointUsed) {
+                    throw new IllegalStateException("포인트가 부족합니다. 보유 포인트: " + customerPoint.getPointAmount());
+                }
+                customerPoint.subtractPoint(pointUsed); // ⬅️ 차감 메서드는 엔티티에 정의해야 함
+                log.info("💸 포인트 {} 차감 완료", pointUsed);
+            }
+
+            int point = (int) (totalAmount * 0.01);
+
+            customerPoint = customerPointRepository.findByCustomer(customer)
                     .orElseGet(() -> CustomerPoint.builder()
                             .customer(customer)
                             .pointAmount(0L)

@@ -28,4 +28,11 @@ public class CustomerPoint {
     public void usePoint(long point) {
         this.pointAmount -= point;
     }
+
+    public void subtractPoint(int amount) {
+        if (this.pointAmount < amount) {
+            throw new IllegalArgumentException("포인트가 부족합니다.");
+        }
+        this.pointAmount -= amount;
+    }
 }
