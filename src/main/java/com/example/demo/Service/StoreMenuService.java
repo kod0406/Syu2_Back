@@ -105,6 +105,12 @@ public class StoreMenuService {
         if(storeMenu.getStore().getStoreId() != storeId){
             throw new IllegalArgumentException("해당 매장의 메뉴가 아닙니다.");
         }
+
+        // 메뉴 삭제 전 S3에서 이미지 삭제
+        if (storeMenu.getImageUrl() != null && !storeMenu.getImageUrl().isEmpty()) {
+            s3UploadService.deleteFile(storeMenu.getImageUrl());
+        }
+
         storeMenuRepository.delete(storeMenu);
     }
 

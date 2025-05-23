@@ -102,11 +102,9 @@ public class S3UploadService {
             String storeName = store.getStoreName();
             Long storeId = store.getStoreId();
 
-            // 해당 매장의 메뉴 개수 조회
-            long menuCount = storeMenuRepository.countByStoreStoreId(storeId);
-
-            // 상점이름_상점Id_메뉴번호.확장자 형식으로 파일명 생성
-            return storeName + "_" + storeId + "_" + (menuCount + 1) + extension;
+            // 타임스탬프를 추가하여 고유한 파일명 생성
+            String timestamp = String.valueOf(System.currentTimeMillis());
+            return storeName + "_" + storeId + "_" + timestamp + extension;
         }
 
         // 인증 정보가 없거나 Store가 아닌 경우 기본 파일명 사용
