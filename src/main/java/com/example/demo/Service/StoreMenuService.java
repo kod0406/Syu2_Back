@@ -1,8 +1,8 @@
 package com.example.demo.Service;
 
+import com.example.demo.Service.Amazon.S3UploadService;
 import com.example.demo.dto.MenuRequestDto;
 import com.example.demo.dto.MenuResponseDto;
-import com.example.demo.entity.store.QR_Code;
 import com.example.demo.entity.store.Store;
 import com.example.demo.entity.store.StoreMenu;
 import com.example.demo.repository.QRCodeRepository;
@@ -11,6 +11,7 @@ import com.example.demo.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -22,6 +23,7 @@ public class StoreMenuService {
     private final StoreMenuRepository storeMenuRepository;
     private final QRCodeRepository qrCodeRepository;
     private final StoreService storeService;
+    private final S3UploadService s3UploadService;
 
     //메뉴 생성
     @Transactional
@@ -63,6 +65,15 @@ public class StoreMenuService {
         // 해당 메뉴가 요청한 매장의 것인지 확인
         if (storeMenu.getStore().getStoreId() != storeId) {
             throw new IllegalArgumentException("해당 매장의 메뉴가 아닙니다.");
+        }
+
+        // 새 이미지 URL이 있고 기존 이미지 URL과 다른 경우 기존 이미지 삭제
+        String oldImageUrl = storeMenu.getImageUrl();
+        String newImageUrl = menuRequestDto.getImageUrl();
+
+        if (newImageUrl != null && !newImageUrl.isEmpty() &&
+                !newImageUrl.equals(oldImageUrl) && oldImageUrl != null) {
+            s3UploadService.deleteFile(oldImageUrl);
         }
 
         // 메뉴 정보 업데이트
@@ -139,4 +150,6 @@ public class StoreMenuService {
 
         return storeMenuRepository.findCategoriesByStore(store);
     }
+
+
 }

@@ -35,28 +35,15 @@ public class StoreMenuManagementController {
     @Operation(summary = "메뉴 등록", description = "매장에 새로운 메뉴를 등록합니다.")
     @PostMapping(value = "/{storeId}/menus", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<MenuResponseDto> createMenu(
-            @Parameter(description = "매장 ID") @PathVariable Long storeId,
-            @Parameter(description = "메뉴 이름") @RequestParam("menuName") String menuName,
-            @Parameter(description = "가격") @RequestParam("price") int price,
-            @Parameter(description = "메뉴 설명") @RequestParam(value = "description", required = false) String description,
-            @Parameter(description = "판매 가능 여부") @RequestParam(value = "available", defaultValue = "true") boolean available,
-            @Parameter(description = "카테고리") @RequestParam(value = "category", required = false) String category,
-            @Parameter(description = "메뉴 이미지") @RequestParam(value = "image", required = false) MultipartFile image) {
+            @PathVariable Long storeId,
+            @ModelAttribute MenuRequestDto menuRequestDto,
+            @RequestParam(value = "image", required = false) MultipartFile image) {
 
         // 이미지 파일이 제공된 경우 S3에 업로드
-        String imageUrl = null;
         if (image != null && !image.isEmpty()) {
-            imageUrl = s3UploadService.uploadFile(image);
+            String imageUrl = s3UploadService.uploadFile(image);
+            menuRequestDto.setImageUrl(imageUrl);
         }
-
-        // DTO 생성
-        MenuRequestDto menuRequestDto = new MenuRequestDto();
-        menuRequestDto.setMenuName(menuName);
-        menuRequestDto.setPrice(price);
-        menuRequestDto.setDescription(description);
-        menuRequestDto.setImageUrl(imageUrl);
-        menuRequestDto.setAvailable(available);
-        menuRequestDto.setCategory(category);
 
         MenuResponseDto newMenu = storeMenuService.createMenu(storeId, menuRequestDto);
         return ResponseEntity.ok(newMenu);
@@ -75,20 +62,8 @@ public class StoreMenuManagementController {
     public ResponseEntity<MenuResponseDto> updateMenu(
             @Parameter(description = "매장 ID") @PathVariable Long storeId,
             @Parameter(description = "메뉴 ID") @PathVariable Long menuId,
-            @Parameter(description = "메뉴 이름") @RequestParam("menuName") String menuName,
-            @Parameter(description = "가격") @RequestParam("price") int price,
-            @Parameter(description = "메뉴 설명") @RequestParam(value = "description", required = false) String description,
-            @Parameter(description = "판매 가능 여부") @RequestParam(value = "available", defaultValue = "true") boolean available,
-            @Parameter(description = "카테고리") @RequestParam(value = "category", required = false) String category,
-            @Parameter(description = "메뉴 이미지") @RequestParam(value = "image", required = false) MultipartFile image) {
-
-        // DTO 생성
-        MenuRequestDto menuRequestDto = new MenuRequestDto();
-        menuRequestDto.setMenuName(menuName);
-        menuRequestDto.setPrice(price);
-        menuRequestDto.setDescription(description);
-        menuRequestDto.setAvailable(available);
-        menuRequestDto.setCategory(category);
+            @ModelAttribute MenuRequestDto menuRequestDto,
+            @RequestParam(value = "image", required = false) MultipartFile image) {
 
         // 이미지 파일이 제공된 경우 S3에 업로드
         if (image != null && !image.isEmpty()) {

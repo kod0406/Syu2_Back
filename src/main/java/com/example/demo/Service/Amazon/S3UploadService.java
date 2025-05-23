@@ -16,6 +16,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.net.URL;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 
 @Slf4j
 @Service
@@ -54,6 +57,40 @@ public class S3UploadService {
 
         } catch (IOException e) {
             throw new RuntimeException("파일 업로드 중 오류가 발생했습니다." + e.getMessage());
+        }
+    }
+
+    // 이미지 URL에서 S3 객체 키 추출
+    public String extractKeyFromImageUrl(String imageUrl) {
+        if (imageUrl == null || imageUrl.isEmpty()) {
+            return null;
+        }
+
+        try {
+            URL url = new URL(imageUrl);
+            String path = url.getPath();
+            // URL 디코딩 (한글 등이 포함될 수 있으므로)
+            return URLDecoder.decode(path.substring(1), StandardCharsets.UTF_8.name());
+        } catch (Exception e) {
+            log.error("이미지 URL에서 키 추출 실패: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    // S3에서 파일 삭제
+    public void deleteFile(String imageUrl) {
+        if (imageUrl == null || imageUrl.isEmpty()) {
+            return;
+        }
+
+        String key = extractKeyFromImageUrl(imageUrl);
+        if (key != null) {
+            try {
+                amazonS3.deleteObject(bucketName, key);
+                log.info("S3에서 파일 삭제 완료: {}", key);
+            } catch (Exception e) {
+                log.error("S3에서 파일 삭제 실패: {}", e.getMessage());
+            }
         }
     }
 
