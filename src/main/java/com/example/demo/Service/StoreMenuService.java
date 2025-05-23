@@ -1,8 +1,8 @@
 package com.example.demo.Service;
 
+import com.example.demo.Service.Amazon.S3UploadService;
 import com.example.demo.dto.MenuRequestDto;
 import com.example.demo.dto.MenuResponseDto;
-import com.example.demo.entity.store.QR_Code;
 import com.example.demo.entity.store.Store;
 import com.example.demo.entity.store.StoreMenu;
 import com.example.demo.repository.QRCodeRepository;
@@ -11,6 +11,7 @@ import com.example.demo.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -22,6 +23,7 @@ public class StoreMenuService {
     private final StoreMenuRepository storeMenuRepository;
     private final QRCodeRepository qrCodeRepository;
     private final StoreService storeService;
+    private final S3UploadService s3UploadService;
 
     //메뉴 생성
     @Transactional
@@ -43,8 +45,6 @@ public class StoreMenuService {
                 .build();
         storeMenuRepository.save(storeMenu);
 
-        // QR코드 생성
-        //generateOrUpdateQRCode(store);
 
         return new MenuResponseDto(
                 storeMenu.getMenuName(),
@@ -65,6 +65,15 @@ public class StoreMenuService {
         // 해당 메뉴가 요청한 매장의 것인지 확인
         if (storeMenu.getStore().getStoreId() != storeId) {
             throw new IllegalArgumentException("해당 매장의 메뉴가 아닙니다.");
+        }
+
+        // 새 이미지 URL이 있고 기존 이미지 URL과 다른 경우 기존 이미지 삭제
+        String oldImageUrl = storeMenu.getImageUrl();
+        String newImageUrl = menuRequestDto.getImageUrl();
+
+        if (newImageUrl != null && !newImageUrl.isEmpty() &&
+                !newImageUrl.equals(oldImageUrl) && oldImageUrl != null) {
+            s3UploadService.deleteFile(oldImageUrl);
         }
 
         // 메뉴 정보 업데이트
@@ -96,6 +105,12 @@ public class StoreMenuService {
         if(storeMenu.getStore().getStoreId() != storeId){
             throw new IllegalArgumentException("해당 매장의 메뉴가 아닙니다.");
         }
+
+        // 메뉴 삭제 전 S3에서 이미지 삭제
+        if (storeMenu.getImageUrl() != null && !storeMenu.getImageUrl().isEmpty()) {
+            s3UploadService.deleteFile(storeMenu.getImageUrl());
+        }
+
         storeMenuRepository.delete(storeMenu);
     }
 
@@ -142,26 +157,5 @@ public class StoreMenuService {
         return storeMenuRepository.findCategoriesByStore(store);
     }
 
-    /*// QR 코드 생성 또는 업데이트
-    private void generateOrUpdateQRCode(Store store) {
-        // 매장의 QR 코드가 있는지 확인
-        QR_Code qrCode = qrCodeRepository.findByStore(store)
-                .orElse(null);
 
-        // QR 코드 URL 생성 (예: /menu/{storeId})
-        String menuUrl = "/menu/" + store.getStoreId();
-
-        if (qrCode == null) {
-            // 새 QR 코드 생성
-            qrCode = QR_Code.builder()
-                    .QR_Code(menuUrl)  // QR_Code 클래스에 url 필드가 있어야 함
-                    .store(store)
-                    .build();
-        } else {
-            // URL만 업데이트 (QR_Code 클래스에 updateUrl 메서드가 필요함)
-            qrCode.updateUrl(menuUrl);
-        }
-
-        qrCodeRepository.save(qrCode);
-    }*/
 }
