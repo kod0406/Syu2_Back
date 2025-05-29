@@ -40,5 +40,8 @@ public class CustomerStatistics {
     @JoinColumn(name = "store_id") // 외래키 이름
     private Store store;
 
+//    @OneToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "menu_id")
+//    private StoreMenu storeMenu;
 
 }
