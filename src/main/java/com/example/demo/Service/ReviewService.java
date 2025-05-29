@@ -1,9 +1,11 @@
 package com.example.demo.Service;
 
+import com.example.demo.dto.ReviewWriteDTO;
 import com.example.demo.dto.UnreviewedStatisticsDto;
 import com.example.demo.entity.common.CustomerStatistics;
 import com.example.demo.entity.customer.Customer;
 import com.example.demo.repository.CustomerStatisticsRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -29,4 +31,10 @@ public class ReviewService {
                 ))
                 .toList();
     }
+
+    @Transactional
+    public void saveResume(ReviewWriteDTO reviewWriteDTO, Customer member) {
+        //TODO
+    }
+
 }
