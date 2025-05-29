@@ -22,11 +22,13 @@ public class CustomerMenuService {
 
         return storeMenus.stream()
                 .map(menu -> new MenuResponseDto(
+                        menu.getMenuId(),
                         menu.getMenuName(),
                         menu.getPrice(),
                         menu.getRating(),
                         menu.getDescription(),
                         menu.getImageUrl(),
+                        menu.getAvailable(),
                         menu.getCategory()
                 ))
                 .collect(Collectors.toList());

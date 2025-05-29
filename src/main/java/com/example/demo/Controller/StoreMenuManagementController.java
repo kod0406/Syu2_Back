@@ -1,5 +1,6 @@
 package com.example.demo.Controller;
 
+import com.example.demo.entity.store.Store;
 import com.example.demo.Service.StoreMenuService;
 import com.example.demo.dto.MenuRequestDto;
 import com.example.demo.dto.MenuResponseDto;
@@ -34,18 +35,20 @@ public class StoreMenuManagementController {
                     .body("인증이 필요합니다.");
         }
 
-        if (user instanceof Customer) {
+        // Store 타입 사용자도 허용
+        if (user instanceof Store) {
+            return null; // Store 사용자 인증 통과
+        } else if (user instanceof Customer) {
             Customer customer = (Customer) user;
             if (!"local".equals(customer.getProvider())) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
                         .body("Local 사용자만 접근 가능합니다.");
             }
+            return null; // Customer 인증 통과
         } else {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body("권한이 없습니다.");
         }
-
-        return null; // 인증 통과
     }
 
     @Operation(summary = "메뉴 목록 조회", description = "매장의 모든 메뉴를 조회합니다.")
@@ -171,5 +174,21 @@ public class StoreMenuManagementController {
 
         List<String> categories = storeMenuService.getAllCategories(storeId);
         return ResponseEntity.ok(categories);
+    }
+
+    @Operation(summary = "메뉴 주문 가능 상태 변경", description = "메뉴의 주문 가능 상태를 토글합니다.")
+    @PatchMapping("/{storeId}/menus/{menuId}/availability")
+    public ResponseEntity<?> toggleMenuAvailability(
+            @Parameter(description = "매장 ID") @PathVariable Long storeId,
+            @Parameter(description = "메뉴 ID") @PathVariable Long menuId,
+            @AuthenticationPrincipal AppUser user) {
+
+        ResponseEntity<?> authResponse = checkAuthorization(user);
+        if (authResponse != null) {
+            return authResponse;
+        }
+
+        MenuResponseDto updatedMenu = storeMenuService.toggleMenuAvailability(storeId, menuId);
+        return ResponseEntity.ok(updatedMenu);
     }
 }
