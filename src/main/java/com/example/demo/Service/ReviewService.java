@@ -50,12 +50,12 @@ public class ReviewService {
         CustomerStatistics customerStatistics = customerStatisticsRepository.findById(reviewWriteDTO.getStatisticsId()).orElse(null);
         Store store = customerStatistics.getStore();
         StoreMenu storeMenu = storeMenuRepository.findByMenuName(customerStatistics.getOrderDetails());
-
+        String url;
         if(reviewWriteDTO.getImages() == null || reviewWriteDTO.getImages().isEmpty()) {
-            String url = "NULL";
+            url = "NULL";
         }
         else {
-            String url = s3UploadService.uploadFile(reviewWriteDTO.getImages());
+            url = s3UploadService.uploadFile(reviewWriteDTO.getImages());
         }
         CustomerReviewCollect reviewCollect = reviewWriteDTO.toEntity(customer, store, customerStatistics, storeMenu, url);
         customerReviewCollectRepository.save(reviewCollect);
