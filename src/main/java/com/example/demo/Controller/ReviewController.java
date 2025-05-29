@@ -34,16 +34,16 @@ public class ReviewController {
 
     }
 
-    @PostMapping("/review/write")
-    public ResponseEntity<?> writeReview(@AuthenticationPrincipal AppUser user, @ModelAttribute ReviewWriteDTO reviewWriteDTO) {
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-        Customer customer = customerRepository.findById(user.getId())
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
-
-        reviewService.resumeWrite(customer, reviewWriteDTO);
-
-    }
+//    @PostMapping("/review/write")
+//    public ResponseEntity<?> writeReview(@AuthenticationPrincipal AppUser user, @ModelAttribute ReviewWriteDTO reviewWriteDTO) {
+//        if (user == null) {
+//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+//        }
+//        Customer customer = customerRepository.findById(user.getId())
+//                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
+//
+//        reviewService.resumeWrite(customer, reviewWriteDTO);
+//
+//    }
 
 }

@@ -9,4 +9,5 @@ public class OrderDTO {
     private String menuName;
     private long menuPrice;
     private long menuAmount;
+    private boolean reviewed;
 }
