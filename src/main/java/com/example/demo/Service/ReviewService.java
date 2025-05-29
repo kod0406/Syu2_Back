@@ -51,9 +51,9 @@ public class ReviewService {
         Store store = storeRepository.findById(customerStatistics.getId()).orElse(null);
         StoreMenu storeMenu = storeMenuRepository.findByMenuName(customerStatistics.getOrderDetails());
 
-        s3UploadService.uploadFile(reviewWriteDTO.getImages());
+        String url = s3UploadService.uploadFile(reviewWriteDTO.getImages());
 
-        CustomerReviewCollect reviewCollect = reviewWriteDTO.toEntity(customer, store, customerStatistics, storeMenu);
+        CustomerReviewCollect reviewCollect = reviewWriteDTO.toEntity(customer, store, customerStatistics, storeMenu, url);
         customerReviewCollectRepository.save(reviewCollect);
     }
 
