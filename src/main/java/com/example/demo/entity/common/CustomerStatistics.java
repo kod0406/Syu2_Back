@@ -44,4 +44,8 @@ public class CustomerStatistics {
 //    @JoinColumn(name = "menu_id")
 //    private StoreMenu storeMenu;
 
+    public void markAsReviewed() {
+        this.reviewed = true;
+    }
+
 }
