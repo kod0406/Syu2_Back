@@ -26,6 +26,8 @@ public class CustomerStatistics {
 
     private long orderAmount;
 
+    private boolean reviewed;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_group_id")
     private OrderGroup orderGroup;
