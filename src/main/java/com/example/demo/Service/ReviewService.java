@@ -59,6 +59,7 @@ public class ReviewService {
         }
         CustomerReviewCollect reviewCollect = reviewWriteDTO.toEntity(customer, store, customerStatistics, storeMenu, url);
         customerReviewCollectRepository.save(reviewCollect);
+        customerStatistics.markAsReviewed();
     }
 
 }

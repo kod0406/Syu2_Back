@@ -27,6 +27,7 @@ public class ReviewWriteDTO {
     private Double reviewRating;
     private MultipartFile images;
     public CustomerReviewCollect toEntity(Customer customer, Store store, CustomerStatistics customerStatistics, StoreMenu storeMenu, String url) {
+
         CustomerReviewCollect customerReviewCollect = CustomerReviewCollect.builder()
                         .score(this.reviewRating)
                         .reviewDetails(this.comment)
