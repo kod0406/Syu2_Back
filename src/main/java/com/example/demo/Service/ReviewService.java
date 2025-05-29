@@ -48,7 +48,7 @@ public class ReviewService {
     public void saveReview(Customer customer, ReviewWriteDTO reviewWriteDTO) {
         //TODO
         CustomerStatistics customerStatistics = customerStatisticsRepository.findById(reviewWriteDTO.getStatisticsId()).orElse(null);
-        Store store = storeRepository.findById(customerStatistics.getId()).orElse(null);
+        Store store = storeRepository.findById(customerStatistics.getStore().getId()).orElse(null);
         StoreMenu storeMenu = storeMenuRepository.findByMenuName(customerStatistics.getOrderDetails());
 
         String url = s3UploadService.uploadFile(reviewWriteDTO.getImages());
