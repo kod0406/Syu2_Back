@@ -10,6 +10,10 @@ import lombok.Getter;
 @Data
 @Schema(description = "메뉴 응답 DTO")
 public class MenuResponseDto {
+
+    @Schema(description = "메뉴 ID", example = "1")
+    private Long menuId;
+
     @Schema(description = "메뉴 이름", example = "불고기 버거")
     private String menuName;
     
@@ -24,6 +28,9 @@ public class MenuResponseDto {
     
     @Schema(description = "이미지 URL", example = "https://example.com/menu/burger.jpg")
     private String imageUrl;
+
+    @Schema(description = "주문 가능 여부", example = "true")
+    private boolean available;
     
     @Schema(description = "카테고리", example = "버거")
     private String category;

@@ -11,7 +11,6 @@ import com.example.demo.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -25,11 +24,11 @@ public class StoreMenuService {
     private final StoreService storeService;
     private final S3UploadService s3UploadService;
 
-    //메뉴 생성
+    // 메뉴 생성
     @Transactional
-    public MenuResponseDto createMenu(Long storeId, MenuRequestDto menuRequestDto){
+    public MenuResponseDto createMenu(Long storeId, MenuRequestDto menuRequestDto) {
         Store store = storeRepository.findById(storeId)
-                .orElseThrow(()-> new IllegalArgumentException("존재하지 않는 매장입니다."));
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 매장입니다."));
 
         StoreMenu storeMenu = StoreMenu.builder()
                 .menuName(menuRequestDto.getMenuName())
@@ -37,37 +36,36 @@ public class StoreMenuService {
                 .description(menuRequestDto.getDescription())
                 .imageUrl(menuRequestDto.getImageUrl())
                 .available(menuRequestDto.isAvailable())
-                .category(menuRequestDto.getCategory()) // 카테고리 필드 추가
-                .rating(0.0) // 초기 평점
-                .dailySales(0) // 초기 판매량
-                .revenue(0L) // 초기 수익
+                .category(menuRequestDto.getCategory())
+                .rating(0.0)
+                .dailySales(0)
+                .revenue(0L)
                 .store(store)
                 .build();
         storeMenuRepository.save(storeMenu);
 
-
         return new MenuResponseDto(
+                storeMenu.getMenuId(),
                 storeMenu.getMenuName(),
                 storeMenu.getPrice(),
                 storeMenu.getRating(),
                 storeMenu.getDescription(),
                 storeMenu.getImageUrl(),
+                storeMenu.getAvailable(),
                 storeMenu.getCategory()
         );
     }
 
-    //메뉴 수정
+    // 메뉴 수정
     @Transactional
     public MenuResponseDto updateMenu(Long storeId, Long menuId, MenuRequestDto menuRequestDto) {
         StoreMenu storeMenu = storeMenuRepository.findById(menuId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 메뉴입니다."));
 
-        // 해당 메뉴가 요청한 매장의 것인지 확인
         if (storeMenu.getStore().getStoreId() != storeId) {
             throw new IllegalArgumentException("해당 매장의 메뉴가 아닙니다.");
         }
 
-        // 새 이미지 URL이 있고 기존 이미지 URL과 다른 경우 기존 이미지 삭제
         String oldImageUrl = storeMenu.getImageUrl();
         String newImageUrl = menuRequestDto.getImageUrl();
 
@@ -76,7 +74,6 @@ public class StoreMenuService {
             s3UploadService.deleteFile(oldImageUrl);
         }
 
-        // 메뉴 정보 업데이트
         storeMenu.updateMenu(
                 menuRequestDto.getMenuName(),
                 menuRequestDto.getPrice(),
@@ -87,26 +84,27 @@ public class StoreMenuService {
         );
 
         return new MenuResponseDto(
+                storeMenu.getMenuId(),
                 storeMenu.getMenuName(),
                 storeMenu.getPrice(),
                 storeMenu.getRating(),
                 storeMenu.getDescription(),
                 storeMenu.getImageUrl(),
+                storeMenu.getAvailable(),
                 storeMenu.getCategory()
         );
     }
 
-    //메뉴 삭제
+    // 메뉴 삭제
     @Transactional
-    public void deleteMenu(Long storeId, Long menuId){
+    public void deleteMenu(Long storeId, Long menuId) {
         StoreMenu storeMenu = storeMenuRepository.findById(menuId)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 메뉴입니다."));
 
-        if(storeMenu.getStore().getStoreId() != storeId){
+        if (storeMenu.getStore().getStoreId() != storeId) {
             throw new IllegalArgumentException("해당 매장의 메뉴가 아닙니다.");
         }
 
-        // 메뉴 삭제 전 S3에서 이미지 삭제
         if (storeMenu.getImageUrl() != null && !storeMenu.getImageUrl().isEmpty()) {
             s3UploadService.deleteFile(storeMenu.getImageUrl());
         }
@@ -114,7 +112,7 @@ public class StoreMenuService {
         storeMenuRepository.delete(storeMenu);
     }
 
-    //모든 메뉴 조회
+    // 모든 메뉴 조회
     @Transactional(readOnly = true)
     public List<MenuResponseDto> getAllMenus(Long storeId) {
         Store store = storeRepository.findById(storeId)
@@ -122,32 +120,38 @@ public class StoreMenuService {
 
         return storeMenuRepository.findByStore(store).stream()
                 .map(menu -> new MenuResponseDto(
+                        menu.getMenuId(),
                         menu.getMenuName(),
                         menu.getPrice(),
                         menu.getRating(),
                         menu.getDescription(),
                         menu.getImageUrl(),
+                        menu.getAvailable(),
                         menu.getCategory()
                 ))
                 .collect(Collectors.toList());
     }
 
-    //카테고리별 메뉴 조회
+    // 카테고리별 메뉴 조회
     @Transactional(readOnly = true)
-    public List<MenuResponseDto> getMenusByCategory(Long storeId, String category){
-        Store store = storeRepository.findById(storeId).orElseThrow(()-> new IllegalArgumentException("존재하지 않는 매장입니다."));
+    public List<MenuResponseDto> getMenusByCategory(Long storeId, String category) {
+        Store store = storeRepository.findById(storeId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 매장입니다."));
 
         return storeMenuRepository.findByStoreAndCategory(store, category).stream()
                 .map(menu -> new MenuResponseDto(
+                        menu.getMenuId(),
                         menu.getMenuName(),
                         menu.getPrice(),
                         menu.getRating(),
                         menu.getDescription(),
                         menu.getImageUrl(),
+                        menu.getAvailable(),
                         menu.getCategory()
                 ))
                 .collect(Collectors.toList());
     }
+
     // 매장의 모든 카테고리 조회
     @Transactional(readOnly = true)
     public List<String> getAllCategories(Long storeId) {
@@ -157,5 +161,34 @@ public class StoreMenuService {
         return storeMenuRepository.findCategoriesByStore(store);
     }
 
+    @Transactional
+    public MenuResponseDto toggleMenuAvailability(Long storeId, Long menuId) {
+        StoreMenu storeMenu = storeMenuRepository.findById(menuId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 메뉴입니다."));
 
+        if (storeMenu.getStore().getStoreId() != storeId) {
+            throw new IllegalArgumentException("해당 매장의 메뉴가 아닙니다.");
+        }
+
+        boolean newAvailability = !storeMenu.getAvailable();
+        storeMenu.updateMenu(
+                storeMenu.getMenuName(),
+                storeMenu.getPrice(),
+                storeMenu.getDescription(),
+                storeMenu.getImageUrl(),
+                newAvailability,
+                storeMenu.getCategory()
+        );
+
+        return new MenuResponseDto(
+                storeMenu.getMenuId(),
+                storeMenu.getMenuName(),
+                storeMenu.getPrice(),
+                storeMenu.getRating(),
+                storeMenu.getDescription(),
+                storeMenu.getImageUrl(),
+                newAvailability,
+                storeMenu.getCategory()
+        );
+    }
 }
