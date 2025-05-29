@@ -22,7 +22,7 @@ public class ReviewController {
     private final CustomerRepository customerRepository;
     private final ReviewService reviewService;
     @GetMapping("/review/ListShow")
-    public ResponseEntity<?> reviewList(@AuthenticationPrincipal AppUser user) {
+    public ResponseEntity<?> reviewList(@AuthenticationPrincipal Customer user) {
         if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -35,7 +35,7 @@ public class ReviewController {
     }
 
     @PostMapping("/review/write")
-    public ResponseEntity<?> writeReview(@AuthenticationPrincipal AppUser user, @ModelAttribute ReviewWriteDTO reviewWriteDTO) {
+    public ResponseEntity<?> writeReview(@AuthenticationPrincipal Customer user, @ModelAttribute ReviewWriteDTO reviewWriteDTO) {
         if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
