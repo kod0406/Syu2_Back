@@ -57,7 +57,7 @@ public class Store implements AppUser {
     public String getRole() {
         return "ROLE_STORE";
     }
-
+    // 매장 이름으로 검색
 
 
 }
