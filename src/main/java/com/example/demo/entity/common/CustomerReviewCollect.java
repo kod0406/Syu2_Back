@@ -17,7 +17,7 @@ public class CustomerReviewCollect {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    private int score;
+    private double score;
 
     private String reviewDetails;
 

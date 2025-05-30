@@ -26,6 +26,8 @@ public class CustomerStatistics {
 
     private long orderAmount;
 
+    private boolean reviewed;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_group_id")
     private OrderGroup orderGroup;
@@ -38,5 +40,12 @@ public class CustomerStatistics {
     @JoinColumn(name = "store_id") // 외래키 이름
     private Store store;
 
+//    @OneToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "menu_id")
+//    private StoreMenu storeMenu;
+
+    public void markAsReviewed() {
+        this.reviewed = true;
+    }
 
 }
