@@ -2,6 +2,7 @@ package com.example.demo.dto.coupon;
 
 import com.example.demo.entity.coupon.DiscountType;
 import com.example.demo.entity.coupon.ExpiryType;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -15,37 +16,49 @@ import java.util.List;
 
 @Getter
 @Setter
+@Schema(description = "쿠폰 생성 요청 DTO")
 public class CouponCreateRequestDto {
 
     @NotBlank(message = "쿠폰명을 입력해주세요.")
+    @Schema(description = "쿠폰명", example = "신규 고객 환영 쿠폰")
     private String couponName;
 
     @NotNull(message = "할인 방식을 선택해주세요.")
+    @Schema(description = "할인 방식 (정액 또는 정률)", example = "PERCENTAGE")
     private DiscountType discountType;
 
     @Min(value = 1, message = "할인 값은 1 이상이어야 합니다.")
+    @Schema(description = "할인 값 (정액 할인 시 금액, 정률 할인 시 퍼센트)", example = "10")
     private int discountValue;
 
-    private Integer discountLimit; // 정률 할인 시 최대 할인 금액
+    @Schema(description = "정률 할인 시 최대 할인 금액 (선택 사항)", example = "5000", nullable = true)
+    private Integer discountLimit;
 
-    private Integer minimumOrderAmount; // 최소 주문 금액
+    @Schema(description = "최소 주문 금액 (선택 사항, 이 금액 이상 주문 시 쿠폰 사용 가능)", example = "20000", nullable = true)
+    private Integer minimumOrderAmount;
 
     @NotNull(message = "만료 방식을 선택해주세요.")
+    @Schema(description = "만료 방식 (절대적 만료일 또는 상대적 유효기간)", example = "ABSOLUTE")
     private ExpiryType expiryType;
 
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-    private LocalDateTime expiryDate; // 절대 만료 시 만료 날짜
+    @Schema(description = "절대 만료 시 만료 날짜 (expiryType이 ABSOLUTE일 경우 필요)", example = "2024-12-31T23:59:59", nullable = true)
+    private LocalDateTime expiryDate;
 
-    private Integer expiryDays; // 상대 만료 시 발급 후 유효 기간(일)
+    @Schema(description = "상대 만료 시 발급 후 유효 기간(일) (expiryType이 RELATIVE일 경우 필요)", example = "30", nullable = true)
+    private Integer expiryDays;
 
     @NotNull(message = "발급 시작 시간을 입력해주세요.")
     @FutureOrPresent(message = "발급 시작 시간은 현재 이후여야 합니다.")
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+    @Schema(description = "쿠폰 발급 시작 시간", example = "2023-10-26T10:00:00")
     private LocalDateTime issueStartTime;
 
     @Min(value = 1, message = "총 발급 수량은 1개 이상이어야 합니다.")
+    @Schema(description = "총 발급 수량", example = "1000")
     private int totalQuantity;
 
-    private List<String> applicableCategories; // 적용 가능 카테고리 (null이거나 비어있으면 전체)
+    @Schema(description = "적용 가능 카테고리 목록 (비어있거나 null이면 전체 카테고리 적용)", example = "[\"음료\", \"디저트\"]", nullable = true)
+    private List<String> applicableCategories;
 
 }
