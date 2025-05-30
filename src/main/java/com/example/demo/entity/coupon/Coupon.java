@@ -61,6 +61,9 @@ public class Coupon {
     @Column(nullable = false)
     private CouponStatus status = CouponStatus.ACTIVE; // 상태 (활성/비활성/회수)
 
+    @Version // 낙관적 잠금을 위한 버전 필드
+    private Long version;
+
     @Builder
     public Coupon(String couponName, DiscountType discountType, int discountValue, Integer discountLimit,
                   Integer minimumOrderAmount, ExpiryType expiryType, LocalDateTime expiryDate, Integer expiryDays,
@@ -106,6 +109,6 @@ public class Coupon {
         this.issueStartTime = issueStartTime;
         this.totalQuantity = totalQuantity;
         this.applicableCategories = applicableCategories;
-        this.status = status; // 상태 변경은 이 메서드 또는 별도 메서드로 관리
+        this.status = status;
     }
 }
