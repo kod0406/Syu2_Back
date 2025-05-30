@@ -4,6 +4,8 @@ import com.example.demo.Service.QrCodeTestService;
 import com.google.zxing.WriterException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -31,10 +33,30 @@ public class QrCodeTestController {
         return "qr-form";
     }
 
-    @Operation(summary = "QR코드 생성", description = "제공된 URL로 QR코드를 생성하고 결과 페이지를 보여줍니다.")
+    @Operation(
+            summary = "QR코드 생성",
+            description = "제공된 URL로 QR코드를 생성하고 결과 페이지를 보여줍니다. URL은 `application/x-www-form-urlencoded` 형식으로 전달됩니다.",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "QR 코드 생성을 위한 URL을 포함하는 폼 데이터입니다. 'url' 파라미터로 전달해야 합니다.",
+                    required = true,
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
+                            schema = @Schema(
+                                    type = "object",
+                                    properties = {
+                                            @io.swagger.v3.oas.annotations.StringToClassMapItem( // 수정된 부분
+                                                    key = "url",
+                                                    value = String.class
+                                            )
+                                    },
+                                    requiredProperties = {"url"}
+                            )
+                    )
+            )
+    )
     @PostMapping("/generate-qr")
     public String generateQrCode(
-            @Parameter(description = "QR코드에 인코딩할 URL") @RequestParam("url") String url,
+            @Parameter(description = "QR코드에 인코딩할 URL (폼 파라미터 'url')") @RequestParam("url") String url,
             Model model) {
         try {
             String qrCodeBase64 = qrCodeTestService.generateQrCodeBase64(url, 250, 250);
@@ -51,7 +73,7 @@ public class QrCodeTestController {
     @Operation(summary = "QR코드 다운로드", description = "생성된 QR코드 이미지를 다운로드합니다.")
     @GetMapping("/download-qr")
     public ResponseEntity<byte[]> downloadQrCode(
-            @Parameter(description = "QR코드에 인코딩할 URL") @RequestParam("url") String url) {
+            @Parameter(description = "QR코드에 인코딩할 URL (쿼리 파라미터 'url')") @RequestParam("url") String url) {
         try {
             byte[] qrCodeBytes = qrCodeTestService.generateQrCodeBytes(url, 250, 250);
 
@@ -70,7 +92,7 @@ public class QrCodeTestController {
     @Operation(summary = "메뉴 테스트 페이지", description = "QR코드로 접근할 메뉴 테스트 페이지를 제공합니다.")
     @GetMapping("/menu-test")
     public String menuTestPage(
-            @Parameter(description = "메뉴 ID") @RequestParam(required = false) String id,
+            @Parameter(description = "메뉴 ID (쿼리 파라미터 'id', 선택 사항)") @RequestParam(required = false) String id,
             Model model) {
         model.addAttribute("menuId", id != null ? id : "기본 메뉴");
         return "menu-test";

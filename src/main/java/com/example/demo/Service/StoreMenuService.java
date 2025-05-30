@@ -69,9 +69,13 @@ public class StoreMenuService {
         String oldImageUrl = storeMenu.getImageUrl();
         String newImageUrl = menuRequestDto.getImageUrl();
 
-        if (newImageUrl != null && !newImageUrl.isEmpty() &&
-                !newImageUrl.equals(oldImageUrl) && oldImageUrl != null) {
-            s3UploadService.deleteFile(oldImageUrl);
+        // 기존 이미지가 있고, 새 이미지로 교체되는 경우 기존 이미지 삭제
+        if (oldImageUrl != null && !oldImageUrl.isEmpty()) {
+            // 새 이미지가 있고 기존과 다른 경우 OR 새 이미지가 없는 경우(이미지 제거)
+            if ((newImageUrl != null && !newImageUrl.equals(oldImageUrl)) ||
+                    (newImageUrl == null || newImageUrl.isEmpty())) {
+                s3UploadService.deleteFile(oldImageUrl);
+            }
         }
 
         storeMenu.updateMenu(

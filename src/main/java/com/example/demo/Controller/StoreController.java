@@ -12,12 +12,15 @@ import com.example.demo.entity.store.Store;
 import com.example.demo.jwt.JwtTokenProvider;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -48,10 +51,21 @@ public class StoreController {
         this.jwtTokenProvider = jwtTokenProvider;
     }
 
-    @Operation(summary = "매장 회원가입", description = "신규 매장을 등록합니다.")
+    @Operation(
+            summary = "매장 회원가입",
+            description = "신규 매장을 등록합니다. 요청 본문은 `application/json` 형식이며, `StoreRegistrationDTO`의 구조를 따릅니다.",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "매장 등록 정보입니다. `StoreRegistrationDTO` 스키마를 참조하세요.",
+                    required = true,
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = StoreRegistrationDTO.class)
+                    )
+            )
+    )
     @PostMapping("/register")
     public ResponseEntity<?> registerStore(
-            @Parameter(description = "매장 등록 정보") @RequestBody StoreRegistrationDTO registrationDTO) {
+            @RequestBody StoreRegistrationDTO registrationDTO) {
         try {
             Store store = storeService.registerStore(registrationDTO);
             return ResponseEntity.ok(Map.of(
@@ -93,10 +107,21 @@ public class StoreController {
         }
     }
 
-    @Operation(summary = "매장 로그인", description = "매장 계정으로 로그인하고 JWT 토큰을 쿠키에 발급합니다.")
+    @Operation(
+            summary = "매장 로그인",
+            description = "매장 계정으로 로그인하고 JWT 토큰을 쿠키에 발급합니다. 요청 본문은 `application/json` 형식이며, `StoreLoginDTO`의 구조를 따릅니다.",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "로그인 정보 (이메일, 비밀번호)입니다. `StoreLoginDTO` 스키마를 참조하세요.",
+                    required = true,
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = StoreLoginDTO.class)
+                    )
+            )
+    )
     @PostMapping("/login")
     public ResponseEntity<?> login(
-            @Parameter(description = "로그인 정보 (이메일, 비밀번호)") @RequestBody StoreLoginDTO loginDTO,
+            @RequestBody StoreLoginDTO loginDTO,
             HttpServletResponse response) {
         try {
             Store store = storeService.authenticateStore(loginDTO.getOwnerEmail(), loginDTO.getPassword());
