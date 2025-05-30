@@ -9,6 +9,8 @@ import com.example.demo.entity.customer.Customer;
 import com.example.demo.entity.entityInterface.AppUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -35,16 +37,15 @@ public class StoreMenuManagementController {
                     .body("인증이 필요합니다.");
         }
 
-        // Store 타입 사용자도 허용
         if (user instanceof Store) {
-            return null; // Store 사용자 인증 통과
+            return null;
         } else if (user instanceof Customer) {
             Customer customer = (Customer) user;
             if (!"local".equals(customer.getProvider())) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
                         .body("Local 사용자만 접근 가능합니다.");
             }
-            return null; // Customer 인증 통과
+            return null;
         } else {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body("권한이 없습니다.");
@@ -66,11 +67,26 @@ public class StoreMenuManagementController {
         return ResponseEntity.ok(menuList);
     }
 
-    @Operation(summary = "메뉴 등록", description = "매장에 새로운 메뉴를 등록합니다.")
+    @Operation(
+            summary = "메뉴 등록",
+            description = "매장에 새로운 메뉴를 등록합니다. 메뉴 정보와 이미지는 `multipart/form-data` 형식으로 전달합니다. " +
+                    "메뉴 정보의 각 필드는 `MenuRequestDto` 스키마를 따릅니다.",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    required = true,
+                    content = @Content(
+                            mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
+                            schema = @Schema(implementation = MenuRequestDto.class)
+                            // Swagger UI는 MenuRequestDto의 필드들을 form 파라미터로 보여주고,
+                            // 각 필드 설명은 MenuRequestDto 내의 @Schema 어노테이션을 따릅니다.
+                            // 'image' 파트는 아래 @RequestParam과 @Parameter로 설명됩니다.
+                    )
+            )
+    )
     @PostMapping(value = "/{storeId}/menus", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> createMenu(
             @PathVariable Long storeId,
-            @ModelAttribute MenuRequestDto menuRequestDto,
+            @ModelAttribute MenuRequestDto menuRequestDto, // 이 DTO의 필드들이 form-data 파라미터가 됩니다.
+            @Parameter(description = "메뉴 이미지 파일 (선택 사항)") // Swagger UI에서 파일 업로드 UI를 제공합니다.
             @RequestParam(value = "image", required = false) MultipartFile image,
             @AuthenticationPrincipal AppUser user) {
 
@@ -79,7 +95,6 @@ public class StoreMenuManagementController {
             return authResponse;
         }
 
-        // 이미지 파일이 제공된 경우 S3에 업로드
         if (image != null && !image.isEmpty()) {
             String imageUrl = s3UploadService.uploadFile(image);
             menuRequestDto.setImageUrl(imageUrl);
@@ -89,7 +104,6 @@ public class StoreMenuManagementController {
         return ResponseEntity.ok(newMenu);
     }
 
-    // 나머지 메서드들도 동일하게 @AuthenticationPrincipal 추가 및 인증 검사 적용
     @Operation(summary = "특정 메뉴 조회", description = "매장의 특정 메뉴를 조회합니다.")
     @GetMapping("/{storeId}/menus/{menuId}")
     public ResponseEntity<?> getMenu(
@@ -101,16 +115,30 @@ public class StoreMenuManagementController {
         if (authResponse != null) {
             return authResponse;
         }
-
+        // 실제 메뉴 조회 로직이 필요합니다. 현재는 OK만 반환합니다.
+        // 예: MenuResponseDto menu = storeMenuService.getMenuById(storeId, menuId);
+        // return ResponseEntity.ok(menu);
         return ResponseEntity.ok().build();
     }
 
-    @Operation(summary = "메뉴 수정", description = "매장의 특정 메뉴를 수정합니다.")
+    @Operation(
+            summary = "메뉴 수정",
+            description = "매장의 특정 메뉴를 수정합니다. 메뉴 정보와 이미지는 `multipart/form-data` 형식으로 전달합니다. " +
+                    "메뉴 정보의 각 필드는 `MenuRequestDto` 스키마를 따릅니다.",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    required = true,
+                    content = @Content(
+                            mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
+                            schema = @Schema(implementation = MenuRequestDto.class)
+                    )
+            )
+    )
     @PutMapping(value = "/{storeId}/menus/{menuId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> updateMenu(
             @Parameter(description = "매장 ID") @PathVariable Long storeId,
             @Parameter(description = "메뉴 ID") @PathVariable Long menuId,
             @ModelAttribute MenuRequestDto menuRequestDto,
+            @Parameter(description = "메뉴 이미지 파일 (변경 시에만 첨부, 선택 사항)")
             @RequestParam(value = "image", required = false) MultipartFile image,
             @AuthenticationPrincipal AppUser user) {
 
@@ -119,7 +147,6 @@ public class StoreMenuManagementController {
             return authResponse;
         }
 
-        // 이미지 파일이 제공된 경우 S3에 업로드
         if (image != null && !image.isEmpty()) {
             String imageUrl = s3UploadService.uploadFile(image);
             menuRequestDto.setImageUrl(imageUrl);

@@ -1,0 +1,7 @@
+package com.example.demo.entity.coupon;
+
+public enum CouponStatus {
+    ACTIVE, // 사용 가능한 쿠폰
+    INACTIVE, // 사용 불가능한 쿠폰 (발급 중지 등)
+    RECALLED // 회수된 쿠폰 (사용 불가)
+}
