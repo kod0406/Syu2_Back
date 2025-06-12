@@ -25,7 +25,13 @@ public class OrderGroup {
 
     private Long storeId;
 
+    private boolean active;
+
     @OneToMany(mappedBy = "orderGroup", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CustomerStatistics> customerStatisticsList = new ArrayList<>();
+
+    public void markAsCompleted() {
+        this.active = true;
+    }
 
 }

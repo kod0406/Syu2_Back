@@ -44,6 +44,18 @@ public class KakaoPayController {
         kakaoPayProvider.approve(pgToken, orderGroupId);
         //KakaoPayRequest.OrderRequest request = customerOrderService.order(orders, customer, storeId);;
         HttpHeaders headers = new HttpHeaders();
+        //웹 소켓 로직 추가
+
+
+
+
+
+
+
+
+
+
+        //TODO
         headers.setLocation(URI.create("http://localhost:3000/menu")); // ✅ 결제 완료 후 이동할 URL (React 메인 페이지 등)
 
         return new ResponseEntity<>(headers, HttpStatus.FOUND); // 302 Redirect
