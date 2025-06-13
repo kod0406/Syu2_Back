@@ -1,5 +1,6 @@
 package com.example.demo.repository;
 
+import com.example.demo.dto.CustomerStatisticsDto;
 import com.example.demo.dto.MenuSalesStatisticsDto;
 import com.example.demo.entity.common.CustomerStatistics;
 import com.example.demo.entity.customer.Customer;
@@ -34,6 +35,25 @@ public interface CustomerStatisticsRepository extends JpaRepository<CustomerStat
             @Param("storeId") Long storeId,
             @Param("start") LocalDate start,
             @Param("end") LocalDate end
+    );
+
+    @Query("""
+    SELECT new com.example.demo.dto.CustomerStatisticsDto(
+        m.menuName,
+        m.imageUrl,
+        SUM(s.orderAmount),
+        SUM(s.orderPrice)
+    )
+    FROM CustomerStatistics s, StoreMenu m
+    WHERE s.orderDetails = m.menuName
+      AND s.store.storeId = m.store.storeId
+      AND s.customer.customerId = :customerId
+      AND s.store.storeName = :storeName
+    GROUP BY m.menuName, m.imageUrl
+""")
+    List<CustomerStatisticsDto> findCustomerStatisticsByStoreName(
+            @Param("customerId") Long customerId,
+            @Param("storeName") String storeName
     );
 
 
