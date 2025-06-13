@@ -14,6 +14,7 @@ public class WebBroadCast {
 
         private final OrderGroupRepository orderGroupRepository;
 
+        //실시간 주문 상황에 대한 브로드캐스트
         public OrderGroupBatchMessage createInactiveOrderGroupMessage(Long storeId) {
             List<OrderGroup> inactiveGroups = orderGroupRepository.findAllByStoreIdAndActiveFalse(storeId);
 
