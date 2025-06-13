@@ -22,7 +22,7 @@ public interface CustomerStatisticsRepository extends JpaRepository<CustomerStat
         m.menuName,
         m.imageUrl,
         SUM(s.orderAmount),
-        SUM(s.orderPrice)
+        SUM(s.orderAmount * s.orderPrice)
     )
     FROM CustomerStatistics s, StoreMenu m
     WHERE s.orderDetails = m.menuName
@@ -42,7 +42,7 @@ public interface CustomerStatisticsRepository extends JpaRepository<CustomerStat
         m.menuName,
         m.imageUrl,
         SUM(s.orderAmount),
-        SUM(s.orderPrice)
+        SUM(s.orderAmount * s.orderPrice)
     )
     FROM CustomerStatistics s, StoreMenu m
     WHERE s.orderDetails = m.menuName
