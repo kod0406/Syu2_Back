@@ -1,7 +1,9 @@
 package com.example.demo.Controller;
 
+import com.example.demo.Service.CustomerService;
 import com.example.demo.Service.StoreService;
 import com.example.demo.dto.ApiResponse;
+import com.example.demo.dto.CustomerStatisticsDto;
 import com.example.demo.dto.MenuSalesStatisticsDto;
 import com.example.demo.dto.ReviewWriteDTO;
 import com.example.demo.entity.customer.Customer;
@@ -24,6 +26,7 @@ import java.util.List;
 @RequestMapping("/store/statistics")
 public class StatisticsController {
     private final StoreService storeService;
+    private final CustomerService customerService;
 
     @Operation(
             summary = "통계 요청",
@@ -51,5 +54,14 @@ public class StatisticsController {
         return ResponseEntity.ok(result);
     }
 
+    @GetMapping
+    public ResponseEntity<List<CustomerStatisticsDto>> getStatistics(@AuthenticationPrincipal Customer customer, @RequestParam String storeName) {
+        if (customer == null) {
+            return ResponseEntity.status(401).build();
+        }
+        List<CustomerStatisticsDto> result = customerService.customerStatistics(customer, storeName);
 
+        return ResponseEntity.ok(result);
+
+    }
 }
