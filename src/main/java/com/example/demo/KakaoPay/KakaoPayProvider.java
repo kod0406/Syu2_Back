@@ -8,6 +8,7 @@ import com.example.demo.entity.customer.CustomerPoint;
 import com.example.demo.repository.CustomerPointRepository;
 import com.example.demo.repository.CustomerStatisticsRepository;
 import com.example.demo.repository.OrderGroupRepository;
+import com.example.demo.webSock.WebBroadCast;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,6 +33,7 @@ public class KakaoPayProvider {
     private final OrderGroupRepository orderGroupRepository;
     private final CustomerPointRepository customerPointRepository;
     private final SimpMessagingTemplate messagingTemplate;
+    private final WebBroadCast webBroadCast;
 
     @Value("${kakaopay.secretKey}")
     private String secretKey;
@@ -123,28 +125,30 @@ public class KakaoPayProvider {
         // ✅ 필요 시 결제 성공 로그 추가
         log.info("✅ 결제 승인 성공: 주문번호 {}, 총금액 {}, 포인트 {} 적립됨", orderGroupId, totalAmount, (int)(totalAmount * 0.01));
         //웹 소켓 추가 부분
-        Long storeId = orderGroup.getStoreId();
-        List<OrderGroup> inactiveGroups = orderGroupRepository.findAllByStoreIdAndActiveFalse(storeId);
-        List<OrderGroupBatchMessage.OrderGroupEntry> groupEntries = inactiveGroups.stream()
-                .map(group -> {
-                    List<OrderGroupBatchMessage.OrderItem> items = group.getCustomerStatisticsList().stream()
-                            .map(stat -> OrderGroupBatchMessage.OrderItem.builder()
-                                    .menuName(stat.getOrderDetails())
-                                    .price((int) stat.getOrderPrice())
-                                    .quantity((int) stat.getOrderAmount())
-                                    .build())
-                            .toList();
 
-                    return OrderGroupBatchMessage.OrderGroupEntry.builder()
-                            .orderGroupId(group.getId())
-                            .items(items)
-                            .build();
-                })
-                .toList();
-            OrderGroupBatchMessage message = OrderGroupBatchMessage.builder()
-                    .storeId(storeId.toString())
-                    .groups(groupEntries)
-                    .build();
+        Long storeId = orderGroup.getStoreId();
+        OrderGroupBatchMessage message = webBroadCast.createInactiveOrderGroupMessage(storeId);
+//        List<OrderGroup> inactiveGroups = orderGroupRepository.findAllByStoreIdAndActiveFalse(storeId);
+//        List<OrderGroupBatchMessage.OrderGroupEntry> groupEntries = inactiveGroups.stream()
+//                .map(group -> {
+//                    List<OrderGroupBatchMessage.OrderItem> items = group.getCustomerStatisticsList().stream()
+//                            .map(stat -> OrderGroupBatchMessage.OrderItem.builder()
+//                                    .menuName(stat.getOrderDetails())
+//                                    .price((int) stat.getOrderPrice())
+//                                    .quantity((int) stat.getOrderAmount())
+//                                    .build())
+//                            .toList();
+//
+//                    return OrderGroupBatchMessage.OrderGroupEntry.builder()
+//                            .orderGroupId(group.getId())
+//                            .items(items)
+//                            .build();
+//                })
+//                .toList();
+//            OrderGroupBatchMessage message = OrderGroupBatchMessage.builder()
+//                    .storeId(storeId.toString())
+//                    .groups(groupEntries)
+//                    .build();
 
         messagingTemplate.convertAndSend("/topic/orders/" + storeId, message);
         //웹 소켓 추가 끝

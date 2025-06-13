@@ -10,4 +10,5 @@ public class OrderDTO {
     private long menuPrice;
     private long menuAmount;
     private boolean reviewed;
+    private boolean active;
 }
