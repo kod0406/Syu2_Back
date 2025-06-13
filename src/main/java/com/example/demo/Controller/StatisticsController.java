@@ -23,7 +23,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/store/statistics")
+@RequestMapping("/statistics")
 public class StatisticsController {
     private final StoreService storeService;
     private final CustomerService customerService;
@@ -32,8 +32,8 @@ public class StatisticsController {
             summary = "통계 요청",
             description = "통계 요청입니다."
     )
-    @GetMapping
-    public ResponseEntity<List<MenuSalesStatisticsDto>> getStatistics(@AuthenticationPrincipal Store store, @RequestParam String period) {
+    @GetMapping("/store")
+    public ResponseEntity<List<MenuSalesStatisticsDto>> storeGetStatistics(@AuthenticationPrincipal Store store, @RequestParam String period) {
         if (store == null) {
             return ResponseEntity.status(401).build();
         }
@@ -54,8 +54,8 @@ public class StatisticsController {
         return ResponseEntity.ok(result);
     }
 
-    @GetMapping
-    public ResponseEntity<List<CustomerStatisticsDto>> getStatistics(@AuthenticationPrincipal Customer customer, @RequestParam String storeName) {
+    @GetMapping("/customer")
+    public ResponseEntity<List<CustomerStatisticsDto>> customerGetStatistics(@AuthenticationPrincipal Customer customer, @RequestParam String storeName) {
         if (customer == null) {
             return ResponseEntity.status(401).build();
         }
