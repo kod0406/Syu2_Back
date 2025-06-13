@@ -15,5 +15,6 @@ public class KakaoPayRequest {
         String quantity;
         String totalPrice;
         OrderGroup OrderGroup;
+        boolean active;
     }
 }
