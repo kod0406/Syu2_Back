@@ -1,15 +1,24 @@
 package com.example.demo.Service;
 
+import com.example.demo.dto.MenuSalesStatisticsDto;
 import com.example.demo.dto.StoreRegistrationDTO;
+import com.example.demo.entity.common.CustomerStatistics;
 import com.example.demo.entity.store.QR_Code;
 import com.example.demo.entity.store.Store;
 import com.example.demo.jwt.JwtTokenProvider;
+import com.example.demo.repository.CustomerRepository;
+import com.example.demo.repository.CustomerStatisticsRepository;
 import com.example.demo.repository.QRCodeRepository;
 import com.example.demo.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -18,7 +27,7 @@ public class StoreService {
     private final StoreRepository storeRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
-
+    private final CustomerStatisticsRepository customerStatisticsRepository;
 
 
     @Transactional // 회원가입
@@ -54,7 +63,7 @@ public class StoreService {
         storeRepository.delete(store);
     }
 
-    public void createQRCode(Store store){
+    public void createQRCode(Store store) {
         // QR 코드에 포함될 URL을 지정-> 나중에 원하는 URL로 변경 필
         String menuUrl = "/api/Store/Menu?StoreNumber=" + store.getStoreId();
 
@@ -75,13 +84,16 @@ public class StoreService {
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이메일입니다."));
 
 
-
         // 비밀번호 검증 로직 (예: BCrypt 사용)
         if (!passwordEncoder.matches(password, store.getPassword())) {
             throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
-        }
-        else jwtTokenProvider.createToken(store.getStoreName());
+        } else jwtTokenProvider.createToken(store.getStoreName());
 
         return store;
+    }
+
+    public List<MenuSalesStatisticsDto> storeStatistics(Store store, LocalDate start, LocalDate end) {
+        Long storeId = store.getStoreId();
+        return customerStatisticsRepository.getMenuStatsWithoutRelation(storeId, start, end);
     }
 }
