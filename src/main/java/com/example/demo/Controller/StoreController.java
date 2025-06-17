@@ -179,7 +179,7 @@ public class StoreController {
 
             String qrCodeUrl = qrCode.getQR_Code();
 
-            String fullUrl = "http://localhost:8080" + qrCodeUrl;
+            String fullUrl = qrCodeUrl; // 수정 후: qrCodeUrl이 이미 완전한 URL임
 
             String qrCodeBase64 = qrCodeTestService.generateQrCodeBase64(fullUrl, 250, 250);
 
@@ -210,7 +210,7 @@ public class StoreController {
 
             String qrCodeUrl = qrCode.getQR_Code();
 
-            String fullUrl = "http://localhost:8080" + qrCodeUrl;
+            String fullUrl = qrCodeUrl; // 수정 후: qrCodeUrl이 이미 완전한 URL임
 
             byte[] qrCodeBytes = qrCodeTestService.generateQrCodeBytes(fullUrl, 250, 250);
 
@@ -236,7 +236,7 @@ public class StoreController {
                     .orElseThrow(() -> new IllegalArgumentException("QR 코드가 생성되지 않았습니다."));
 
             String qrCodeUrl = qrCode.getQR_Code(); // 주의: 엔티티 수정 전이라면 이 이름 사용
-            String fullUrl = "http://localhost:8080" + qrCodeUrl;
+            String fullUrl = qrCodeUrl; // 수정 후: qrCodeUrl이 이미 완전한 URL임
             String qrCodeBase64 = qrCodeTestService.generateQrCodeBase64(fullUrl, 250, 250);
 
             Map<String, String> response = new HashMap<>();
