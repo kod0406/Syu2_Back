@@ -7,6 +7,7 @@ import com.example.demo.jwt.JwtTokenProvider;
 import com.example.demo.repository.QRCodeRepository;
 import com.example.demo.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +19,9 @@ public class StoreService {
     private final StoreRepository storeRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
+
+    @Value("${frontend.url}")
+    private String frontendUrl;
 
 
 
@@ -55,8 +59,8 @@ public class StoreService {
     }
 
     public void createQRCode(Store store){
-        // QR 코드에 포함될 URL을 지정-> 나중에 원하는 URL로 변경 필
-        String menuUrl = "/api/Store/Menu?StoreNumber=" + store.getStoreId();
+        // QR 코드에 포함될 URL을 지정
+        String menuUrl = frontendUrl + "/menu?storeId=" + store.getStoreId();
 
 
         // QR 코드 엔티티 생성
