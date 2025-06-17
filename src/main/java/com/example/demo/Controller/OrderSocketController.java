@@ -69,6 +69,7 @@ public class OrderSocketController {
     public ResponseEntity<Void> getMenu(@AuthenticationPrincipal Store store){
         Long storeId = store.getId();
         OrderGroupBatchMessage message = webBroadCast.createInactiveOrderGroupMessage(storeId);
+        messagingTemplate.convertAndSend("/topic/orders/" + storeId, message);
         return ResponseEntity.ok().build();
     }
 
