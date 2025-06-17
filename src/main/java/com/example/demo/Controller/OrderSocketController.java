@@ -2,6 +2,8 @@ package com.example.demo.Controller;
 
 import com.example.demo.dto.OrderGroupBatchMessage;
 import com.example.demo.entity.common.OrderGroup;
+import com.example.demo.entity.entityInterface.AppUser;
+import com.example.demo.entity.store.Store;
 import com.example.demo.repository.OrderGroupRepository;
 import com.example.demo.webSock.WebBroadCast;
 import lombok.RequiredArgsConstructor;
@@ -10,11 +12,9 @@ import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -64,4 +64,13 @@ public class OrderSocketController {
         messagingTemplate.convertAndSend("/topic/orders/" + storeId, message);
         return ResponseEntity.ok().build();
     }
+
+    @GetMapping("/getMenu")
+    public ResponseEntity<Void> getMenu(@AuthenticationPrincipal Store store){
+        Long storeId = store.getId();
+        OrderGroupBatchMessage message = webBroadCast.createInactiveOrderGroupMessage(storeId);
+        return ResponseEntity.ok().build();
+    }
+
+
 }
