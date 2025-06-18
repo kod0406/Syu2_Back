@@ -7,6 +7,7 @@ import com.example.demo.dto.MenuResponseDto;
 import com.example.demo.Service.Amazon.S3UploadService;
 import com.example.demo.entity.customer.Customer;
 import com.example.demo.entity.entityInterface.AppUser;
+import com.example.demo.dto.MenuSalesResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -217,5 +218,21 @@ public class StoreMenuManagementController {
 
         MenuResponseDto updatedMenu = storeMenuService.toggleMenuAvailability(storeId, menuId);
         return ResponseEntity.ok(updatedMenu);
+    }
+
+    @Operation(summary = "특정 메뉴 판매 정보 조회", description = "특정 메뉴의 일일/전체 판매량 및 매출을 조회합니다.")
+    @GetMapping("/{storeId}/menus/{menuId}/sales")
+    public ResponseEntity<?> getMenuSales(
+            @Parameter(description = "매장 ID") @PathVariable Long storeId,
+            @Parameter(description = "메뉴 ID") @PathVariable Long menuId,
+            @AuthenticationPrincipal AppUser user) {
+
+        ResponseEntity<?> authResponse = checkAuthorization(user);
+        if (authResponse != null) {
+            return authResponse;
+        }
+
+        MenuSalesResponseDto menuSales = storeMenuService.getMenuSales(storeId, menuId);
+        return ResponseEntity.ok(menuSales);
     }
 }

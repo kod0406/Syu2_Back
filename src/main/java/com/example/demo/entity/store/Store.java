@@ -2,6 +2,7 @@ package com.example.demo.entity.store;
 
 import com.example.demo.entity.common.CustomerStatistics;
 import com.example.demo.entity.common.OrderStatus;
+import com.example.demo.entity.coupon.Coupon;
 import com.example.demo.entity.customer.CustomerCoupon;
 import com.example.demo.entity.entityInterface.AppUser;
 import jakarta.persistence.*;
@@ -42,6 +43,9 @@ public class Store implements AppUser {
 
     @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CustomerStatistics> customerStatistics = new ArrayList<>();
+
+    @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Coupon> coupons = new ArrayList<>();
 
     @Override
     public Long getId() {
