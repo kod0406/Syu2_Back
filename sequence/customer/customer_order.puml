@@ -1,0 +1,108 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+title 고객 결제 시퀀스 다이어그램
+
+autonumber "<b>[0]"
+
+actor "고객" as CustomerClient
+participant "KakaoPayController" as Controller
+participant "CustomerOrderService" as OrderService
+participant "KakaoPayProvider" as PayProvider
+participant "카카오페이 서버" as KakaoPayServer
+database "데이터베이스" as DB
+participant "WebBroadCast" as WebBroadCast
+participant "WebSocket Broker" as WebSocketBroker
+participant "가게 클라이언트" as StoreClient
+
+== 1. 결제 준비 요청 ==
+
+CustomerClient -> Controller: POST /api/v1/kakao-pay/ready\n(주문 내역, 가게 ID)
+activate Controller
+note right of Controller: KakaoPayController.ready()
+
+Controller -> OrderService: order(주문 내역, 고객 정보, 가게 ID)
+activate OrderService
+note right of OrderService: CustomerOrderService.order()
+OrderService -> DB: OrderGroup, CustomerStatistics 생성 및 저장
+OrderService --> Controller: KakaoPayRequest.OrderRequest 반환
+deactivate OrderService
+
+Controller -> PayProvider: ready(OrderRequest)
+activate PayProvider
+note right of PayProvider: KakaoPayProvider.ready()
+PayProvider -> KakaoPayServer: 결제 준비 요청 (POST /online/v1/payment/ready)
+activate KakaoPayServer
+KakaoPayServer --> PayProvider: ReadyResponse (tid, next_redirect_pc_url)
+deactivate KakaoPayServer
+PayProvider --> Controller: ReadyResponse 반환
+deactivate PayProvider
+
+Controller --> CustomerClient: ReadyResponse (next_redirect_pc_url)
+deactivate Controller
+
+== 2. 카카오페이 결제 진행 ==
+
+CustomerClient -> CustomerClient: next_redirect_pc_url 로 리디렉션
+
+note right of CustomerClient
+  카카오페이 결제 페이지에서
+  사용자가 결제를 완료합니다.
+end note
+
+== 3. 결제 승인 처리 ==
+
+KakaoPayServer -> Controller: GET /api/v1/kakao-pay/approve\n(pg_token, orderGroupId)
+activate Controller
+note right of Controller: KakaoPayController.approve()
+
+Controller -> PayProvider: approve(pg_token, orderGroupId)
+activate PayProvider
+note right of PayProvider: KakaoPayProvider.approve()
+
+PayProvider -> DB: orderGroupId로 OrderGroup 조회
+DB --> PayProvider: OrderGroup(CustomerStatisticsList 포함)
+
+group 포인트 처리
+    PayProvider -> PayProvider: CustomerStatisticsList에서\n포인트 사용 금액(pointUsed) 계산
+    PayProvider -> DB: 고객의 CustomerPoint 조회
+    DB --> PayProvider: CustomerPoint 정보 (없으면 새로 생성)
+
+    alt pointUsed > 0
+        PayProvider -> PayProvider: 보유 포인트 >= pointUsed 확인
+        note right of PayProvider: 부족하면 예외 발생
+        PayProvider -> PayProvider: customerPoint.subtractPoint(pointUsed)
+    end
+
+    PayProvider -> PayProvider: 총 결제 금액 기반\n적립 포인트 계산 (totalAmount * 0.01)
+    PayProvider -> PayProvider: customerPoint.addPoint(point)
+
+    PayProvider -> DB: CustomerPoint 저장/업데이트
+end
+
+group 가게에 주문 접수 알림 (WebSocket)
+    PayProvider -> WebBroadCast: createInactiveOrderGroupMessage(storeId)
+    activate WebBroadCast
+    WebBroadCast -> DB: findAllByStoreIdAndActiveFalse(storeId)
+    DB --> WebBroadCast: List<OrderGroup>
+    WebBroadCast --> PayProvider: OrderGroupBatchMessage
+    deactivate WebBroadCast
+
+    PayProvider -> WebSocketBroker: convertAndSend("/topic/orders/{storeId}", message)
+    activate WebSocketBroker
+    WebSocketBroker -> StoreClient: OrderGroupBatchMessage
+    deactivate WebSocketBroker
+end
+
+PayProvider -> KakaoPayServer: 결제 승인 요청 (POST /online/v1/payment/approve)
+activate KakaoPayServer
+KakaoPayServer --> PayProvider: ApproveResponse
+deactivate KakaoPayServer
+
+PayProvider --> Controller: ApproveResponse 반환
+deactivate PayProvider
+
+Controller -> CustomerClient: 결제 완료 페이지로 리디렉션 (HTTP 302)
+deactivate Controller
+
+@enduml

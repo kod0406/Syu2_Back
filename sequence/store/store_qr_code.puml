@@ -1,0 +1,36 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+title QR 코드 다운로드 시퀀스 다이어그램
+
+autonumber "<b>[0]"
+
+actor 상점주인 as User
+
+participant "QrCodeTestController" as Controller
+participant "QrCodeTestService" as Service
+participant "QRCodeWriter \n(from zxing)" as Writer
+participant "MatrixToImageWriter \n(from zxing)" as ImageWriter
+
+User -> Controller: GET /download-qr?url=...
+note right of Controller: downloadQrCode(url) 메서드 호출
+
+Controller -> Service: generateQrCodeBytes(url, 250, 250)
+note right of Service: QR코드 이미지 데이터를\nbyte 배열로 생성 요청
+
+Service -> Writer: new QRCodeWriter()
+Service -> Writer: encode(url, BarcodeFormat.QR_CODE, 250, 250)
+note right of Writer: URL을 QR코드 데이터(BitMatrix)로 인코딩
+Writer --> Service: BitMatrix (비트맵 형식의 QR 데이터)
+
+Service -> ImageWriter: writeToStream(bitMatrix, "PNG", outputStream)
+note right of ImageWriter: BitMatrix를 PNG 이미지로 변환 후\n메모리(Stream)에 기록
+ImageWriter --> Service: (void)
+
+Service --> Controller: byte[] (QR 코드 이미지 바이트)
+note right of Service: 생성된 이미지 데이터를\nbyte 배열로 컨트롤러에 반환
+
+Controller -> User: 200 OK (ResponseEntity<byte[]>)
+note right of User: HTTP 응답으로 QR코드 이미지 파일 전송\n(Content-Disposition 헤더로 파일 다운로드 유도)
+
+@enduml

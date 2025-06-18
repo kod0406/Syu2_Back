@@ -1,0 +1,58 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+title 고객 소셜 로그인 및 JWT 인증 시퀀스 다이어그램
+
+autonumber "<b>[0]"
+
+actor 고객
+
+participant "OAuth2Controller" as Controller
+participant "OAuth2Service" as Service
+participant "JwtTokenProvider" as JwtProvider
+participant "JwtAuthenticationFilter" as JwtFilter
+participant "소셜 로그인 서버\n(카카오/네이버)" as OAuthServer
+database "데이터베이스" as DB
+
+
+사용자 -> Controller: GET /api/oauth2/{provider}/login
+note right of Controller: KakaoLoginController/NaverLoginController
+
+Controller -> 사용자: 302 Redirect (소셜 로그인 페이지)
+
+사용자 -> OAuthServer: 아이디/비밀번호 입력 및 동의
+OAuthServer -> 사용자: 인증 완료 후 Redirect URI로 이동
+
+사용자 -> Controller: GET /OAuth2/login/{provider}?code=...
+note right of Controller: callback(code)
+
+Controller -> Service: login(code)
+note right of Service: KakaoService/NaverLoginService
+
+Service -> OAuthServer: POST /oauth/token (Access Token 요청)
+OAuthServer --> Service: Access Token 응답
+
+Service -> OAuthServer: GET /v2/user/me 또는 /v1/nid/me (사용자 정보 요청)
+OAuthServer --> Service: 사용자 정보(ID) 응답
+
+Service -> DB: findByEmail(사용자 ID)
+note right of Service: CustomerRepository.findByEmail()
+
+alt 신규 사용자인 경우
+    Service -> DB: save(new Customer)
+    DB --> Service: 새로운 고객 정보 저장
+else 기존 사용자인 경우
+    DB --> Service: 기존 고객 정보 반환
+end
+
+Service --> Controller: Customer 객체 반환
+
+Controller -> JwtProvider: createToken(customer.getEmail())
+JwtProvider -> DB: findByEmail(email)
+note right of JwtProvider: 사용자 Role(CUSTOMER) 확인
+DB --> JwtProvider: Customer 객체 (Role 확인)
+JwtProvider --> Controller: JWT (access_token) 생성
+
+Controller -> 사용자: 302 Redirect to "http://localhost:3000/menu"\n(access_token을 쿠키에 담아 전달)
+
+@enduml

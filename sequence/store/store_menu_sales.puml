@@ -1,0 +1,33 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+title 특정 메뉴 통계 조회 시퀀스 다이어그램
+
+autonumber "<b>[0]"
+
+actor 상점주인 as Owner
+
+participant "StoreMenuManagementController" as MenuCtrl
+participant "StoreMenuService" as MenuSvc
+database "데이터베이스" as DB
+
+Owner -> MenuCtrl: GET /api/store/{storeId}/menus/{menuId}/sales
+note right of MenuCtrl: getMenuSales(storeId, menuId, user)
+
+MenuCtrl -> MenuCtrl: checkAuthorization(user)
+note right of MenuCtrl: 요청 권한 확인
+
+alt 권한이 있는 경우
+    MenuCtrl -> MenuSvc: getMenuSales(storeId, menuId)
+    MenuSvc -> DB: findById(menuId)
+    DB --> MenuSvc: StoreMenu 객체
+
+    MenuSvc -> MenuSvc: storeMenu.getStore().getId() == storeId\n(메뉴의 소유권 확인)
+
+    MenuSvc --> MenuCtrl: MenuSalesResponseDto
+    MenuCtrl -> Owner: 200 OK (메뉴 통계 정보)
+else 권한이 없는 경우
+    MenuCtrl -> Owner: 403 Forbidden
+end
+
+@enduml

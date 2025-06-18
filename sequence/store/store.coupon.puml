@@ -1,0 +1,67 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+title 가게 쿠폰 관리 시퀀스 다이어그램
+
+autonumber "<b>[0]"
+
+actor 상점주인 as Owner
+
+participant "StoreCouponManagementController" as Controller
+participant "CouponService" as Service
+database "데이터베이스" as DB
+
+== 쿠폰 생성 (Create) ==
+
+Owner -> Controller: POST /api/store/coupons\n(CouponCreateRequestDto)
+note right of Controller: createCoupon(dto, user)
+
+Controller -> Controller: checkStoreAuthorization(user)\n(가게 주인 권한 확인)
+
+alt 권한이 있는 경우
+    Controller -> Service: createCoupon(dto, store.getId())
+    Service -> DB: findById(storeId)\n(StoreRepository)
+    DB --> Service: Store 객체
+
+    Service -> Service: validateExpiryPolicy(dto)\n(쿠폰 만료 정책 유효성 검사)
+
+    Service -> DB: save(new Coupon)\n(CouponRepository)
+    DB --> Service: 저장된 Coupon 객체
+
+    Service -> Service: CouponDto.fromEntity(coupon)\n(DTO로 변환)
+    Service --> Controller: CouponDto
+
+    Controller -> Owner: 201 CREATED (생성된 쿠폰 정보)
+else 권한이 없는 경우
+    Controller -> Owner: 403 Forbidden
+end
+
+== 쿠폰 수정 (Update) ==
+
+Owner -> Controller: PUT /api/store/coupons/{couponId}\n(CouponCreateRequestDto)
+note right of Controller: updateCoupon(couponId, dto, user)
+
+Controller -> Controller: checkStoreAuthorization(user)\n(가게 주인 권한 확인)
+
+alt 권한이 있는 경우
+    Controller -> Service: updateCoupon(couponId, store.getId(), dto)
+    Service -> DB: findById(storeId)\n(StoreRepository)
+    DB --> Service: Store 객체
+
+    Service -> DB: findByIdAndStore(couponId, store)\n(CouponRepository)
+    DB --> Service: 수정할 Coupon 객체
+
+    Service -> Service: validateExpiryPolicy(dto)\n(쿠폰 만료 정책 유효성 검사)
+
+    Service -> Service: coupon.updateCouponDetails(...)\n(조회한 Coupon 엔티티의 정보 업데이트)
+    note right of Service: @Transactional에 의해 변경 감지(Dirty Checking)
+
+    Service -> Service: CouponDto.fromEntity(coupon)\n(DTO로 변환)
+    Service --> Controller: CouponDto
+
+    Controller -> Owner: 200 OK (수정된 쿠폰 정보)
+else 권한이 없는 경우
+    Controller -> Owner: 403 Forbidden
+end
+
+@enduml

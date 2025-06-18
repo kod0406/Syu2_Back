@@ -1,0 +1,41 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+title 고객 QR 코드 스캔 및 메뉴 조회 시퀀스 다이어그램
+
+autonumber "<b>[0]"
+
+actor 고객 as Customer
+
+participant "Smartphone QR Scanner" as Scanner
+participant "Web Browser" as Browser
+participant "Frontend Server" as Frontend
+participant "Backend Server (API)" as Backend
+participant "Database" as DB
+
+Customer -> Scanner: QR 코드 스캔
+Scanner --> Customer: URL 정보 표시\n(예: http://localhost:3000/menu/1)
+
+Customer -> Browser: URL 주소로 접속
+
+== 1. 메뉴 페이지 UI 로드 ==
+Browser -> Frontend: GET /menu/1
+note right of Browser: 프론트엔드 서버에 메뉴 페이지(UI) 요청
+Frontend --> Browser: HTML, JS, CSS (React 앱) 반환
+note right of Frontend: React 앱이 브라우저에서 실행됨
+
+== 2. 메뉴 데이터 요청 및 표시 ==
+Browser -> Backend: GET /api/store/1/menus
+note right of Browser: 페이지가 로드된 후, React 앱이\n백엔드 API로 메뉴 데이터를 비동기 요청
+note right of Backend: StoreMenuManagementController.getMenus()
+
+Backend -> DB: findMenusByStoreId(1)
+note right of Backend: StoreMenuService.getAllMenus()
+DB --> Backend: 메뉴 목록 데이터
+
+Backend --> Browser: 200 OK (메뉴 목록 데이터 - JSON)
+note right of Browser: React 앱이 받은 JSON 데이터로\n화면에 메뉴 목록을 동적으로 그림
+
+Browser --> Customer: 메뉴 목록이 표시된 페이지를 보여줌
+
+@enduml

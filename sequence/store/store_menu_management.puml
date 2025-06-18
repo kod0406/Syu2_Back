@@ -1,0 +1,114 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+title 가게 메뉴 관리 시퀀스 다이어그램
+
+autonumber "<b>[0]"
+
+actor 상점주인 as Owner
+
+participant "StoreMenuManagementController" as Controller
+participant "StoreMenuService" as Service
+participant "S3UploadService" as S3Service
+participant "AmazonS3" as S3
+database "데이터베이스" as DB
+
+== 메뉴 등록 (Create) ==
+
+Owner -> Controller: POST /api/store/{storeId}/menus\n(메뉴 정보, 이미지 파일)
+note right of Controller: createMenu(storeId, dto, image, user)
+
+Controller -> Controller: checkAuthorization(user)\n(요청 권한 확인)
+
+alt 이미지 파일이 있는 경우
+    Controller -> S3Service: uploadFile(image)
+    S3Service -> S3Service: createFileNameWithStoreInfo()\n(S3에 저장할 고유 파일명 생성)
+    S3Service -> S3: PutObjectRequest (파일 업로드)
+    S3 --> S3Service: (업로드 완료)
+    S3Service -> S3: getUrl(bucket, fileName)
+    S3 --> S3Service: 업로드된 파일 URL
+    S3Service --> Controller: imageUrl
+    Controller -> Controller: menuRequestDto.setImageUrl(imageUrl)
+end
+
+Controller -> Service: createMenu(storeId, menuRequestDto)
+Service -> DB: findById(storeId) (매장 정보 확인)
+DB --> Service: Store 객체
+Service -> DB: save(new StoreMenu) (메뉴 정보 저장)
+DB --> Service: 저장된 StoreMenu 객체
+Service --> Controller: MenuResponseDto 반환
+
+Controller -> Owner: 200 OK (생성된 메뉴 정보)
+
+== 메뉴 수정 (Update) ==
+
+Owner -> Controller: PUT /api/store/{storeId}/menus/{menuId}\n(수정할 메뉴 정보, 새 이미지 파일)
+note right of Controller: updateMenu(storeId, menuId, dto, image, user)
+
+Controller -> Controller: checkAuthorization(user)\n(요청 권한 확인)
+
+alt 새 이미지 파일이 있는 경우
+    Controller -> S3Service: uploadFile(image)
+    S3Service --> Controller: newImageUrl
+    Controller -> Controller: menuRequestDto.setImageUrl(newImageUrl)
+end
+
+Controller -> Service: updateMenu(storeId, menuId, menuRequestDto)
+Service -> DB: findById(menuId) (기존 메뉴 조회)
+DB --> Service: 기존 StoreMenu 객체
+
+alt 기존 이미지가 있고, 새 이미지로 교체되는 경우
+    Service -> S3Service: deleteFile(oldImageUrl)
+    S3Service -> S3Service: extractKeyFromImageUrl(oldImageUrl)
+    S3Service -> S3: deleteObject(key) (기존 S3 이미지 삭제)
+    S3 --> S3Service: (삭제 완료)
+end
+
+Service -> Service: storeMenu.updateMenu(...)\n(메뉴 정보 업데이트)
+note right of Service: @Transactional에 의해 변경 감지(Dirty Checking)
+
+Service --> Controller: MenuResponseDto 반환
+
+Controller -> Owner: 200 OK (수정된 메뉴 정보)
+
+== 메뉴 삭제 (Delete) ==
+
+Owner -> Controller: DELETE /api/store/{storeId}/menus/{menuId}
+note right of Controller: deleteMenu(storeId, menuId, user)
+
+Controller -> Controller: checkAuthorization(user)\n(요청 권한 확인)
+
+Controller -> Service: deleteMenu(storeId, menuId)
+Service -> DB: findById(menuId) (삭제할 메뉴 조회)
+DB --> Service: StoreMenu 객체
+
+alt 메뉴에 이미지가 있는 경우
+    Service -> S3Service: deleteFile(imageUrl)
+    S3Service -> S3Service: extractKeyFromImageUrl(imageUrl)
+    S3Service -> S3: deleteObject(key) (S3 이미지 삭제)
+    S3 --> S3Service: (삭제 완료)
+end
+
+Service -> DB: delete(storeMenu) (DB에서 메뉴 삭제)
+DB --> Service: (삭제 완료)
+Service --> Controller: (void)
+
+Controller -> Owner: 200 OK
+
+== 판매 가능 여부 변경 (Toggle Availability) ==
+
+Owner -> Controller: PATCH /api/store/{storeId}/menus/{menuId}/availability
+note right of Controller: toggleMenuAvailability(storeId, menuId, user)
+
+Controller -> Controller: checkAuthorization(user)\n(요청 권한 확인)
+
+Controller -> Service: toggleMenuAvailability(storeId, menuId)
+Service -> DB: findById(menuId) (메뉴 조회)
+DB --> Service: StoreMenu 객체
+Service -> Service: storeMenu.updateMenu(...)\n(available 상태 변경)
+note right of Service: @Transactional에 의해 변경 감지(Dirty Checking)
+Service --> Controller: MenuResponseDto 반환
+
+Controller -> Owner: 200 OK (업데이트된 메뉴 정보)
+
+@enduml

@@ -1,0 +1,62 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+title 가게 주문 접수 및 처리 (WebSocket)
+
+autonumber "<b>[0]"
+
+participant "애플리케이션 서버\n(KakaoPayProvider)" as AppServer
+participant "OrderSocketController" as SocketController
+participant "WebBroadCast" as WebBroadCast
+participant "WebSocket Broker" as WebSocketBroker
+participant "가게 클라이언트" as StoreClient
+database "데이터베이스" as DB
+
+== 고객 결제 완료 -> 가게에 신규 주문 알림 ==
+
+note over AppServer: 고객 결제 승인 완료 직후
+
+AppServer -> WebBroadCast: createInactiveOrderGroupMessage(storeId)
+activate WebBroadCast
+note right of WebBroadCast: WebBroadCast.createInactiveOrderGroupMessage()
+
+WebBroadCast -> DB: findAllByStoreIdAndActiveFalse(storeId)
+DB --> WebBroadCast: List<OrderGroup>
+
+WebBroadCast --> AppServer: OrderGroupBatchMessage
+deactivate WebBroadCast
+
+AppServer -> WebSocketBroker: convertAndSend("/topic/orders/{storeId}", message)
+activate WebSocketBroker
+note right of WebSocketBroker: SimpMessagingTemplate.convertAndSend()
+
+WebSocketBroker -> StoreClient: OrderGroupBatchMessage (신규 주문 포함)
+
+note right of StoreClient: 실시간으로 주문 목록 갱신
+deactivate WebSocketBroker
+
+== 가게 주인의 주문 완료 처리 -> 주문 목록 갱신 ==
+
+StoreClient -> SocketController: POST /api/orders/{orderGroupId}/complete
+activate SocketController
+note right of SocketController: OrderSocketController.completeOrder()
+
+SocketController -> DB: orderGroupId로 OrderGroup 조회 후\nmarkAsCompleted() 호출 및 저장
+DB --> SocketController: 업데이트된 OrderGroup
+
+SocketController -> WebBroadCast: createInactiveOrderGroupMessage(storeId)
+activate WebBroadCast
+WebBroadCast -> DB: findAllByStoreIdAndActiveFalse(storeId)
+DB --> WebBroadCast: List<OrderGroup> (완료된 주문 제외)
+WebBroadCast --> SocketController: OrderGroupBatchMessage
+deactivate WebBroadCast
+
+SocketController -> WebSocketBroker: convertAndSend("/topic/orders/{storeId}", message)
+activate WebSocketBroker
+WebSocketBroker -> StoreClient: OrderGroupBatchMessage (갱신된 주문 목록)
+deactivate WebSocketBroker
+
+SocketController --> StoreClient: ResponseEntity.ok()
+deactivate SocketController
+
+@enduml
