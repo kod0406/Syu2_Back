@@ -1,0 +1,66 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+title 상점주인 회원가입 및 로그인 시퀀스 다이어그램
+
+autonumber "<b>[0]"
+
+actor 상점주인
+
+participant "StoreController" as Controller
+participant "StoreService" as Service
+participant "PasswordEncoder" as Encoder
+participant "JwtTokenProvider" as JwtProvider
+participant "데이터베이스" as DB
+
+== 회원가입 (Registration) ==
+
+상점주인 -> Controller: POST /api/stores/register\n(StoreRegistrationDTO)
+note right of Controller: registerStore(dto)
+
+Controller -> Service: registerStore(dto)
+Service -> DB: findByOwnerEmail(email)
+DB --> Service: (이메일 중복 확인 결과)
+
+alt 이메일이 중복되지 않은 경우
+    Service -> Encoder: encode(rawPassword)
+    Encoder --> Service: encodedPassword
+    Service -> DB: save(new Store)
+    DB --> Service: 저장된 Store 객체 반환
+
+    Service -> Service: createQRCode(store)
+    note right of Service: QR 코드에 포함될 URL 생성\n(frontendUrl + "/menu/" + storeId)
+    Service -> DB: save(new QR_Code)
+    DB --> Service: (QR 코드 저장 완료)
+
+    Service --> Controller: 저장된 Store 객체 반환
+    Controller -> 상점주인: 200 OK (가입 완료 메시지)
+else 이메일이 중복된 경우
+    Service --> Controller: throw IllegalArgumentException
+    Controller -> 상점주인: 400 Bad Request (오류 메시지)
+end
+
+== 로그인 (Login) ==
+
+상점주인 -> Controller: POST /api/stores/login\n(StoreLoginDTO)
+note right of Controller: login(dto, response)
+
+Controller -> Service: authenticateStore(email, password)
+Service -> DB: findByOwnerEmail(email)
+DB --> Service: Store 객체 반환
+
+alt 사용자가 존재하고 비밀번호가 일치하는 경우
+    Service -> Encoder: matches(rawPassword, encodedPassword)
+    Encoder --> Service: true
+    Service --> Controller: Store 객체 반환
+
+    Controller -> JwtProvider: createToken(store.getOwnerEmail())
+    JwtProvider --> Controller: JWT (access_token)
+
+    Controller -> 상점주인: 200 OK (로그인 성공 메시지)\n+ access_token 쿠키 설정
+else 사용자가 없거나 비밀번호가 틀린 경우
+    Service --> Controller: throw IllegalArgumentException
+    Controller -> 상점주인: 401 Unauthorized (오류 메시지)
+end
+
+@enduml

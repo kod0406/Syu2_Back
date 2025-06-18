@@ -1,0 +1,34 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+title 가게 전체 통계 조회 시퀀스 다이어그램
+
+autonumber "<b>[0]"
+
+actor 상점주인 as Owner
+
+participant "StoreController" as StoreCtrl
+participant "StoreService" as StoreSvc
+database "데이터베이스" as DB
+
+Owner -> StoreCtrl: GET /api/stores/{storeId}/sales
+note right of StoreCtrl: getStoreSales(storeId, user)
+
+StoreCtrl -> StoreCtrl: 권한 확인 (user.getId() == storeId)
+
+alt 권한이 있는 경우
+    StoreCtrl -> StoreSvc: getStoreSales(storeId)
+    StoreSvc -> DB: findById(storeId)
+    note right of StoreSvc: 매장과 연관된 모든 메뉴를 함께 조회
+    DB --> StoreSvc: Store (with List<StoreMenu>)
+
+    StoreSvc -> StoreSvc: 메뉴별 매출/판매량 합산
+    note right of StoreSvc: dailyTotalRevenue, totalRevenue, ...
+
+    StoreSvc --> StoreCtrl: StoreSalesResponseDto
+    StoreCtrl -> Owner: 200 OK (가게 통계 정보)
+else 권한이 없는 경우
+    StoreCtrl -> Owner: 403 Forbidden
+end
+
+@enduml
