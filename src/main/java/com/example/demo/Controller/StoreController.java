@@ -251,6 +251,25 @@ public class StoreController {
                     .body(Map.of("error", "QR 코드 조회 중 오류가 발생했습니다: " + e.getMessage()));
         }
     }
+
+    @Operation(summary = "가게 매출 정보 조회", description = "특정 가게의 일일/전체 총 매출 및 판매량을 조회합니다.")
+    @GetMapping("/{storeId}/sales")
+    public ResponseEntity<?> getStoreSales(
+            @Parameter(description = "매장 ID") @PathVariable Long storeId,
+            @AuthenticationPrincipal AppUser user) {
+
+        // 권한 확인 로직 (Store 주인만 접근 가능하도록)
+        if (user == null || user.getId() != storeId || !(user instanceof Store)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "권한이 없습니다."));
+        }
+
+        try {
+            StoreSalesResponseDto storeSales = storeService.getStoreSales(storeId);
+            return ResponseEntity.ok(storeSales);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
+    }
 }
 
 

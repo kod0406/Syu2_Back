@@ -1,8 +1,10 @@
 package com.example.demo.Service;
 
 import com.example.demo.dto.StoreRegistrationDTO;
+import com.example.demo.dto.StoreSalesResponseDto;
 import com.example.demo.entity.store.QR_Code;
 import com.example.demo.entity.store.Store;
+import com.example.demo.entity.store.StoreMenu;
 import com.example.demo.jwt.JwtTokenProvider;
 import com.example.demo.repository.QRCodeRepository;
 import com.example.demo.repository.StoreRepository;
@@ -11,6 +13,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -54,6 +58,7 @@ public class StoreService {
 
         // 추후 연관된 데이터 삭제 로직 추가 가능
         // (예: 매장 메뉴, 리뷰 등 삭제)
+        //TODO 나중에 손님이 발급 받은 쿠폰도 삭제하거나 '사용불가 '처리가 필요함
 
         storeRepository.delete(store);
     }
@@ -87,5 +92,33 @@ public class StoreService {
         else jwtTokenProvider.createToken(store.getStoreName());
 
         return store;
+    }
+
+    @Transactional(readOnly = true)
+    public StoreSalesResponseDto getStoreSales(Long storeId) {
+        Store store = storeRepository.findById(storeId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 매장입니다."));
+
+        List<StoreMenu> menus = store.getStoreMenu();
+
+        long dailyTotalRevenue = 0L;
+        long totalRevenue = 0L;
+        int dailyTotalSales = 0;
+        int totalSales = 0;
+
+        for (StoreMenu menu : menus) {
+            dailyTotalRevenue += menu.getDailyRevenue();
+            totalRevenue += menu.getRevenue();
+            dailyTotalSales += menu.getDailySales();
+            totalSales += menu.getTotalSales();
+        }
+
+        return new StoreSalesResponseDto(
+                storeId,
+                dailyTotalRevenue,
+                totalRevenue,
+                dailyTotalSales,
+                totalSales
+        );
     }
 }

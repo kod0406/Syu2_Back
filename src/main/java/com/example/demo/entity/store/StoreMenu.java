@@ -22,11 +22,19 @@ public class StoreMenu {
     //별점
     private Double rating;
     //일 판매량
-    private Integer dailySales;
+    @Builder.Default
+    private Integer dailySales = 0;
+    // 전체 판매량
+    @Builder.Default
+    private Integer totalSales = 0;
     //설명
     private String description;
+    //일일 수익
+    @Builder.Default
+    private Long dailyRevenue = 0L;
     //수익
-    private Long revenue;
+    @Builder.Default
+    private Long revenue = 0L;
     //사진
     private String imageUrl;
 
@@ -48,12 +56,15 @@ public class StoreMenu {
     //일일 판매량 증가 매서드(주문 쪽에서 호출할걸로 예상)
     public void increaseDailySales(int quantity) {
         this.dailySales += quantity;
+        this.totalSales += quantity;
+        this.dailyRevenue += (long) this.price * quantity;
         this.revenue += (long) this.price * quantity;
     }
 
     //일일 판매량 초기화
     public void resetDailySales() {
         this.dailySales = 0;
+        this.dailyRevenue = 0L;
     }
 
 }

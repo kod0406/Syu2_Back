@@ -54,16 +54,4 @@ public class LoginController {
 
         return "login";
     }
-
-    @Operation(summary = "점주 로그인 페이지", description = "점주 로그인 페이지를 제공합니다.")
-    @GetMapping("/login/owner")
-    public String ownerLogin() {
-        return "owner-login";
-    }
-
-    @Operation(summary = "점주 회원가입 페이지", description = "점주 회원가입 페이지를 제공합니다.")
-    @GetMapping("/login/owner/register")
-    public String ownerRegister() {
-        return "Owner_register";
-    }
 }
