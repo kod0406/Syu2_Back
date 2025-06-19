@@ -1,6 +1,7 @@
 package com.example.demo.Service;
 
 import com.example.demo.Service.Amazon.S3UploadService;
+import com.example.demo.dto.CustomerReviewDto;
 import com.example.demo.dto.ReviewWriteDTO;
 import com.example.demo.dto.UnreviewedStatisticsDto;
 import com.example.demo.entity.common.CustomerReviewCollect;
@@ -65,6 +66,13 @@ public class ReviewService {
         customerStatistics.markAsReviewed();
 
         storeMenu.updateRating(reviewWriteDTO.getReviewRating());
+    }
+
+    public List<CustomerReviewDto> getReviewsByMenu(Long menuId) {
+        List<CustomerReviewCollect> reviews = customerReviewCollectRepository.findByStoreMenu_MenuId(menuId);
+        return reviews.stream()
+                .map(CustomerReviewDto::fromEntity)
+                .toList();
     }
 
 }
