@@ -1,12 +1,14 @@
 package com.example.demo.Controller;
 
 import com.example.demo.Service.ReviewService;
+import com.example.demo.dto.CustomerReviewDto;
 import com.example.demo.dto.ReviewWriteDTO;
 import com.example.demo.dto.UnreviewedStatisticsDto;
 import com.example.demo.entity.common.CustomerStatistics;
 import com.example.demo.entity.customer.Customer;
 import com.example.demo.entity.entityInterface.AppUser;
 import com.example.demo.repository.CustomerRepository;
+import com.example.demo.repository.CustomerReviewCollectRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -29,6 +31,7 @@ import java.util.Optional;
 public class ReviewController {
     private final CustomerRepository customerRepository;
     private final ReviewService reviewService;
+    private final CustomerReviewCollectRepository customerReviewCollectRepository;
 
     @Operation(summary = "작성하지 않은 리뷰 목록 조회", description = "로그인한 고객이 아직 리뷰를 작성하지 않은 주문/통계 목록을 조회합니다.")
     @GetMapping("/review/ListShow")
@@ -70,5 +73,9 @@ public class ReviewController {
         reviewService.saveReview(customer, reviewWriteDTO);
         return ResponseEntity.ok().build();
     }
-
+    @GetMapping("/review/show")
+    public ResponseEntity<?> showReview(@RequestParam long menuId){
+        List<CustomerReviewDto> reviews = reviewService.getReviewsByMenu(menuId);
+        return ResponseEntity.ok(reviews);
+    }
 }
