@@ -9,6 +9,7 @@ import java.util.Optional;
 
 public interface CustomerCouponRepository extends JpaRepository<CustomerCoupon, Long> {
     Optional<CustomerCoupon> findByCustomerIdAndCouponId(Long customerId, Long couponId);
+    Optional<CustomerCoupon> findByCustomerIdAndCouponDetailId(Long customerId, Long couponDetailId);
     List<CustomerCoupon> findByCustomerId(Long customerId);
     void deleteByExpiresAtBefore(LocalDateTime now);
 }

@@ -3,6 +3,7 @@ package com.example.demo.Service.coupon;
 import com.example.demo.dto.coupon.CouponCreateRequestDto;
 import com.example.demo.dto.coupon.CouponDto;
 import com.example.demo.entity.coupon.Coupon;
+import com.example.demo.entity.coupon.CouponDetail;
 import com.example.demo.entity.coupon.CouponStatus;
 import com.example.demo.entity.coupon.ExpiryType;
 import com.example.demo.entity.store.Store;
@@ -14,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +32,14 @@ public class CouponService {
         //만료됐는지 검사
         validateExpiryPolicy(requestDto);
 
+        // CouponDetail 생성 (UUID, 쿠폰코드)
+        String uuid = UUID.randomUUID().toString();
+        String couponCode = "CP" + uuid.substring(0, 8).toUpperCase();
+        CouponDetail couponDetail = CouponDetail.builder()
+                .couponUuid(uuid)
+                .couponCode(couponCode)
+                .build();
+
         Coupon coupon = Coupon.builder()
                 .couponName(requestDto.getCouponName())
                 .discountType(requestDto.getDiscountType())
@@ -42,7 +52,8 @@ public class CouponService {
                 .issueStartTime(requestDto.getIssueStartTime())
                 .totalQuantity(requestDto.getTotalQuantity())
                 .applicableCategories(requestDto.getApplicableCategories())
-                .store(store) // 현재 로그인한 상점주인의 상점과 연결
+                .store(store)
+                .couponDetail(couponDetail)
                 .build();
         // 처음 쿠폰을 만들면 ACTIVE 상태로 설정됨
 
@@ -65,10 +76,10 @@ public class CouponService {
             }
             LocalDateTime expiryDate = requestDto.getIssueStartTime().plusDays(requestDto.getExpiryDays());
             if(expiryDate.isBefore(LocalDateTime.now())){
-                throw new IllegalArgumentException("상대 만료 방식의 만료 날짜는 현재 시간 이후여야 ���니다.");
+                throw new IllegalArgumentException("상대 만료 방식의 만료 날짜는 현재 시간 이후여야 합니다.");
             }
         } else {
-            throw new IllegalArgumentException("유효하지 않은 만료 방식�� 선택했습니다.");
+            throw new IllegalArgumentException("유효하지 않은 만료 방식을 선택했습니다.");
 
         }
     }
@@ -96,8 +107,7 @@ public class CouponService {
                 requestDto.getExpiryDays(),
                 requestDto.getIssueStartTime(),
                 requestDto.getTotalQuantity(),
-                requestDto.getApplicableCategories(),
-                coupon.getStatus() // 현재 상태를 그대로 유지하거나, 필요시 DTO에 status 필드를 추가하여 변경
+                requestDto.getApplicableCategories()
         );
 
         Coupon updatedCoupon = couponRepository.save(coupon);
@@ -129,7 +139,7 @@ public class CouponService {
         Store store = storeRepository.findById(storeId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 상점을 찾을 수 없습니다. ID: " + storeId));
 
-        Coupon coupon = couponRepository.findByCouponUuid(couponUuid)
+        Coupon coupon = couponRepository.findByCouponDetail_CouponUuid(couponUuid)
                 .orElseThrow(() -> new IllegalArgumentException("해당 UUID의 쿠폰을 찾을 수 없습니다. UUID: " + couponUuid));
 
         // 해당 매장의 쿠폰인지 확인
@@ -152,7 +162,7 @@ public class CouponService {
         Store store = storeRepository.findById(storeId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 상점을 찾을 수 없습니다. ID: " + storeId));
 
-        Coupon coupon = couponRepository.findByCouponUuid(couponUuid)
+        Coupon coupon = couponRepository.findByCouponDetail_CouponUuid(couponUuid)
                 .orElseThrow(() -> new IllegalArgumentException("해당 UUID의 쿠폰을 찾을 수 없습니다. UUID: " + couponUuid));
 
         // 해당 매장의 쿠폰인지 확인
@@ -175,8 +185,7 @@ public class CouponService {
                 requestDto.getExpiryDays(),
                 requestDto.getIssueStartTime(),
                 requestDto.getTotalQuantity(),
-                requestDto.getApplicableCategories(),
-                coupon.getStatus() // 현재 상태를 그대로 유지
+                requestDto.getApplicableCategories()
         );
 
         Coupon updatedCoupon = couponRepository.save(coupon);
@@ -193,9 +202,9 @@ public class CouponService {
     @Transactional
     public CouponDto updateCouponStatusByUuid(String couponUuid, Long storeId, CouponStatus status) {
         Store store = storeRepository.findById(storeId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 상점을 찾을 수 없습��다. ID: " + storeId));
+                .orElseThrow(() -> new IllegalArgumentException("해당 상점을 찾을 수 없습니다. ID: " + storeId));
 
-        Coupon coupon = couponRepository.findByCouponUuid(couponUuid)
+        Coupon coupon = couponRepository.findByCouponDetail_CouponUuid(couponUuid)
                 .orElseThrow(() -> new IllegalArgumentException("해당 UUID의 쿠폰을 찾을 수 없습니다. UUID: " + couponUuid));
 
         // 해당 매장의 쿠폰인지 확인
@@ -241,7 +250,7 @@ public class CouponService {
         Store store = storeRepository.findById(storeId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 상점을 찾을 수 없습니다. ID: " + storeId));
 
-        Coupon coupon = couponRepository.findByCouponUuid(couponUuid)
+        Coupon coupon = couponRepository.findByCouponDetail_CouponUuid(couponUuid)
                 .orElseThrow(() -> new IllegalArgumentException("해당 UUID의 쿠폰을 찾을 수 없습니다. UUID: " + couponUuid));
 
         // 해당 매장의 쿠폰인지 확인
