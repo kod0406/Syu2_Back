@@ -64,4 +64,30 @@ else 권한이 없는 경우
     Controller -> Owner: 403 Forbidden
 end
 
+== 쿠폰 상태 변경 (Update Status) ==
+
+Owner -> Controller: PATCH /api/store/coupons/{couponId}/status\n(CouponStatusUpdateRequestDto)
+note right of Controller: updateCouponStatus(couponId, dto, user)
+
+Controller -> Controller: checkStoreAuthorization(user)\n(가게 주인 권한 확인)
+
+alt 권한이 있는 경우
+    Controller -> Service: updateCouponStatus(couponId, store.getId(), dto.getStatus())
+    Service -> DB: findById(storeId)\n(StoreRepository)
+    DB --> Service: Store 객체
+
+    Service -> DB: findByIdAndStore(couponId, store)\n(CouponRepository)
+    DB --> Service: 수정할 Coupon 객체
+
+    Service -> Service: coupon.changeStatus(status)\n(조회한 Coupon 엔티티의 상태 업데이트)
+    note right of Service: @Transactional에 의해 변경 감지(Dirty Checking)
+
+    Service -> Service: CouponDto.fromEntity(coupon)\n(DTO로 변환)
+    Service --> Controller: CouponDto
+
+    Controller -> Owner: 200 OK (수정된 쿠폰 정보)
+else 권한이 없는 경우
+    Controller -> Owner: 403 Forbidden
+end
+
 @enduml

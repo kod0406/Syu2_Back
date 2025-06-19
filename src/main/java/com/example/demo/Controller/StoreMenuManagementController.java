@@ -7,11 +7,14 @@ import com.example.demo.dto.MenuResponseDto;
 import com.example.demo.Service.Amazon.S3UploadService;
 import com.example.demo.entity.customer.Customer;
 import com.example.demo.entity.entityInterface.AppUser;
-import com.example.demo.dto.MenuSalesResponseDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -53,11 +56,24 @@ public class StoreMenuManagementController {
         }
     }
 
-    @Operation(summary = "메뉴 목록 조회", description = "매장의 모든 메뉴를 조회합니다.")
+    @Operation(
+            summary = "메뉴 목록 조회",
+            description = "특정 매장에 등록된 모든 메뉴의 목록을 조회합니다.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "메뉴 목록 조회 성공",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = MenuResponseDto.class),
+                                    examples = @ExampleObject(value = "[{\"menuId\": 1, \"menuName\": \"아메리카노\", \"price\": 4500, \"rating\": 4.5, \"description\": \"신선한 원두로 만든 아메리카노\", \"imageUrl\": \"http://example.com/americano.jpg\", \"available\": true, \"category\": \"커피\"}, {\"menuId\": 2, \"menuName\": \"카페라떼\", \"price\": 5000, \"rating\": 4.8, \"description\": \"부드러운 우유가 들어간 라떼\", \"imageUrl\": \"http://example.com/latte.jpg\", \"available\": true, \"category\": \"커피\"}]"))),
+                    @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자", content = @Content),
+                    @ApiResponse(responseCode = "403", description = "접근 권한 없음", content = @Content),
+                    @ApiResponse(responseCode = "404", description = "존재하지 않는 매장", content = @Content)
+            }
+    )
+    @SecurityRequirement(name = "bearer-key")
     @GetMapping("/{storeId}/menus")
     public ResponseEntity<?> getMenus(
-            @Parameter(description = "매장 ID") @PathVariable Long storeId,
-            @AuthenticationPrincipal AppUser user) {
+            @Parameter(description = "매장 ID", required = true, example = "1") @PathVariable Long storeId,
+            @Parameter(hidden = true) @AuthenticationPrincipal AppUser user) {
 
         ResponseEntity<?> authResponse = checkAuthorization(user);
         if (authResponse != null) {
@@ -72,24 +88,33 @@ public class StoreMenuManagementController {
             summary = "메뉴 등록",
             description = "매장에 새로운 메뉴를 등록합니다. 메뉴 정보와 이미지는 `multipart/form-data` 형식으로 전달합니다. " +
                     "메뉴 정보의 각 필드는 `MenuRequestDto` 스키마를 따릅니다.",
-            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            requestBody = @RequestBody(
+                    description = "등록할 메뉴의 상세 정보입니다. `MenuRequestDto` 스키마를 참조하세요.",
                     required = true,
                     content = @Content(
                             mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
                             schema = @Schema(implementation = MenuRequestDto.class)
-                            // Swagger UI는 MenuRequestDto의 필드들을 form 파라미터로 보여주고,
-                            // 각 필드 설명은 MenuRequestDto 내의 @Schema 어노테이션을 따릅니다.
-                            // 'image' 파트는 아래 @RequestParam과 @Parameter로 설명됩니다.
                     )
-            )
+            ),
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "메뉴 등록 성공",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = MenuResponseDto.class),
+                                    examples = @ExampleObject(value = "{\"menuId\": 3, \"menuName\": \"딸기 스무디\", \"price\": 6000, \"rating\": 0.0, \"description\": \"신선한 딸기로 만든 스무디\", \"imageUrl\": \"http://example.com/smoothie.jpg\", \"available\": true, \"category\": \"음료\"}"))),
+                    @ApiResponse(responseCode = "400", description = "잘못된 요청 데이터", content = @Content),
+                    @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자", content = @Content),
+                    @ApiResponse(responseCode = "403", description = "접근 권한 없음", content = @Content),
+                    @ApiResponse(responseCode = "404", description = "존재하지 않는 매장", content = @Content)
+            }
     )
+    @SecurityRequirement(name = "bearer-key")
     @PostMapping(value = "/{storeId}/menus", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> createMenu(
-            @PathVariable Long storeId,
-            @ModelAttribute MenuRequestDto menuRequestDto, // 이 DTO의 필드들이 form-data 파라미터가 됩니다.
-            @Parameter(description = "메뉴 이미지 파일 (선택 사항)") // Swagger UI에서 파일 업로드 UI를 제공합니다.
+            @Parameter(description = "매장 ID", required = true, example = "1") @PathVariable Long storeId,
+            @ModelAttribute MenuRequestDto menuRequestDto,
+            @Parameter(description = "메뉴 이미지 파일 (선택 사항)")
             @RequestParam(value = "image", required = false) MultipartFile image,
-            @AuthenticationPrincipal AppUser user) {
+            @Parameter(hidden = true) @AuthenticationPrincipal AppUser user) {
 
         ResponseEntity<?> authResponse = checkAuthorization(user);
         if (authResponse != null) {
@@ -105,43 +130,68 @@ public class StoreMenuManagementController {
         return ResponseEntity.ok(newMenu);
     }
 
-    @Operation(summary = "특정 메뉴 조회", description = "매장의 특정 메뉴를 조회합니다.")
+    @Operation(
+            summary = "특정 메뉴 조회",
+            description = "매장의 특정 메뉴 정보를 조회합니다.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "메뉴 조회 성공",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = MenuResponseDto.class),
+                                    examples = @ExampleObject(value = "{\"menuId\": 1, \"menuName\": \"아메리카노\", \"price\": 4500, \"rating\": 4.5, \"description\": \"신선한 원두로 만든 아메리카노\", \"imageUrl\": \"http://example.com/americano.jpg\", \"available\": true, \"category\": \"커피\"}"))),
+                    @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자", content = @Content),
+                    @ApiResponse(responseCode = "403", description = "접근 권한 없음", content = @Content),
+                    @ApiResponse(responseCode = "404", description = "존재하지 않는 매장 또는 메뉴", content = @Content)
+            }
+    )
+    @SecurityRequirement(name = "bearer-key")
     @GetMapping("/{storeId}/menus/{menuId}")
     public ResponseEntity<?> getMenu(
-            @Parameter(description = "매장 ID") @PathVariable Long storeId,
-            @Parameter(description = "메뉴 ID") @PathVariable Long menuId,
-            @AuthenticationPrincipal AppUser user) {
+            @Parameter(description = "매장 ID", required = true, example = "1") @PathVariable Long storeId,
+            @Parameter(description = "메뉴 ID", required = true, example = "1") @PathVariable Long menuId,
+            @Parameter(hidden = true) @AuthenticationPrincipal AppUser user) {
 
         ResponseEntity<?> authResponse = checkAuthorization(user);
         if (authResponse != null) {
             return authResponse;
         }
-        // 실제 메뉴 조회 로직이 필요합니다. 현재는 OK만 반환합니다.
+        // TODO: 실제 메뉴 조회 로직 구현 필요
         // 예: MenuResponseDto menu = storeMenuService.getMenuById(storeId, menuId);
         // return ResponseEntity.ok(menu);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok().build(); // 현재는 임시로 OK만 반환
     }
 
     @Operation(
             summary = "메뉴 수정",
             description = "매장의 특정 메뉴를 수정합니다. 메뉴 정보와 이미지는 `multipart/form-data` 형식으로 전달합니다. " +
                     "메뉴 정보의 각 필드는 `MenuRequestDto` 스키마를 따릅니다.",
-            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            requestBody = @RequestBody(
+                    description = "수정할 메뉴의 상세 정보입니다. `MenuRequestDto` 스키마를 참조하세요.",
                     required = true,
                     content = @Content(
                             mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
                             schema = @Schema(implementation = MenuRequestDto.class)
                     )
-            )
+            ),
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "메뉴 수정 성공",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = MenuResponseDto.class),
+                                    examples = @ExampleObject(value = "{\"menuId\": 1, \"menuName\": \"아메리카노\", \"price\": 4800, \"rating\": 4.5, \"description\": \"고급 원두로 만든 스페셜 아메리카노\", \"imageUrl\": \"http://example.com/new_americano.jpg\", \"available\": true, \"category\": \"커피\"}"))),
+                    @ApiResponse(responseCode = "400", description = "잘못된 요청 데이터", content = @Content),
+                    @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자", content = @Content),
+                    @ApiResponse(responseCode = "403", description = "접근 권한 없음", content = @Content),
+                    @ApiResponse(responseCode = "404", description = "존재하지 않는 매장 또는 메뉴", content = @Content)
+            }
     )
+    @SecurityRequirement(name = "bearer-key")
     @PutMapping(value = "/{storeId}/menus/{menuId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> updateMenu(
-            @Parameter(description = "매장 ID") @PathVariable Long storeId,
-            @Parameter(description = "메뉴 ID") @PathVariable Long menuId,
+            @Parameter(description = "매장 ID", required = true, example = "1") @PathVariable Long storeId,
+            @Parameter(description = "메뉴 ID", required = true, example = "1") @PathVariable Long menuId,
             @ModelAttribute MenuRequestDto menuRequestDto,
             @Parameter(description = "메뉴 이미지 파일 (변경 시에만 첨부, 선택 사항)")
             @RequestParam(value = "image", required = false) MultipartFile image,
-            @AuthenticationPrincipal AppUser user) {
+            @Parameter(hidden = true) @AuthenticationPrincipal AppUser user) {
 
         ResponseEntity<?> authResponse = checkAuthorization(user);
         if (authResponse != null) {
@@ -157,12 +207,22 @@ public class StoreMenuManagementController {
         return ResponseEntity.ok(updatedMenu);
     }
 
-    @Operation(summary = "메뉴 삭제", description = "매장의 특정 메뉴를 삭제합니다.")
+    @Operation(
+            summary = "메뉴 삭제",
+            description = "매장의 특정 메뉴를 삭제합니다.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "메뉴 삭제 성공", content = @Content),
+                    @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자", content = @Content),
+                    @ApiResponse(responseCode = "403", description = "접근 권한 없음", content = @Content),
+                    @ApiResponse(responseCode = "404", description = "존재하지 않는 매장 또는 메뉴", content = @Content)
+            }
+    )
+    @SecurityRequirement(name = "bearer-key")
     @DeleteMapping("/{storeId}/menus/{menuId}")
     public ResponseEntity<?> deleteMenu(
-            @Parameter(description = "매장 ID") @PathVariable Long storeId,
-            @Parameter(description = "메뉴 ID") @PathVariable Long menuId,
-            @AuthenticationPrincipal AppUser user) {
+            @Parameter(description = "매장 ID", required = true, example = "1") @PathVariable Long storeId,
+            @Parameter(description = "메뉴 ID", required = true, example = "2") @PathVariable Long menuId,
+            @Parameter(hidden = true) @AuthenticationPrincipal AppUser user) {
 
         ResponseEntity<?> authResponse = checkAuthorization(user);
         if (authResponse != null) {
@@ -173,12 +233,25 @@ public class StoreMenuManagementController {
         return ResponseEntity.ok().build();
     }
 
-    @Operation(summary = "카테고리별 메뉴 조회", description = "매장의 특정 카테고리 메뉴를 조회합니다.")
+    @Operation(
+            summary = "카테고리별 메뉴 조회",
+            description = "매장의 특정 카테고리에 속한 메뉴 목록을 조회합니다.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "카테고리별 메뉴 조회 성공",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = MenuResponseDto.class),
+                                    examples = @ExampleObject(value = "[{\"menuId\": 1, \"menuName\": \"아메리카노\", \"price\": 4500, \"rating\": 4.5, \"description\": \"신선한 원두로 만든 아메리카노\", \"imageUrl\": \"http://example.com/americano.jpg\", \"available\": true, \"category\": \"커피\"}, {\"menuId\": 2, \"menuName\": \"카페라떼\", \"price\": 5000, \"rating\": 4.8, \"description\": \"부드러운 우유가 들어간 라떼\", \"imageUrl\": \"http://example.com/latte.jpg\", \"available\": true, \"category\": \"커피\"}]"))),
+                    @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자", content = @Content),
+                    @ApiResponse(responseCode = "403", description = "접근 권한 없음", content = @Content),
+                    @ApiResponse(responseCode = "404", description = "존재하지 않는 매장", content = @Content)
+            }
+    )
+    @SecurityRequirement(name = "bearer-key")
     @GetMapping("/{storeId}/category/{category}/menus")
     public ResponseEntity<?> getMenuByCategory(
-            @Parameter(description = "매장 ID") @PathVariable Long storeId,
-            @Parameter(description = "카테고리명") @PathVariable String category,
-            @AuthenticationPrincipal AppUser user) {
+            @Parameter(description = "매장 ID", required = true, example = "1") @PathVariable Long storeId,
+            @Parameter(description = "카테고리명", required = true, example = "커피") @PathVariable String category,
+            @Parameter(hidden = true) @AuthenticationPrincipal AppUser user) {
 
         ResponseEntity<?> authResponse = checkAuthorization(user);
         if (authResponse != null) {
@@ -189,11 +262,24 @@ public class StoreMenuManagementController {
         return ResponseEntity.ok(menuList);
     }
 
-    @Operation(summary = "전체 카테고리 목록 조회", description = "매장에 등록된 모든 카테고리를 조회합니다.")
+    @Operation(
+            summary = "전체 카테고리 목록 조회",
+            description = "매장에 등록된 모든 카테고리의 목록을 중복 없이 조회합니다.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "카테고리 목록 조회 성공",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(type = "array", implementation = String.class),
+                                    examples = @ExampleObject(value = "[\"커피\", \"음료\", \"디저트\"]"))),
+                    @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자", content = @Content),
+                    @ApiResponse(responseCode = "403", description = "접근 권한 없음", content = @Content),
+                    @ApiResponse(responseCode = "404", description = "존재하지 않는 매장", content = @Content)
+            }
+    )
+    @SecurityRequirement(name = "bearer-key")
     @GetMapping("/{storeId}/categories")
     public ResponseEntity<?> getAllCategories(
-            @Parameter(description = "매장 ID") @PathVariable Long storeId,
-            @AuthenticationPrincipal AppUser user) {
+            @Parameter(description = "매장 ID", required = true, example = "1") @PathVariable Long storeId,
+            @Parameter(hidden = true) @AuthenticationPrincipal AppUser user) {
 
         ResponseEntity<?> authResponse = checkAuthorization(user);
         if (authResponse != null) {
@@ -204,12 +290,25 @@ public class StoreMenuManagementController {
         return ResponseEntity.ok(categories);
     }
 
-    @Operation(summary = "메뉴 주문 가능 상태 변경", description = "메뉴의 주문 가능 상태를 토글합니다.")
+    @Operation(
+            summary = "메뉴 주문 가능 상태 변경",
+            description = "메뉴의 주문 가능 상태를 토글합니다 (가능 ↔ 불가능).",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "상태 변경 성공",
+                            content = @Content(mediaType = "application/json",
+                                    schema = @Schema(implementation = MenuResponseDto.class),
+                                    examples = @ExampleObject(value = "{\"menuId\": 1, \"menuName\": \"아메리카노\", \"price\": 4500, \"rating\": 4.5, \"description\": \"신선한 원두로 만든 아메리카노\", \"imageUrl\": \"http://example.com/americano.jpg\", \"available\": false, \"category\": \"커피\"}"))),
+                    @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자", content = @Content),
+                    @ApiResponse(responseCode = "403", description = "접근 권한 없음", content = @Content),
+                    @ApiResponse(responseCode = "404", description = "존재하지 않는 매장 또는 메뉴", content = @Content)
+            }
+    )
+    @SecurityRequirement(name = "bearer-key")
     @PatchMapping("/{storeId}/menus/{menuId}/availability")
     public ResponseEntity<?> toggleMenuAvailability(
-            @Parameter(description = "매장 ID") @PathVariable Long storeId,
-            @Parameter(description = "메뉴 ID") @PathVariable Long menuId,
-            @AuthenticationPrincipal AppUser user) {
+            @Parameter(description = "매장 ID", required = true, example = "1") @PathVariable Long storeId,
+            @Parameter(description = "메뉴 ID", required = true, example = "1") @PathVariable Long menuId,
+            @Parameter(hidden = true) @AuthenticationPrincipal AppUser user) {
 
         ResponseEntity<?> authResponse = checkAuthorization(user);
         if (authResponse != null) {
@@ -218,21 +317,5 @@ public class StoreMenuManagementController {
 
         MenuResponseDto updatedMenu = storeMenuService.toggleMenuAvailability(storeId, menuId);
         return ResponseEntity.ok(updatedMenu);
-    }
-
-    @Operation(summary = "특정 메뉴 판매 정보 조회", description = "특정 메뉴의 일일/전체 판매량 및 매출을 조회합니다.")
-    @GetMapping("/{storeId}/menus/{menuId}/sales")
-    public ResponseEntity<?> getMenuSales(
-            @Parameter(description = "매장 ID") @PathVariable Long storeId,
-            @Parameter(description = "메뉴 ID") @PathVariable Long menuId,
-            @AuthenticationPrincipal AppUser user) {
-
-        ResponseEntity<?> authResponse = checkAuthorization(user);
-        if (authResponse != null) {
-            return authResponse;
-        }
-
-        MenuSalesResponseDto menuSales = storeMenuService.getMenuSales(storeId, menuId);
-        return ResponseEntity.ok(menuSales);
     }
 }

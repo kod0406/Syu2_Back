@@ -1,0 +1,37 @@
+@startuml
+'https://plantuml.com/sequence-diagram
+
+title 만료된 쿠폰 자동 삭제 시퀀스 다이어그램
+
+autonumber "<b>[0]"
+
+participant "Scheduler" as Scheduler
+participant "CouponCleanupService" as Service
+participant "CustomerCouponRepository" as Repository
+database "데이터베이스" as DB
+
+== 매일 0시, 12시에 스케줄러 실행 ==
+
+Scheduler -> Service: cleanupExpiredCoupons()
+activate Service
+note right of Service: @Scheduled(cron = "0 0 0,12 * * ?")
+
+Service -> Repository: deleteByExpiresAtBefore(now)
+activate Repository
+
+Repository -> DB: DELETE FROM customer_coupon WHERE expires_at < ?
+activate DB
+note right of DB: 현재 시간보다 만료일이 빠른\n모든 고객 쿠폰 데이터 삭제
+
+DB --> Repository: 삭제된 행 수 반환
+deactivate DB
+
+Repository --> Service: void
+deactivate Repository
+
+note right of Service: 작업 완료/실패 로그 기록
+Service --> Scheduler: void
+deactivate Service
+
+@enduml
+

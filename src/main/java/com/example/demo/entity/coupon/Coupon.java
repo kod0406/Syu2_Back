@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Getter
@@ -18,6 +19,12 @@ public class Coupon {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(nullable = false, unique = true)
+    private String couponUuid; // UUID 문자열 형태로 저장
+
+    @Column(name = "coupon_code", nullable = false)
+    private String couponCode; // DB에 존재하는 coupon_code 필드
 
     @Column(nullable = false)
     private String couponName; // 쿠폰명
@@ -68,6 +75,8 @@ public class Coupon {
     public Coupon(String couponName, DiscountType discountType, int discountValue, Integer discountLimit,
                   Integer minimumOrderAmount, ExpiryType expiryType, LocalDateTime expiryDate, Integer expiryDays,
                   LocalDateTime issueStartTime, int totalQuantity, List<String> applicableCategories, Store store) {
+        this.couponUuid = UUID.randomUUID().toString();
+        this.couponCode = "CP" + UUID.randomUUID().toString().substring(0, 8).toUpperCase(); // 고유한 코드 생성
         this.couponName = couponName;
         this.discountType = discountType;
         this.discountValue = discountValue;
