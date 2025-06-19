@@ -19,12 +19,12 @@ public class Coupon {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @Column(nullable = false, unique = true)
-    private String couponUuid; // UUID 문자열 형태로 저장
-
-    @Column(name = "coupon_code", nullable = false)
-    private String couponCode; // DB에 존재하는 coupon_code 필드
+//
+//    @Column(nullable = false, unique = true)
+//    private String couponUuid; // UUID 문자열 형태로 저장
+//
+//    @Column(name = "coupon_code", nullable = false)
+//    private String couponCode; // DB에 존재하는 coupon_code 필드
 
     @Column(nullable = false)
     private String couponName; // 쿠폰명
@@ -64,9 +64,9 @@ public class Coupon {
     @JoinColumn(name = "store_id", nullable = false)
     private Store store; // 상점ID
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private CouponStatus status = CouponStatus.ACTIVE; // 상태 (활성/비활성/회수)
+//    @Enumerated(EnumType.STRING)
+//    @Column(nullable = false)
+//    private CouponStatus status = CouponStatus.ACTIVE; // 상태 (활성/비활성/회수)
 
     @Version // 낙관적 잠금을 위한 버전 필드
     private Long version;
@@ -75,8 +75,8 @@ public class Coupon {
     public Coupon(String couponName, DiscountType discountType, int discountValue, Integer discountLimit,
                   Integer minimumOrderAmount, ExpiryType expiryType, LocalDateTime expiryDate, Integer expiryDays,
                   LocalDateTime issueStartTime, int totalQuantity, List<String> applicableCategories, Store store) {
-        this.couponUuid = UUID.randomUUID().toString();
-        this.couponCode = "CP" + UUID.randomUUID().toString().substring(0, 8).toUpperCase(); // 고유한 코드 생성
+//        this.couponUuid = UUID.randomUUID().toString();
+//        this.couponCode = "CP" + UUID.randomUUID().toString().substring(0, 8).toUpperCase(); // 고유한 코드 생성
         this.couponName = couponName;
         this.discountType = discountType;
         this.discountValue = discountValue;
@@ -100,13 +100,13 @@ public class Coupon {
         }
     }
 
-    public void changeStatus(CouponStatus status) {
-        this.status = status;
-    }
+//    public void changeStatus(CouponStatus status) {
+//        this.status = status;
+//    }
 
     public void updateCouponDetails(String couponName, DiscountType discountType, int discountValue, Integer discountLimit,
                                     Integer minimumOrderAmount, ExpiryType expiryType, LocalDateTime expiryDate, Integer expiryDays,
-                                    LocalDateTime issueStartTime, int totalQuantity, List<String> applicableCategories, CouponStatus status) {
+                                    LocalDateTime issueStartTime, int totalQuantity, List<String> applicableCategories) {
         this.couponName = couponName;
         this.discountType = discountType;
         this.discountValue = discountValue;
@@ -118,6 +118,6 @@ public class Coupon {
         this.issueStartTime = issueStartTime;
         this.totalQuantity = totalQuantity;
         this.applicableCategories = applicableCategories;
-        this.status = status;
+//        this.status = status;
     }
 }
