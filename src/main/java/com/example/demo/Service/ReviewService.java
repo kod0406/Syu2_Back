@@ -46,7 +46,6 @@ public class ReviewService {
 
     @Transactional
     public void saveReview(Customer customer, ReviewWriteDTO reviewWriteDTO) {
-        //TODO
         CustomerStatistics customerStatistics = customerStatisticsRepository.findById(reviewWriteDTO.getStatisticsId()).orElse(null);
         Store store = customerStatistics.getStore();
         StoreMenu storeMenu = storeMenuRepository.findByMenuName(customerStatistics.getOrderDetails());
@@ -57,9 +56,15 @@ public class ReviewService {
         else {
             url = s3UploadService.uploadFile(reviewWriteDTO.getImages());
         }
+
+
+
+
         CustomerReviewCollect reviewCollect = reviewWriteDTO.toEntity(customer, store, customerStatistics, storeMenu, url);
         customerReviewCollectRepository.save(reviewCollect);
         customerStatistics.markAsReviewed();
+
+        storeMenu.updateRating(reviewWriteDTO.getReviewRating());
     }
 
 }
