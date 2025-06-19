@@ -3,7 +3,6 @@ package com.example.demo.Service;
 import com.example.demo.Service.Amazon.S3UploadService;
 import com.example.demo.dto.MenuRequestDto;
 import com.example.demo.dto.MenuResponseDto;
-import com.example.demo.dto.MenuSalesResponseDto;
 import com.example.demo.entity.store.Store;
 import com.example.demo.entity.store.StoreMenu;
 import com.example.demo.repository.QRCodeRepository;
@@ -164,25 +163,6 @@ public class StoreMenuService {
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 매장입니다."));
 
         return storeMenuRepository.findCategoriesByStore(store);
-    }
-
-    @Transactional(readOnly = true)
-    public MenuSalesResponseDto getMenuSales(Long storeId, Long menuId) {
-        StoreMenu storeMenu = storeMenuRepository.findById(menuId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 메뉴입니다."));
-
-        if (storeMenu.getStore().getStoreId() != storeId) {
-            throw new IllegalArgumentException("해당 매장의 메뉴가 아닙니다.");
-        }
-
-        return new MenuSalesResponseDto(
-                storeMenu.getMenuId(),
-                storeMenu.getMenuName(),
-                storeMenu.getDailySales(),
-                storeMenu.getTotalSales(),
-                storeMenu.getDailyRevenue(),
-                storeMenu.getRevenue()
-        );
     }
 
     @Transactional

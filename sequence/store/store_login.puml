@@ -11,7 +11,7 @@ participant "StoreController" as Controller
 participant "StoreService" as Service
 participant "PasswordEncoder" as Encoder
 participant "JwtTokenProvider" as JwtProvider
-participant "데이터베이스" as DB
+database "데이터베이스" as DB
 
 == 회원가입 (Registration) ==
 
