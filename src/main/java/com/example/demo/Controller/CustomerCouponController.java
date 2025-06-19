@@ -2,6 +2,7 @@ package com.example.demo.Controller;
 
 import com.example.demo.Service.coupon.CustomerCouponService;
 import com.example.demo.dto.coupon.CouponDto;
+import com.example.demo.entity.customer.Customer;
 import com.example.demo.entity.entityInterface.AppUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -119,7 +120,7 @@ public class CustomerCouponController {
         }
     }
 
-    @Operation(summary = "쿠폰 발급받기", description = "고객이 쿠폰을 발급받습니다. 로그인이 필요합니다.")
+    @Operation(summary = "쿠폰 발급받기", description = "고객이 쿠폰을 발급받습니다. 로그인이 필요하며, 고객(Customer) 권한이 있어야 합니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "쿠폰 발급 성공", content = @Content(examples = @ExampleObject(value = "쿠폰이 성공적으로 발급되었습니다."))),
             @ApiResponse(responseCode = "400", description = "잘못된 요청", content = @Content(examples = {
@@ -129,12 +130,13 @@ public class CustomerCouponController {
                     @ExampleObject(name = "잘못된 쿠폰", value = "쿠폰을 찾을 수 없습니다.")
             })),
             @ApiResponse(responseCode = "401", description = "인증 실패", content = @Content(examples = @ExampleObject(value = "로그인이 필요합니다."))),
+            @ApiResponse(responseCode = "403", description = "권한 없음", content = @Content(examples = @ExampleObject(value = "고객만 접근 가능합니다."))),
             @ApiResponse(responseCode = "500", description = "서버 내부 오류", content = @Content(examples = @ExampleObject(value = "쿠폰 발급 중 오류가 발생했습니다.")))
     })
     @SecurityRequirement(name = "bearer-key")
     @PostMapping("/coupons/{couponId}/issue")
     public ResponseEntity<?> issueCoupon(@Parameter(description = "발급받을 쿠폰의 ID", required = true, example = "1") @PathVariable Long couponId,
-                                         @Parameter(hidden = true) @AuthenticationPrincipal AppUser user) {
+                                         @Parameter(hidden = true) @AuthenticationPrincipal Customer user) {
         if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
         }
@@ -148,7 +150,7 @@ public class CustomerCouponController {
         }
     }
 
-    @Operation(summary = "쿠폰 발급받기 (UUID 사용)", description = "고객이 UUID로 식별된 쿠폰을 발급받습니다. 로그인이 필요합니다.")
+    @Operation(summary = "쿠폰 발급받기 (UUID 사용)", description = "고객이 UUID로 식별된 쿠폰을 발급받습니다. 로그인이 필요하며, 고객(Customer) 권한이 있어야 합니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "쿠폰 발급 성공", content = @Content(examples = @ExampleObject(value = "쿠폰이 성공적으로 발급되었습니다."))),
             @ApiResponse(responseCode = "400", description = "잘못된 요청", content = @Content(examples = {
@@ -158,6 +160,7 @@ public class CustomerCouponController {
                     @ExampleObject(name = "잘못된 쿠폰", value = "쿠폰을 찾을 수 없습니다.")
             })),
             @ApiResponse(responseCode = "401", description = "인증 실패", content = @Content(examples = @ExampleObject(value = "로그인이 필요합니다."))),
+            @ApiResponse(responseCode = "403", description = "권한 없음", content = @Content(examples = @ExampleObject(value = "고객만 접근 가능합니다."))),
             @ApiResponse(responseCode = "500", description = "서버 내부 오류", content = @Content(examples = @ExampleObject(value = "쿠폰 발급 중 오류가 발생했습니다.")))
     })
     @SecurityRequirement(name = "bearer-key")
@@ -165,7 +168,7 @@ public class CustomerCouponController {
     public ResponseEntity<?> issueCouponByUuid(
             @Parameter(description = "발급받을 쿠폰의 UUID", required = true, example = "550e8400-e29b-41d4-a716-446655440000")
             @PathVariable String couponUuid,
-            @Parameter(hidden = true) @AuthenticationPrincipal AppUser user) {
+            @Parameter(hidden = true) @AuthenticationPrincipal Customer user) {
 
         if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
@@ -180,7 +183,7 @@ public class CustomerCouponController {
         }
     }
 
-    @Operation(summary = "내가 보유한 쿠폰 목록 조회", description = "고객이 보유한 쿠폰 목록 전체를 조회합니다. 로그인이 필요합니다.")
+    @Operation(summary = "내가 보유한 쿠폰 목록 조회", description = "고객이 보유한 쿠폰 목록 전체를 조회합니다. 로그��이 필요하며, 고객(Customer) 권한이 있어야 합니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "내 쿠폰 목록 조회 성공",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
@@ -207,11 +210,12 @@ public class CustomerCouponController {
                                     "  \"storeName\": \"컴포즈커피\"\n" +
                                     "}]"))),
             @ApiResponse(responseCode = "401", description = "인증 실패", content = @Content(examples = @ExampleObject(value = "로그인이 필요합니다."))),
+            @ApiResponse(responseCode = "403", description = "권한 없음", content = @Content(examples = @ExampleObject(value = "고객만 접근 가능합니다."))),
             @ApiResponse(responseCode = "500", description = "서버 내부 오류", content = @Content(examples = @ExampleObject(value = "내 쿠폰 목록 조회 중 오류가 발생했습니다.")))
     })
     @SecurityRequirement(name = "bearer-key")
     @GetMapping("/my-coupons")
-    public ResponseEntity<?> getMyCoupons(@Parameter(hidden = true) @AuthenticationPrincipal AppUser user) {
+    public ResponseEntity<?> getMyCoupons(@Parameter(hidden = true) @AuthenticationPrincipal Customer user) {
         if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
         }
@@ -222,7 +226,7 @@ public class CustomerCouponController {
         }
     }
 
-    @Operation(summary = "UUID로 쿠폰 정보 조회", description = "UUID로 특정 쿠폰의 상세 정보를 조회합니다.")
+    @Operation(summary = "UUID로 쿠폰 정보 조회", description = "UUID로 특정 쿠폰의 상��� 정보를 조회합니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "쿠폰 조회 성공",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
