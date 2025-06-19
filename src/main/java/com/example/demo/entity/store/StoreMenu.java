@@ -20,7 +20,9 @@ public class StoreMenu {
     //가능 여부
     private Boolean available;
     //별점
-    private Double rating;
+    @Column(nullable = false)
+    @Builder.Default
+    private Double rating = 0.0;
     //일 판매량
     @Builder.Default
     private Integer dailySales = 0;
@@ -39,6 +41,10 @@ public class StoreMenu {
     private String imageUrl;
 
     private String category;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private long ratingCount = 0L;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "store_id") // 외래키 이름
@@ -65,6 +71,13 @@ public class StoreMenu {
     public void resetDailySales() {
         this.dailySales = 0;
         this.dailyRevenue = 0L;
+    }
+    // 별점 추가 메서드
+    public void updateRating(Double newScore) {
+        if (this.rating == null) this.rating = 0.0;
+
+        this.rating = (this.rating * this.ratingCount + newScore) / (this.ratingCount + 1);
+        this.ratingCount++;
     }
 
 }

@@ -1,6 +1,7 @@
 package com.example.demo.Service;
 
 import com.example.demo.Service.Amazon.S3UploadService;
+import com.example.demo.dto.CustomerReviewDto;
 import com.example.demo.dto.ReviewWriteDTO;
 import com.example.demo.dto.UnreviewedStatisticsDto;
 import com.example.demo.entity.common.CustomerReviewCollect;
@@ -46,7 +47,6 @@ public class ReviewService {
 
     @Transactional
     public void saveReview(Customer customer, ReviewWriteDTO reviewWriteDTO) {
-        //TODO
         CustomerStatistics customerStatistics = customerStatisticsRepository.findById(reviewWriteDTO.getStatisticsId()).orElse(null);
         Store store = customerStatistics.getStore();
         StoreMenu storeMenu = storeMenuRepository.findByMenuName(customerStatistics.getOrderDetails());
@@ -57,9 +57,22 @@ public class ReviewService {
         else {
             url = s3UploadService.uploadFile(reviewWriteDTO.getImages());
         }
+
+
+
+
         CustomerReviewCollect reviewCollect = reviewWriteDTO.toEntity(customer, store, customerStatistics, storeMenu, url);
         customerReviewCollectRepository.save(reviewCollect);
         customerStatistics.markAsReviewed();
+
+        storeMenu.updateRating(reviewWriteDTO.getReviewRating());
+    }
+
+    public List<CustomerReviewDto> getReviewsByMenu(Long menuId) {
+        List<CustomerReviewCollect> reviews = customerReviewCollectRepository.findByStoreMenu_MenuId(menuId);
+        return reviews.stream()
+                .map(CustomerReviewDto::fromEntity)
+                .toList();
     }
 
 }
