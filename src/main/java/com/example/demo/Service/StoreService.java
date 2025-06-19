@@ -68,7 +68,7 @@ public class StoreService {
 
         // 추후 연관된 데이터 삭제 로직 추가 가능
         // (예: 매장 메뉴, 리뷰 등 삭제)
-        //TODO 나중에 손님이 발급 받은 쿠폰도 삭제하거나 '사용불가 '처리가 필요함
+        //TODO 나중에 손님이 발급 받은 쿠폰도 삭제하거나 '사용불가 '처리가 필요
 
         storeRepository.delete(store);
     }
