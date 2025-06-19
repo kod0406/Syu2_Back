@@ -1,6 +1,7 @@
 package com.example.demo.Controller;
 
 import com.example.demo.Service.QrCodeTestService;
+import com.example.demo.dto.StoreSalesResponseDto;
 import com.example.demo.entity.store.QR_Code;
 import com.example.demo.repository.QRCodeRepository;
 import com.example.demo.repository.StoreRepository;
