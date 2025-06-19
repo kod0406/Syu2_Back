@@ -15,9 +15,6 @@ public class CouponDto {
     @Schema(description = "쿠폰 ID", example = "1")
     private Long id;
 
-    @Schema(description = "쿠폰 UUID (API 호출용)", example = "550e8400-e29b-41d4-a716-446655440000")
-    private String couponUuid;
-
     @Schema(description = "쿠폰명", example = "가을맞이 10% 할인")
     private String couponName;
 
@@ -63,10 +60,13 @@ public class CouponDto {
     @Schema(description = "쿠폰 상태 (발급 가능, 발급 중, 발급 완료 등)", example = "ACTIVE")
     private CouponStatus status;
 
+    @Schema(description = "쿠폰 상세 정보 (couponUuid, couponCode 포함)", implementation = CouponDetailDto.class)
+    private CouponDetailDto detail;
+
     public static CouponDto fromEntity(Coupon coupon) {
         return CouponDto.builder()
                 .id(coupon.getId())
-                .couponUuid(coupon.getCouponUuid())
+                .detail(CouponDetailDto.fromEntity(coupon.getCouponDetail()))
                 .couponName(coupon.getCouponName())
                 .discountType(coupon.getDiscountType())
                 .discountValue(coupon.getDiscountValue())

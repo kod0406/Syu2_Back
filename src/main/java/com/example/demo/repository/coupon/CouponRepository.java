@@ -28,13 +28,19 @@ public interface CouponRepository extends JpaRepository<Coupon, Long> {
     List<Coupon> findAllAvailableCoupons();
 
     // UUID로 쿠폰 찾기
-    Optional<Coupon> findByCouponUuid(String couponUuid);
+    // Optional<Coupon> findByCouponUuid(String couponUuid);
 
     // ID와 스토어로 쿠폰 찾기
     Optional<Coupon> findByIdAndStore(Long id, Store store);
 
     // UUID로 쿠폰 조회 시 락 걸기
+    // @Lock(LockModeType.PESSIMISTIC_WRITE)
+    // @Query("SELECT c FROM Coupon c WHERE c.couponUuid = :couponUuid")
+    // Optional<Coupon> findByCouponUuidWithPessimisticLock(@Param("couponUuid") String couponUuid);
+
+    Optional<Coupon> findByCouponDetail_CouponUuid(String couponUuid);
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("SELECT c FROM Coupon c WHERE c.couponUuid = :couponUuid")
-    Optional<Coupon> findByCouponUuidWithPessimisticLock(@Param("couponUuid") String couponUuid);
+    @Query("SELECT c FROM Coupon c JOIN FETCH c.couponDetail d WHERE d.couponUuid = :couponUuid")
+    Optional<Coupon> findByCouponDetail_CouponUuidWithPessimisticLock(@Param("couponUuid") String couponUuid);
 }

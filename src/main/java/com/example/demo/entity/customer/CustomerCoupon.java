@@ -1,6 +1,6 @@
 package com.example.demo.entity.customer;
 
-import com.example.demo.entity.coupon.Coupon;
+import com.example.demo.entity.coupon.CouponDetail;
 import com.example.demo.entity.coupon.CouponStatus;
 import jakarta.persistence.*;
 import lombok.*;
@@ -21,8 +21,8 @@ public class CustomerCoupon {
     private Customer customer;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "coupon_id", nullable = false)
-    private Coupon coupon;
+    @JoinColumn(name = "coupon_detail_id", nullable = false)
+    private CouponDetail couponDetail;
 
     @Column(nullable = false)
     private LocalDateTime issuedAt; // 발급일시
@@ -40,7 +40,7 @@ public class CustomerCoupon {
         if (this.expiresAt.isBefore(LocalDateTime.now())) {
             throw new IllegalStateException("만료된 쿠폰입니다.");
         }
-        if (this.coupon.getStatus() != CouponStatus.ACTIVE) {
+        if (this.couponDetail.getCoupon().getStatus() != CouponStatus.ACTIVE) {
             throw new IllegalStateException("현재 사용할 수 없는 쿠폰입니다.");
         }
         this.isUsed = true;

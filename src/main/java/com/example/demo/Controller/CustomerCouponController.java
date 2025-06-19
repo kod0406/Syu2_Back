@@ -183,7 +183,7 @@ public class CustomerCouponController {
         }
     }
 
-    @Operation(summary = "내가 보유한 쿠폰 목록 조회", description = "고객이 보유한 쿠폰 목록 전체를 조회합니다. 로그��이 필요하며, 고객(Customer) 권한이 있어야 합니다.")
+    @Operation(summary = "내가 보유한 쿠폰 목록 조회", description = "고객이 보유한 쿠폰 목록 전체를 조회합니다. 로그인이 필요하며, 고객(Customer) 권한이 있어야 합니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "내 쿠폰 목록 조회 성공",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
@@ -226,7 +226,7 @@ public class CustomerCouponController {
         }
     }
 
-    @Operation(summary = "UUID로 쿠폰 정보 조회", description = "UUID로 특정 쿠폰의 상��� 정보를 조회합니다.")
+    @Operation(summary = "UUID로 쿠폰 정보 조회", description = "UUID로 특정 쿠폰의 상태 정보를 조회합니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "쿠폰 조회 성공",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
