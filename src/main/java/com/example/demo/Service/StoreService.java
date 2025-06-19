@@ -1,19 +1,28 @@
 package com.example.demo.Service;
 
+import com.example.demo.dto.MenuSalesStatisticsDto;
 import com.example.demo.dto.StoreRegistrationDTO;
+import com.example.demo.entity.common.CustomerStatistics;
 import com.example.demo.dto.StoreSalesResponseDto;
 import com.example.demo.entity.store.QR_Code;
 import com.example.demo.entity.store.Store;
 import com.example.demo.entity.store.StoreMenu;
 import com.example.demo.jwt.JwtTokenProvider;
+import com.example.demo.repository.CustomerRepository;
+import com.example.demo.repository.CustomerStatisticsRepository;
 import com.example.demo.repository.QRCodeRepository;
 import com.example.demo.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -23,6 +32,7 @@ public class StoreService {
     private final StoreRepository storeRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
+    private final CustomerStatisticsRepository customerStatisticsRepository;
 
     @Value("${frontend.url}")
     private String frontendUrl;
@@ -84,12 +94,10 @@ public class StoreService {
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이메일입니다."));
 
 
-
         // 비밀번호 검증 로직 (예: BCrypt 사용)
         if (!passwordEncoder.matches(password, store.getPassword())) {
             throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
-        }
-        else jwtTokenProvider.createToken(store.getStoreName());
+        } else jwtTokenProvider.createToken(store.getStoreName());
 
         return store;
     }
@@ -120,5 +128,10 @@ public class StoreService {
                 dailyTotalSales,
                 totalSales
         );
+    }
+
+    public List<MenuSalesStatisticsDto> storeStatistics(Store store, LocalDate start, LocalDate end) {
+        Long storeId = store.getStoreId();
+        return customerStatisticsRepository.getMenuStatsWithoutRelation(storeId, start, end);
     }
 }
