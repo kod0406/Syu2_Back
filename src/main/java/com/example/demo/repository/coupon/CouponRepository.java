@@ -43,4 +43,6 @@ public interface CouponRepository extends JpaRepository<Coupon, Long> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT c FROM Coupon c JOIN FETCH c.couponDetail d WHERE d.couponUuid = :couponUuid")
     Optional<Coupon> findByCouponDetail_CouponUuidWithPessimisticLock(@Param("couponUuid") String couponUuid);
+
+    List<Coupon> findAllByStore(Store store);
 }
