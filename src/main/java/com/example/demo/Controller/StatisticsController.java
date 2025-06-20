@@ -6,6 +6,7 @@ import com.example.demo.dto.CustomerStatisticsDto;
 import com.example.demo.dto.MenuSalesStatisticsDto;
 import com.example.demo.entity.customer.Customer;
 import com.example.demo.entity.store.Store;
+import com.example.demo.util.MemberValidUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -13,6 +14,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -26,6 +28,7 @@ import java.util.List;
 public class StatisticsController {
     private final StoreService storeService;
     private final CustomerService customerService;
+    private final MemberValidUtil memberValidUtil;
 
     @Operation(
             summary = "가게 통계 조회",
@@ -45,9 +48,7 @@ public class StatisticsController {
                                                                                 @ExampleObject(name = "주간", value = "weekly"),
                                                                                 @ExampleObject(name = "월간", value = "monthly")
                                                                         }) @RequestParam String period) {
-        if (store == null) {
-            return ResponseEntity.status(401).build();
-        }
+        memberValidUtil.validateIsStore(store);
 
         LocalDate end = LocalDate.now();
         LocalDate start;
@@ -78,7 +79,7 @@ public class StatisticsController {
     @GetMapping("/customer")
     public ResponseEntity<List<CustomerStatisticsDto>> customerGetStatistics(@AuthenticationPrincipal Customer customer,
                                                                              @Parameter(description = "가게 이름", required = true, example = "스타벅스") @RequestParam String storeName) {
-        if (customer == null) {
+        if (!memberValidUtil.isCustomer(customer)) {
             return ResponseEntity.status(401).build();
         }
         List<CustomerStatisticsDto> result = customerService.customerStatistics(customer, storeName);

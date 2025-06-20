@@ -9,6 +9,7 @@ import com.example.demo.entity.customer.Customer;
 import com.example.demo.entity.entityInterface.AppUser;
 import com.example.demo.repository.CustomerRepository;
 import com.example.demo.repository.CustomerReviewCollectRepository;
+import com.example.demo.util.MemberValidUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -33,7 +34,7 @@ import java.util.Optional;
 public class ReviewController {
     private final CustomerRepository customerRepository;
     private final ReviewService reviewService;
-    private final CustomerReviewCollectRepository customerReviewCollectRepository;
+    private final MemberValidUtil memberValidUtil;
 
     @Operation(
             summary = "작성하지 않은 리뷰 목록 조회",
@@ -49,12 +50,10 @@ public class ReviewController {
     )
     @GetMapping("/review/ListShow")
     public ResponseEntity<?> reviewList(
-            @Parameter(hidden = true) @AuthenticationPrincipal Customer user) {
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            @Parameter(hidden = true) @AuthenticationPrincipal Customer customer) {
+        if (!memberValidUtil.isCustomer(customer)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
         }
-        Customer customer = customerRepository.findById(user.getId())
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
 
         List<UnreviewedStatisticsDto> reviewList = reviewService.getUnreviewedStatisticsByCustomer(customer);
         return ResponseEntity.ok(reviewList);
@@ -81,17 +80,16 @@ public class ReviewController {
     )
     @PostMapping("/review/write")
     public ResponseEntity<?> writeReview(
-            @Parameter(hidden = true) @AuthenticationPrincipal Customer user,
+            @Parameter(hidden = true) @AuthenticationPrincipal Customer customer,
             @ModelAttribute ReviewWriteDTO reviewWriteDTO) {
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        if (!memberValidUtil.isCustomer(customer)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
         }
-        Customer customer = customerRepository.findById(user.getId())
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
 
         reviewService.saveReview(customer, reviewWriteDTO);
         return ResponseEntity.ok().build();
     }
+
     @GetMapping("/review/show")
     public ResponseEntity<?> showReview(@RequestParam long menuId){
         List<CustomerReviewDto> reviews = reviewService.getReviewsByMenu(menuId);

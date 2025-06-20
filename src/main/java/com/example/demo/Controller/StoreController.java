@@ -11,6 +11,8 @@ import com.example.demo.dto.StoreRegistrationDTO;
 import com.example.demo.entity.entityInterface.AppUser;
 import com.example.demo.entity.store.Store;
 import com.example.demo.jwt.JwtTokenProvider;
+import com.example.demo.util.JwtCookieUtil;
+import com.example.demo.util.MemberValidUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -21,9 +23,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
@@ -40,6 +40,7 @@ public class StoreController {
     private final JwtTokenProvider jwtTokenProvider;
     private final QRCodeRepository qrCodeRepository;
     private final QrCodeService qrCodeService;
+    private final MemberValidUtil memberValidUtil;
 
 
     @Operation(
@@ -73,31 +74,28 @@ public class StoreController {
     }
 
     @Operation(summary = "매장 회원탈퇴", description = "로그인된 매장 계정을 탈퇴 처리하고 쿠키를 삭제합니다.")
-    @SecurityRequirement(name = "bearer-key")
+    @SecurityRequirement(name = "access_token")
     @DeleteMapping("/withdraw")
-    public ResponseEntity<?> withdrawStore(@Parameter(hidden = true) @AuthenticationPrincipal AppUser user,
+    public ResponseEntity<?> withdrawStore(@Parameter(hidden = true) @AuthenticationPrincipal Store store,
                                            HttpServletResponse response) {
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of("error", "로그인이 필요합니다."));
-        }
 
+        memberValidUtil.validateIsStore(store);
         try {
-            storeService.deleteStore(user.getId());
+            storeService.deleteStore(store.getId());
 
-            Cookie cookie = new Cookie("access_token", null);
-            cookie.setMaxAge(0);
-            cookie.setPath("/");
-            cookie.setHttpOnly(true);
-            response.addCookie(cookie);
+            // 삭제 쿠키를 응답 헤더에 추가
+            ResponseCookie deleteCookie = JwtCookieUtil.deleteAccessTokenCookie();
+            response.setHeader(HttpHeaders.SET_COOKIE, deleteCookie.toString());
 
             return ResponseEntity.ok(Map.of("message", "회원탈퇴가 완료되었습니다."));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "회원 탈퇴 중 오류가 발생했습니다."));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "회원 탈퇴 중 오류가 발생했습니다."));
         }
     }
+
 
     @Operation(
             summary = "매장 로그인",
@@ -111,7 +109,6 @@ public class StoreController {
                     )
             )
     )
-
     @PostMapping("/login")
     public ResponseEntity<?> login(
             @RequestBody StoreLoginDTO loginDTO,
@@ -120,12 +117,8 @@ public class StoreController {
             Store store = storeService.authenticateStore(loginDTO.getOwnerEmail(), loginDTO.getPassword());
 
             String token = jwtTokenProvider.createToken(store.getOwnerEmail());
-
-            Cookie cookie = new Cookie("access_token", token);
-            cookie.setMaxAge(3600);
-            cookie.setPath("/");
-            cookie.setHttpOnly(true);
-            response.addCookie(cookie);
+            ResponseCookie cookie = JwtCookieUtil.createAccessTokenCookie(token);
+            response.setHeader("Set-Cookie", cookie.toString());
 
             return ResponseEntity.ok().build();
         } catch (IllegalArgumentException e) {
@@ -141,11 +134,8 @@ public class StoreController {
     @PostMapping("/logout")
     public ResponseEntity<?> logout(HttpServletResponse response) {
         try {
-            Cookie cookie = new Cookie("access_token", null);
-            cookie.setMaxAge(0);
-            cookie.setPath("/");
-            cookie.setHttpOnly(true);
-            response.addCookie(cookie);
+            ResponseCookie deleteCookie = JwtCookieUtil.deleteAccessTokenCookie();
+            response.setHeader(HttpHeaders.SET_COOKIE, deleteCookie.toString());
 
             return ResponseEntity.ok(Map.of("message", "로그아웃 성공"));
         } catch (Exception e) {
@@ -157,12 +147,11 @@ public class StoreController {
     @Operation(summary = "매장 QR코드 다운로드", description = "매장 ID로 저장된 QR 코드를 다운로드합니다.")
     @GetMapping("/{storeId}/qrcode/download")
     public ResponseEntity<byte[]> downloadStoreQrCode(
-            @Parameter(description = "매장 ID") @PathVariable Long storeId) {
+            @Parameter(description = "매장 ID") @PathVariable Long storeId,
+            @AuthenticationPrincipal Store store) {
 
+        memberValidUtil.validateIsStore(store);
         try {
-            Store store = storeRepository.findById(storeId)
-                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 매장입니다."));
-
             QR_Code qrCode = qrCodeRepository.findByStoreStoreId(storeId)
                     .orElseThrow(() -> new IllegalArgumentException("QR 코드가 생성되지 않았습니다."));
 
@@ -184,12 +173,10 @@ public class StoreController {
     @Operation(summary = "매장 QR코드 조회 (JSON)", description = "매장 ID로 저장된 QR 코드 정보를 JSON으로 반환합니다.")
     @GetMapping("/{storeId}/qrcode/json")
     public ResponseEntity<?> getStoreQrCodeJson(
-            @Parameter(description = "매장 ID") @PathVariable Long storeId) {
-
+            @Parameter(description = "매장 ID") @PathVariable Long storeId,
+            @AuthenticationPrincipal Store store) {
+        memberValidUtil.validateIsStore(store);
         try {
-            Store store = storeRepository.findById(storeId)
-                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 매장입니다."));
-
             QR_Code qrCode = qrCodeRepository.findByStoreStoreId(storeId)
                     .orElseThrow(() -> new IllegalArgumentException("QR 코드가 생성되지 않았습니다."));
 
@@ -214,12 +201,10 @@ public class StoreController {
     @GetMapping("/{storeId}/sales")
     public ResponseEntity<?> getStoreSales(
             @Parameter(description = "매장 ID") @PathVariable Long storeId,
-            @AuthenticationPrincipal AppUser user) {
+            @AuthenticationPrincipal Store store) {
 
         // 권한 확인 로직 (Store 주인만 접근 가능하도록)
-        if (user == null || user.getId() != storeId || !(user instanceof Store)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "권한이 없습니다."));
-        }
+        memberValidUtil.validateIsStore(store);
 
         try {
             StoreSalesResponseDto storeSales = storeService.getStoreSales(storeId);

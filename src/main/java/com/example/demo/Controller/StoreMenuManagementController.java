@@ -7,6 +7,7 @@ import com.example.demo.dto.MenuResponseDto;
 import com.example.demo.Service.Amazon.S3UploadService;
 import com.example.demo.entity.customer.Customer;
 import com.example.demo.entity.entityInterface.AppUser;
+import com.example.demo.util.MemberValidUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -34,6 +35,7 @@ import java.util.List;
 public class StoreMenuManagementController {
     private final StoreMenuService storeMenuService;
     private final S3UploadService s3UploadService;
+    private final MemberValidUtil memberValidUtil;
 
     private ResponseEntity<?> checkAuthorization(AppUser user) {
         if (user == null) {
@@ -73,12 +75,9 @@ public class StoreMenuManagementController {
     @GetMapping("/{storeId}/menus")
     public ResponseEntity<?> getMenus(
             @Parameter(description = "매장 ID", required = true, example = "1") @PathVariable Long storeId,
-            @Parameter(hidden = true) @AuthenticationPrincipal AppUser user) {
+            @Parameter(hidden = true) @AuthenticationPrincipal Store store) {
 
-        ResponseEntity<?> authResponse = checkAuthorization(user);
-        if (authResponse != null) {
-            return authResponse;
-        }
+        memberValidUtil.validateIsStore(store);
 
         List<MenuResponseDto> menuList = storeMenuService.getAllMenus(storeId);
         return ResponseEntity.ok(menuList);
@@ -114,12 +113,9 @@ public class StoreMenuManagementController {
             @ModelAttribute MenuRequestDto menuRequestDto,
             @Parameter(description = "메뉴 이미지 파일 (선택 사항)")
             @RequestParam(value = "image", required = false) MultipartFile image,
-            @Parameter(hidden = true) @AuthenticationPrincipal AppUser user) {
+            @Parameter(hidden = true) @AuthenticationPrincipal Store store) {
 
-        ResponseEntity<?> authResponse = checkAuthorization(user);
-        if (authResponse != null) {
-            return authResponse;
-        }
+        memberValidUtil.validateIsStore(store);
 
         if (image != null && !image.isEmpty()) {
             String imageUrl = s3UploadService.uploadFile(image);
@@ -148,12 +144,9 @@ public class StoreMenuManagementController {
     public ResponseEntity<?> getMenu(
             @Parameter(description = "매장 ID", required = true, example = "1") @PathVariable Long storeId,
             @Parameter(description = "메뉴 ID", required = true, example = "1") @PathVariable Long menuId,
-            @Parameter(hidden = true) @AuthenticationPrincipal AppUser user) {
+            @Parameter(hidden = true) @AuthenticationPrincipal Store store) {
 
-        ResponseEntity<?> authResponse = checkAuthorization(user);
-        if (authResponse != null) {
-            return authResponse;
-        }
+        memberValidUtil.validateIsStore(store);
         // TODO: 실제 메뉴 조회 로직 구현 필요
         // 예: MenuResponseDto menu = storeMenuService.getMenuById(storeId, menuId);
         // return ResponseEntity.ok(menu);
@@ -191,12 +184,9 @@ public class StoreMenuManagementController {
             @ModelAttribute MenuRequestDto menuRequestDto,
             @Parameter(description = "메뉴 이미지 파일 (변경 시에만 첨부, 선택 사항)")
             @RequestParam(value = "image", required = false) MultipartFile image,
-            @Parameter(hidden = true) @AuthenticationPrincipal AppUser user) {
+            @Parameter(hidden = true) @AuthenticationPrincipal Store store) {
 
-        ResponseEntity<?> authResponse = checkAuthorization(user);
-        if (authResponse != null) {
-            return authResponse;
-        }
+        memberValidUtil.validateIsStore(store);
 
         if (image != null && !image.isEmpty()) {
             String imageUrl = s3UploadService.uploadFile(image);
@@ -222,12 +212,9 @@ public class StoreMenuManagementController {
     public ResponseEntity<?> deleteMenu(
             @Parameter(description = "매장 ID", required = true, example = "1") @PathVariable Long storeId,
             @Parameter(description = "메뉴 ID", required = true, example = "2") @PathVariable Long menuId,
-            @Parameter(hidden = true) @AuthenticationPrincipal AppUser user) {
+            @Parameter(hidden = true) @AuthenticationPrincipal Store store) {
 
-        ResponseEntity<?> authResponse = checkAuthorization(user);
-        if (authResponse != null) {
-            return authResponse;
-        }
+        memberValidUtil.validateIsStore(store);
 
         storeMenuService.deleteMenu(storeId, menuId);
         return ResponseEntity.ok().build();
@@ -251,12 +238,9 @@ public class StoreMenuManagementController {
     public ResponseEntity<?> getMenuByCategory(
             @Parameter(description = "매장 ID", required = true, example = "1") @PathVariable Long storeId,
             @Parameter(description = "카테고리명", required = true, example = "커피") @PathVariable String category,
-            @Parameter(hidden = true) @AuthenticationPrincipal AppUser user) {
+            @Parameter(hidden = true) @AuthenticationPrincipal Store store) {
 
-        ResponseEntity<?> authResponse = checkAuthorization(user);
-        if (authResponse != null) {
-            return authResponse;
-        }
+        memberValidUtil.validateIsStore(store);
 
         List<MenuResponseDto> menuList = storeMenuService.getMenusByCategory(storeId, category);
         return ResponseEntity.ok(menuList);
@@ -279,12 +263,9 @@ public class StoreMenuManagementController {
     @GetMapping("/{storeId}/categories")
     public ResponseEntity<?> getAllCategories(
             @Parameter(description = "매장 ID", required = true, example = "1") @PathVariable Long storeId,
-            @Parameter(hidden = true) @AuthenticationPrincipal AppUser user) {
+            @Parameter(hidden = true) @AuthenticationPrincipal Store store) {
 
-        ResponseEntity<?> authResponse = checkAuthorization(user);
-        if (authResponse != null) {
-            return authResponse;
-        }
+        memberValidUtil.validateIsStore(store);
 
         List<String> categories = storeMenuService.getAllCategories(storeId);
         return ResponseEntity.ok(categories);
@@ -308,12 +289,9 @@ public class StoreMenuManagementController {
     public ResponseEntity<?> toggleMenuAvailability(
             @Parameter(description = "매장 ID", required = true, example = "1") @PathVariable Long storeId,
             @Parameter(description = "메뉴 ID", required = true, example = "1") @PathVariable Long menuId,
-            @Parameter(hidden = true) @AuthenticationPrincipal AppUser user) {
+            @Parameter(hidden = true) @AuthenticationPrincipal Store store) {
 
-        ResponseEntity<?> authResponse = checkAuthorization(user);
-        if (authResponse != null) {
-            return authResponse;
-        }
+        memberValidUtil.validateIsStore(store);
 
         MenuResponseDto updatedMenu = storeMenuService.toggleMenuAvailability(storeId, menuId);
         return ResponseEntity.ok(updatedMenu);
