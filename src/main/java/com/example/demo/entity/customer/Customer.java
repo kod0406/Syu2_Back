@@ -15,6 +15,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @Getter
+@Setter // 스웨거 테스트용 임시 Setter
 public class Customer implements AppUser {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)

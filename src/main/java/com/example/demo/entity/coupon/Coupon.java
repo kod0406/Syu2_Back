@@ -6,6 +6,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import com.example.demo.entity.customer.CustomerCoupon;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -18,12 +19,6 @@ public class Coupon {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-//
-//    @Column(nullable = false, unique = true)
-//    private String couponUuid; // UUID 문자열 형태로 저장
-//
-//    @Column(name = "coupon_code", nullable = false)
-//    private String couponCo:wqde; // DB에 존재하는 coupon_code 필드
 
     @Column(nullable = false)
     private String couponName; // 쿠폰명
@@ -63,9 +58,7 @@ public class Coupon {
     @JoinColumn(name = "store_id", nullable = false)
     private Store store; // 상점ID
 
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JoinColumn(name = "coupon_detail_id", referencedColumnName = "couponUuid", nullable = false)
-    private CouponDetail couponDetail;
+
 
     @Getter
     @Enumerated(EnumType.STRING)
@@ -76,10 +69,13 @@ public class Coupon {
     @Getter
     private Long version;
 
+    @OneToMany(mappedBy = "coupon", fetch = FetchType.LAZY)
+    private List<CustomerCoupon> customerCoupons; // 고객별 발급 쿠폰 리스트
+
     @Builder
     public Coupon(String couponName, DiscountType discountType, int discountValue, Integer discountLimit,
                   Integer minimumOrderAmount, ExpiryType expiryType, LocalDateTime expiryDate, Integer expiryDays,
-                  LocalDateTime issueStartTime, int totalQuantity, List<String> applicableCategories, Store store, CouponDetail couponDetail) {
+                  LocalDateTime issueStartTime, int totalQuantity, List<String> applicableCategories, Store store) {
         this.couponName = couponName;
         this.discountType = discountType;
         this.discountValue = discountValue;
@@ -92,15 +88,9 @@ public class Coupon {
         this.totalQuantity = totalQuantity;
         this.applicableCategories = applicableCategories;
         this.store = store;
-        this.couponDetail = couponDetail;
+
     }
 
-    public void setCouponDetail(CouponDetail couponDetail) {
-        this.couponDetail = couponDetail;
-        if (couponDetail.getCoupon() != this) {
-            couponDetail.setCoupon(this);
-        }
-    }
 
     public void issue() {
         if (this.issuedQuantity < this.totalQuantity) {
