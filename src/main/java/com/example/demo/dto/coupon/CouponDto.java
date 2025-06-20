@@ -60,13 +60,9 @@ public class CouponDto {
     @Schema(description = "쿠폰 상태 (발급 가능, 발급 중, 발급 완료 등)", example = "ACTIVE")
     private CouponStatus status;
 
-    @Schema(description = "쿠폰 상세 정보 (couponUuid, couponCode 포함)", implementation = CouponDetailDto.class)
-    private CouponDetailDto detail;
-
     public static CouponDto fromEntity(Coupon coupon) {
         return CouponDto.builder()
                 .id(coupon.getId())
-                .detail(CouponDetailDto.fromEntity(coupon.getCouponDetail()))
                 .couponName(coupon.getCouponName())
                 .discountType(coupon.getDiscountType())
                 .discountValue(coupon.getDiscountValue())

@@ -3,7 +3,6 @@ package com.example.demo.Service.coupon;
 import com.example.demo.dto.coupon.CouponCreateRequestDto;
 import com.example.demo.dto.coupon.CouponDto;
 import com.example.demo.entity.coupon.Coupon;
-import com.example.demo.entity.coupon.CouponDetail;
 import com.example.demo.entity.coupon.CouponStatus;
 import com.example.demo.entity.coupon.ExpiryType;
 import com.example.demo.entity.store.Store;
@@ -32,14 +31,6 @@ public class CouponService {
         //만료됐는지 검사
         validateExpiryPolicy(requestDto);
 
-        // CouponDetail 생성 (UUID, 쿠폰코드)
-        String uuid = UUID.randomUUID().toString();
-        String couponCode = "CP" + uuid.substring(0, 8).toUpperCase();
-        CouponDetail couponDetail = CouponDetail.builder()
-                .couponUuid(uuid)
-                .couponCode(couponCode)
-                .build();
-
         Coupon coupon = Coupon.builder()
                 .couponName(requestDto.getCouponName())
                 .discountType(requestDto.getDiscountType())
@@ -53,10 +44,7 @@ public class CouponService {
                 .totalQuantity(requestDto.getTotalQuantity())
                 .applicableCategories(requestDto.getApplicableCategories())
                 .store(store)
-                .couponDetail(couponDetail)
                 .build();
-
-        couponDetail.setCoupon(coupon);
 
         Coupon savedCoupon = couponRepository.save(coupon);
         return CouponDto.fromEntity(savedCoupon);
@@ -90,7 +78,7 @@ public class CouponService {
                 .orElseThrow(() -> new IllegalArgumentException("해당 상점을 찾을 수 없습니다. ID: " + storeId));
 
         Coupon coupon = couponRepository.findByIdAndStore(couponId, store) // ID와 Store로 쿠폰 조회
-                .orElseThrow(() -> new IllegalArgumentException("해당 상점에 존재하지 ��는 쿠폰이거나 수정 권한이 없습니다. 쿠폰 ID: " + couponId));
+                .orElseThrow(() -> new IllegalArgumentException("해당 상점에 존재하지 않는 쿠폰이거나 수정 권한이 없습니다. 쿠폰 ID: " + couponId));
 
         // 만료 정책 유효성 검사
         validateExpiryPolicy(requestDto);
@@ -129,97 +117,6 @@ public class CouponService {
     }
 
     /**
-     * UUID로 쿠폰 정보를 조회합니다.
-     *
-     * @param couponUuid 조회할 쿠폰의 UUID
-     * @param storeId    매장 ID
-     * @return 쿠폰 정보 DTO
-     */
-    @Transactional(readOnly = true)
-    public CouponDto getCouponByUuid(String couponUuid, Long storeId) {
-        Store store = storeRepository.findById(storeId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 상점을 찾을 수 없습니다. ID: " + storeId));
-
-        Coupon coupon = couponRepository.findByCouponDetail_CouponUuid(couponUuid)
-                .orElseThrow(() -> new IllegalArgumentException("해당 UUID의 쿠폰을 찾을 수 없습니다. UUID: " + couponUuid));
-
-        // 해당 매장의 쿠폰인지 확인
-        if (!coupon.getStore().getId().equals(storeId)) {
-            throw new IllegalArgumentException("해당 상점에 존재하지 않는 쿠폰이거나 조회 권한이 없습니다. UUID: " + couponUuid);
-        }
-
-        return CouponDto.fromEntity(coupon);
-    }
-
-    /**
-     * UUID로 쿠폰 정보를 수정합니다.
-     *
-     * @param couponUuid 수정할 쿠폰의 UUID
-     * @param storeId    매장 ID
-     * @param requestDto 쿠폰 수정 요청 DTO
-     * @return 수정된 쿠폰 정보 DTO
-     */
-    @Transactional
-    public CouponDto updateCouponByUuid(String couponUuid, Long storeId, CouponCreateRequestDto requestDto) {
-        Store store = storeRepository.findById(storeId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 상점을 찾을 수 없습니다. ID: " + storeId));
-
-        Coupon coupon = couponRepository.findByCouponDetail_CouponUuid(couponUuid)
-                .orElseThrow(() -> new IllegalArgumentException("해당 UUID의 쿠폰을 찾을 수 없습니다. UUID: " + couponUuid));
-
-        // 해당 매장의 쿠폰인지 확인
-        if (!coupon.getStore().getId().equals(storeId)) {
-            throw new IllegalArgumentException("해당 상점에 존재하지 않는 쿠폰이거나 수정 권한이 없습니다. UUID: " + couponUuid);
-        }
-
-        // 만료 정책 유효성 검사
-        validateExpiryPolicy(requestDto);
-
-        // Coupon 엔티티의 updateCouponDetails 메서드 호출
-        coupon.updateCouponDetails(
-                requestDto.getCouponName(),
-                requestDto.getDiscountType(),
-                requestDto.getDiscountValue(),
-                requestDto.getDiscountLimit(),
-                requestDto.getMinimumOrderAmount(),
-                requestDto.getExpiryType(),
-                requestDto.getExpiryDate(),
-                requestDto.getExpiryDays(),
-                requestDto.getIssueStartTime(),
-                requestDto.getTotalQuantity(),
-                requestDto.getApplicableCategories()
-        );
-
-        Coupon updatedCoupon = couponRepository.save(coupon);
-        return CouponDto.fromEntity(updatedCoupon);
-    }
-
-    /**
-     * UUID로 쿠폰 상태를 변경합니다.
-     *
-     * @param couponUuid 상태를 변경할 쿠폰의 UUID
-     * @param storeId    매장 ID
-     * @param status     변경할 상태
-     * @return 변경된 쿠폰 정보 DTO
-     */
-    @Transactional
-    public CouponDto updateCouponStatusByUuid(String couponUuid, Long storeId, CouponStatus status) {
-        Store store = storeRepository.findById(storeId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 상점을 찾을 수 없습니다. ID: " + storeId));
-
-        Coupon coupon = couponRepository.findByCouponDetail_CouponUuid(couponUuid)
-                .orElseThrow(() -> new IllegalArgumentException("해당 UUID의 쿠폰을 찾을 수 없습니다. UUID: " + couponUuid));
-
-        // 해당 매장의 쿠폰인지 확인
-        if (!coupon.getStore().getId().equals(storeId)) {
-            throw new IllegalArgumentException("해당 상점에 존재하지 않는 쿠폰이거나 수정 권한이 없습니다. UUID: " + couponUuid);
-        }
-
-        coupon.changeStatus(status);
-        return CouponDto.fromEntity(coupon);
-    }
-
-    /**
      * 쿠폰을 삭제합니다. (ID 사용)
      *
      * @param couponId 삭제할 쿠폰의 ID
@@ -233,35 +130,6 @@ public class CouponService {
 
         Coupon coupon = couponRepository.findByIdAndStore(couponId, store)
                 .orElseThrow(() -> new IllegalArgumentException("해당 상점에 존재하지 않는 쿠폰이거나 삭제 권한이 없습니다. 쿠폰 ID: " + couponId));
-
-        // 발급된 쿠폰이 있는지 확인
-        if (coupon.getIssuedQuantity() > 0) {
-            throw new IllegalStateException("이미 고객에게 발급된 쿠폰은 삭제할 수 없습니다. 대신 상태를 변경하세요.");
-        }
-
-        couponRepository.delete(coupon);
-        return true;
-    }
-
-    /**
-     * 쿠폰을 삭제합니다. (UUID 사용)
-     *
-     * @param couponUuid 삭제할 쿠폰의 UUID
-     * @param storeId    매장 ID
-     * @return 삭제 성공 여부
-     */
-    @Transactional
-    public boolean deleteCouponByUuid(String couponUuid, Long storeId) {
-        Store store = storeRepository.findById(storeId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 상점을 찾을 수 없습니다. ID: " + storeId));
-
-        Coupon coupon = couponRepository.findByCouponDetail_CouponUuid(couponUuid)
-                .orElseThrow(() -> new IllegalArgumentException("해당 UUID의 쿠폰을 찾을 수 없습니다. UUID: " + couponUuid));
-
-        // 해당 매장의 쿠폰인지 확인
-        if (!coupon.getStore().getId().equals(storeId)) {
-            throw new IllegalArgumentException("해당 상점에 존재하지 않는 쿠폰이거나 삭제 권한이 없습니다. UUID: " + couponUuid);
-        }
 
         // 발급된 쿠폰이 있는지 확인
         if (coupon.getIssuedQuantity() > 0) {
