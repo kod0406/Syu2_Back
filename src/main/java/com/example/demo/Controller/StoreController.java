@@ -1,6 +1,6 @@
 package com.example.demo.Controller;
 
-import com.example.demo.Service.QrCodeTestService;
+import com.example.demo.Service.QrCodeService;
 import com.example.demo.dto.StoreSalesResponseDto;
 import com.example.demo.entity.store.QR_Code;
 import com.example.demo.repository.QRCodeRepository;
@@ -37,18 +37,18 @@ public class StoreController {
     private final StoreRepository storeRepository;
     private final JwtTokenProvider jwtTokenProvider;
     private final QRCodeRepository qrCodeRepository;
-    private final QrCodeTestService qrCodeTestService;
+    private final QrCodeService qrCodeService;
 
     @Autowired
     public StoreController(StoreService storeService,
                            StoreRepository storeRepository,
                            QRCodeRepository qrCodeRepository,
-                           QrCodeTestService qrCodeTestService,
+                           QrCodeService qrCodeService,
                            JwtTokenProvider jwtTokenProvider) {
         this.storeService = storeService;
         this.storeRepository = storeRepository;
         this.qrCodeRepository = qrCodeRepository;
-        this.qrCodeTestService = qrCodeTestService;
+        this.qrCodeService = qrCodeService;
         this.jwtTokenProvider = jwtTokenProvider;
     }
 
@@ -182,7 +182,7 @@ public class StoreController {
 
             String fullUrl = qrCodeUrl; // 수정 후: qrCodeUrl이 이미 완전한 URL임
 
-            String qrCodeBase64 = qrCodeTestService.generateQrCodeBase64(fullUrl, 250, 250);
+            String qrCodeBase64 = qrCodeService.generateQrCodeBase64(fullUrl, 250, 250);
 
             ModelAndView modelAndView = new ModelAndView("qr-result");
             modelAndView.addObject("qrCodeImage", "data:image/png;base64," + qrCodeBase64);
@@ -213,7 +213,7 @@ public class StoreController {
 
             String fullUrl = qrCodeUrl; // 수정 후: qrCodeUrl이 이미 완전한 URL임
 
-            byte[] qrCodeBytes = qrCodeTestService.generateQrCodeBytes(fullUrl, 250, 250);
+            byte[] qrCodeBytes = qrCodeService.generateQrCodeBytes(fullUrl, 250, 250);
 
             return ResponseEntity.ok()
                     .header("Content-Disposition", "attachment; filename=qrcode.png")
@@ -238,7 +238,7 @@ public class StoreController {
 
             String qrCodeUrl = qrCode.getQR_Code(); // 주의: 엔티티 수정 전이라면 이 이름 사용
             String fullUrl = qrCodeUrl; // 수정 후: qrCodeUrl이 이미 완전한 URL임
-            String qrCodeBase64 = qrCodeTestService.generateQrCodeBase64(fullUrl, 250, 250);
+            String qrCodeBase64 = qrCodeService.generateQrCodeBase64(fullUrl, 250, 250);
 
             Map<String, String> response = new HashMap<>();
             response.put("storeId", String.valueOf(storeId));
