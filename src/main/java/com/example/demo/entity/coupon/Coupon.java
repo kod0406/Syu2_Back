@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 
 @Entity
 @Getter
@@ -64,19 +63,23 @@ public class Coupon {
     @JoinColumn(name = "store_id", nullable = false)
     private Store store; // 상점ID
 
-//    @Enumerated(EnumType.STRING)
-//    @Column(nullable = false)
-//    private CouponStatus status = CouponStatus.ACTIVE; // 상태 (활성/비활성/회수)
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JoinColumn(name = "coupon_detail_id", referencedColumnName = "couponUuid", nullable = false)
+    private CouponDetail couponDetail;
+
+    @Getter
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private CouponStatus status = CouponStatus.ACTIVE; // 상태 (활성/비활성/회수)
 
     @Version // 낙관적 잠금을 위한 버전 필드
+    @Getter
     private Long version;
 
     @Builder
     public Coupon(String couponName, DiscountType discountType, int discountValue, Integer discountLimit,
                   Integer minimumOrderAmount, ExpiryType expiryType, LocalDateTime expiryDate, Integer expiryDays,
-                  LocalDateTime issueStartTime, int totalQuantity, List<String> applicableCategories, Store store) {
-//        this.couponUuid = UUID.randomUUID().toString();
-//        this.couponCode = "CP" + UUID.randomUUID().toString().substring(0, 8).toUpperCase(); // 고유한 코드 생성
+                  LocalDateTime issueStartTime, int totalQuantity, List<String> applicableCategories, Store store, CouponDetail couponDetail) {
         this.couponName = couponName;
         this.discountType = discountType;
         this.discountValue = discountValue;
@@ -89,9 +92,16 @@ public class Coupon {
         this.totalQuantity = totalQuantity;
         this.applicableCategories = applicableCategories;
         this.store = store;
+        this.couponDetail = couponDetail;
     }
 
-    // 편의 메서드 (필요에 따라 추가)
+    public void setCouponDetail(CouponDetail couponDetail) {
+        this.couponDetail = couponDetail;
+        if (couponDetail.getCoupon() != this) {
+            couponDetail.setCoupon(this);
+        }
+    }
+
     public void issue() {
         if (this.issuedQuantity < this.totalQuantity) {
             this.issuedQuantity++;
@@ -100,9 +110,9 @@ public class Coupon {
         }
     }
 
-//    public void changeStatus(CouponStatus status) {
-//        this.status = status;
-//    }
+    public void changeStatus(CouponStatus status) {
+        this.status = status;
+    }
 
     public void updateCouponDetails(String couponName, DiscountType discountType, int discountValue, Integer discountLimit,
                                     Integer minimumOrderAmount, ExpiryType expiryType, LocalDateTime expiryDate, Integer expiryDays,
@@ -118,7 +128,6 @@ public class Coupon {
         this.issueStartTime = issueStartTime;
         this.totalQuantity = totalQuantity;
         this.applicableCategories = applicableCategories;
-//        this.status = status;
     }
 
     public boolean getStatus() {
