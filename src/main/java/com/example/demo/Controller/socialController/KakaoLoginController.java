@@ -35,7 +35,7 @@ public class KakaoLoginController {
     private final CustomerRepository customerRepository;
     private final JwtTokenProvider jwtTokenProvider;
 
-    @Value("${app.frontend.url}")
+    @Value("${frontend.url}")
     private String frontendUrl;
 
     @Value("${kakao.client_id}")

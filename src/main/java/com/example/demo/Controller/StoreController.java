@@ -120,7 +120,7 @@ public class StoreController {
             ResponseCookie cookie = JwtCookieUtil.createAccessTokenCookie(token);
             response.setHeader("Set-Cookie", cookie.toString());
 
-            return ResponseEntity.ok().build();
+            return ResponseEntity.ok(Map.of("message", "로그인 성공"));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("error", e.getMessage()));

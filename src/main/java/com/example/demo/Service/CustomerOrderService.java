@@ -30,7 +30,8 @@ public class CustomerOrderService {
 
     @Transactional
     public KakaoPayRequest.OrderRequest order(List<OrderDTO> orders, Customer customer, Long storeId) {
-        int totalAmount = 0;
+        long totalAmount = 0;
+
         Store store = storeRepository.findById(storeId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 매장이 존재하지 않습니다."));
 
@@ -41,11 +42,15 @@ public class CustomerOrderService {
                 .build();
         orderGroupRepository.save(orderGroup);
 
-        //추후 느려질 때를 대비해야함.
         for (OrderDTO dto : orders) {
             if ("UserPointUsedOrNotUsed".equals(dto.getMenuName()) && customer == null) {
                 log.warn("⚠️ 고객 없음 - 포인트 항목 저장 스킵: {}", dto);
                 continue;
+            }
+
+            long adjustedPrice = dto.getMenuPrice();
+            if ("UserPointUsedOrNotUsed".equals(dto.getMenuName())) {
+                adjustedPrice = -adjustedPrice; // 포인트 사용은 가격 차감
             }
 
             CustomerStatistics customerStatistics = CustomerStatistics.builder()
@@ -53,27 +58,26 @@ public class CustomerOrderService {
                     .orderDetails(dto.getMenuName())
                     .orderAmount(dto.getMenuAmount())
                     .date(LocalDate.now())
-                    .orderPrice(dto.getMenuPrice())
+                    .orderPrice(adjustedPrice)
                     .customer(customer)
                     .orderGroup(orderGroup)
                     .build();
-            //저장 로직
+
             customerStatisticsRepository.save(customerStatistics);
-            totalAmount += dto.getMenuPrice() * dto.getMenuAmount();
+            totalAmount += adjustedPrice * dto.getMenuAmount();
         }
-        
+
         String representativeMenu = orders.isEmpty() ? "메뉴 없음" : orders.get(0).getMenuName();
         if (orders.size() > 1) {
             representativeMenu += " 외 " + (orders.size() - 1) + "개";
         }
-        KakaoPayRequest.OrderRequest orderRequest = KakaoPayRequest.OrderRequest.builder()
+
+        return KakaoPayRequest.OrderRequest.builder()
                 .itemName(representativeMenu)
                 .totalPrice(String.valueOf(totalAmount))
-                .quantity(String.valueOf(orders.size())) // 또는 주문 이름 리스트만 추출할 수도 있음
+                .quantity(String.valueOf(orders.size()))
                 .OrderGroup(orderGroup)
                 .build();
-
-        return orderRequest;
     }
 
     @Transactional
