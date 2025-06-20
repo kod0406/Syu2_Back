@@ -54,7 +54,7 @@ public class KakaoPayController {
         kakaoPayProvider.approve(pgToken, orderGroupId);
         //KakaoPayRequest.OrderRequest request = customerOrderService.order(orders, customer, storeId);;
         HttpHeaders headers = new HttpHeaders();
-        headers.setLocation(URI.create("http://localhost:3000/menu")); // ✅ 결제 완료 후 이동할 URL (React 메인 페이지 등)
+        headers.setLocation(URI.create("http://localhost:3000/")); // ✅ 결제 완료 후 이동할 URL (React 메인 페이지 등)
 
         return new ResponseEntity<>(headers, HttpStatus.FOUND); // 302 Redirect
 
@@ -67,17 +67,5 @@ public class KakaoPayController {
         return ResponseEntity.ok("결제 실패로 주문 삭제 완료");
     }
 
-    @Operation(summary = "고객 포인트 조회", description = "현재 로그인된 고객의 보유 포인트를 조회합니다. 조회를 위해서는 고객으로 인증되어야 합니다.")
-    @SecurityRequirement(name = "bearer-key")
-    @PostMapping("/pointCheck")
-    public ResponseEntity<PointResponse> pointCheck(@AuthenticationPrincipal Customer customer) {
-
-        if (!memberValidUtil.isCustomer(customer)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-
-        long point = customerOrderService.getPoint(customer);
-        return ResponseEntity.ok(new PointResponse(point));
-    }
 
 }
