@@ -48,13 +48,13 @@ public class CouponCreateRequestDto {
     @Schema(description = "상대 만료 시 발급 후 유효 기간(일) (expiryType이 RELATIVE일 경우 필요)", example = "30", nullable = true)
     private Integer expiryDays;
 
-    @NotNull(message = "���급 시작 시간을 입력해주세요.")
+    @NotNull(message = "발급 시작 시간을 입력해주세요.")
     @FutureOrPresent(message = "발급 시작 시간은 현재 이후여야 합니다.")
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     @Schema(description = "쿠폰 발급 시작 시간", example = "2023-10-26T10:00:00")
     private LocalDateTime issueStartTime;
 
-    @Min(value = 1, message = "총 발급 ���량은 1개 이상이어야 합니다.")
+    @Min(value = 1, message = "총 발급 수량은 1개 이상이어야 합니다.")
     @Schema(description = "총 발급 수량", example = "1000")
     private int totalQuantity;
 

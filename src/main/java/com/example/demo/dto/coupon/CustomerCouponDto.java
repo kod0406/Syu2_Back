@@ -30,7 +30,7 @@ public class CustomerCouponDto {
     public static CustomerCouponDto fromEntity(CustomerCoupon customerCoupon) {
         return CustomerCouponDto.builder()
                 .customerCouponId(customerCoupon.getCustomerCouponId())
-                .coupon(CouponDto.fromEntity(customerCoupon.getCoupon()))
+                .coupon(CouponDto.fromEntity(customerCoupon.getCouponDetail().getCoupon()))
                 .issuedAt(customerCoupon.getIssuedAt())
                 .expiresAt(customerCoupon.getExpiresAt())
                 .isUsed(customerCoupon.isUsed())
