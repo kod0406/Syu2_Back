@@ -19,6 +19,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -31,6 +32,7 @@ import java.util.*;
 
 @RestController
 @RequestMapping("/api/stores")
+@RequiredArgsConstructor
 @Tag(name = "매장 관리", description = "매장 계정 관리 API")
 public class StoreController {
     private final StoreService storeService;
@@ -39,18 +41,6 @@ public class StoreController {
     private final QRCodeRepository qrCodeRepository;
     private final QrCodeService qrCodeService;
 
-    @Autowired
-    public StoreController(StoreService storeService,
-                           StoreRepository storeRepository,
-                           QRCodeRepository qrCodeRepository,
-                           QrCodeService qrCodeService,
-                           JwtTokenProvider jwtTokenProvider) {
-        this.storeService = storeService;
-        this.storeRepository = storeRepository;
-        this.qrCodeRepository = qrCodeRepository;
-        this.qrCodeService = qrCodeService;
-        this.jwtTokenProvider = jwtTokenProvider;
-    }
 
     @Operation(
             summary = "매장 회원가입",
@@ -64,6 +54,7 @@ public class StoreController {
                     )
             )
     )
+
     @PostMapping("/register")
     public ResponseEntity<?> registerStore(
             @RequestBody StoreRegistrationDTO registrationDTO) {
@@ -120,6 +111,7 @@ public class StoreController {
                     )
             )
     )
+
     @PostMapping("/login")
     public ResponseEntity<?> login(
             @RequestBody StoreLoginDTO loginDTO,
@@ -135,11 +127,7 @@ public class StoreController {
             cookie.setHttpOnly(true);
             response.addCookie(cookie);
 
-            return ResponseEntity.ok(Map.of(
-                    "message", "로그인 성공",
-                    "token", token,
-                    "storeId", store.getStoreId()
-            ));
+            return ResponseEntity.ok().build();
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Map.of("error", e.getMessage()));
@@ -163,37 +151,6 @@ public class StoreController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "로그아웃 처리 중 오류가 발생했습니다."));
-        }
-    }
-
-    @Operation(summary = "매장 QR코드 조회", description = "매장 ID로 저장된 QR 코드를 조회합니다.")
-    @GetMapping("/{storeId}/qrcode")
-    public ModelAndView getStoreQrCode(
-            @Parameter(description = "매장 ID") @PathVariable Long storeId) {
-
-        try {
-            Store store = storeRepository.findById(storeId)
-                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 매장입니다."));
-
-            QR_Code qrCode = qrCodeRepository.findByStoreStoreId(storeId)
-                    .orElseThrow(() -> new IllegalArgumentException("QR 코드가 생성되지 않았습니다."));
-
-            String qrCodeUrl = qrCode.getQR_Code();
-
-            String fullUrl = qrCodeUrl; // 수정 후: qrCodeUrl이 이미 완전한 URL임
-
-            String qrCodeBase64 = qrCodeService.generateQrCodeBase64(fullUrl, 250, 250);
-
-            ModelAndView modelAndView = new ModelAndView("qr-result");
-            modelAndView.addObject("qrCodeImage", "data:image/png;base64," + qrCodeBase64);
-            modelAndView.addObject("url", fullUrl);
-
-            return modelAndView;
-
-        } catch (Exception e) {
-            ModelAndView errorView = new ModelAndView("error");
-            errorView.addObject("errorMessage", "QR 코드 조회 중 오류가 발생했습니다: " + e.getMessage());
-            return errorView;
         }
     }
 

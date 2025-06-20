@@ -8,13 +8,4 @@ import lombok.Data;
 public class QrCodeResponseDto {
     private String qrCodeImage;
     private String url;
-
-
-    public String getQrCodeImage() {
-        return qrCodeImage;
-    }
-
-    public String getUrl() {
-        return url;
-    }
 }
