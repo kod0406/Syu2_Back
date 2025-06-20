@@ -44,29 +44,6 @@ public class OrderSocketController {
         //음식 완료 후 WebSocket 갱신
         Long storeId = orderGroup.getStoreId();
         OrderGroupBatchMessage message = webBroadCast.createInactiveOrderGroupMessage(storeId);
-//        List<OrderGroup> inactiveGroups = orderGroupRepository.findAllByStoreIdAndActiveFalse(storeId);
-//        List<OrderGroupBatchMessage.OrderGroupEntry> groupEntries = inactiveGroups.stream()
-//                .map(group -> {
-//                    List<OrderGroupBatchMessage.OrderItem> items = group.getCustomerStatisticsList().stream()
-//                            .map(stat -> OrderGroupBatchMessage.OrderItem.builder()
-//                                    .menuName(stat.getOrderDetails())
-//                                    .price((int) stat.getOrderPrice())
-//                                    .quantity((int) stat.getOrderAmount())
-//                                    .build())
-//                            .toList();
-//
-//                    return OrderGroupBatchMessage.OrderGroupEntry.builder()
-//                            .orderGroupId(group.getId())
-//                            .items(items)
-//                            .build();
-//                })
-//                .toList();
-//
-//        OrderGroupBatchMessage message = OrderGroupBatchMessage.builder()
-//                .storeId(storeId.toString())
-//                .groups(groupEntries)
-//                .build();
-
         messagingTemplate.convertAndSend("/topic/orders/" + storeId, message);
         return ResponseEntity.ok().build();
     }

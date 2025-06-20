@@ -2,7 +2,9 @@ package com.example.demo.KakaoPay;
 
 import com.example.demo.Service.CustomerOrderService;
 import com.example.demo.dto.OrderDTO;
+import com.example.demo.dto.PointResponse;
 import com.example.demo.entity.customer.Customer;
+import com.example.demo.util.MemberValidUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -26,6 +28,7 @@ public class KakaoPayController {
 
     private final KakaoPayProvider kakaoPayProvider;
     private final CustomerOrderService customerOrderService;
+    private final MemberValidUtil memberValidUtil;
 
 //    @PostMapping("/ready")
 //    public KakaoPayResponse.ReadyResponse ready(@RequestBody KakaoPayRequest.OrderRequest request){
@@ -62,6 +65,19 @@ public class KakaoPayController {
     public ResponseEntity<String> fail(@RequestParam("orderGroupId") Long orderGroupId) {
         customerOrderService.processPaymentFailure(orderGroupId);
         return ResponseEntity.ok("결제 실패로 주문 삭제 완료");
+    }
+
+    @Operation(summary = "고객 포인트 조회", description = "현재 로그인된 고객의 보유 포인트를 조회합니다. 조회를 위해서는 고객으로 인증되어야 합니다.")
+    @SecurityRequirement(name = "bearer-key")
+    @PostMapping("/pointCheck")
+    public ResponseEntity<PointResponse> pointCheck(@AuthenticationPrincipal Customer customer) {
+
+        if (!memberValidUtil.isCustomer(customer)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        long point = customerOrderService.getPoint(customer);
+        return ResponseEntity.ok(new PointResponse(point));
     }
 
 }

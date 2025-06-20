@@ -6,6 +6,7 @@ import com.example.demo.dto.coupon.CouponDto;
 import com.example.demo.dto.coupon.CouponStatusUpdateRequestDto;
 import com.example.demo.entity.entityInterface.AppUser;
 import com.example.demo.entity.store.Store;
+import com.example.demo.util.MemberValidUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -30,6 +31,7 @@ import org.springframework.web.bind.annotation.*;
 public class StoreCouponManagementController {
 
     private final CouponService couponService;
+    private final MemberValidUtil memberValidUtil;
 
     private ResponseEntity<?> checkStoreAuthorization(AppUser user) {
         if (user == null) {
@@ -100,18 +102,13 @@ public class StoreCouponManagementController {
             @ApiResponse(responseCode = "500", description = "서버 내부 오류",
                     content = @Content(examples = @ExampleObject(value = "쿠폰 생성 중 오류가 발생했습니다.")))
     })
-    @SecurityRequirement(name = "bearer-key")
+    @SecurityRequirement(name = "access_token")
     @PostMapping
     public ResponseEntity<?> createCoupon(
             @Valid @RequestBody CouponCreateRequestDto couponCreateRequestDto,
-            @Parameter(hidden = true) @AuthenticationPrincipal AppUser user) {
+            @Parameter(hidden = true) @AuthenticationPrincipal Store store) {
 
-        ResponseEntity<?> authResponse = checkStoreAuthorization(user);
-        if (authResponse != null) {
-            return authResponse;
-        }
-
-        Store store = (Store) user; // 인증된 사용자는 Store 인스턴스임이 보장됨
+        memberValidUtil.validateIsStore(store);
 
         try {
             CouponDto createdCoupon = couponService.createCoupon(couponCreateRequestDto, store.getId());
@@ -186,15 +183,9 @@ public class StoreCouponManagementController {
     public ResponseEntity<?> updateCoupon(
             @Parameter(description = "수정할 쿠폰의 ID") @PathVariable Long couponId,
             @Valid @RequestBody CouponCreateRequestDto couponUpdateRequestDto,
-            @Parameter(hidden = true) @AuthenticationPrincipal AppUser user) {
+            @Parameter(hidden = true) @AuthenticationPrincipal Store store) {
 
-        ResponseEntity<?> authResponse = checkStoreAuthorization(user);
-        if (authResponse != null) {
-            return authResponse;
-        }
-
-        Store store = (Store) user;
-
+        memberValidUtil.validateIsStore(store);
         try {
             CouponDto updatedCoupon = couponService.updateCoupon(couponId, store.getId(), couponUpdateRequestDto);
             return ResponseEntity.ok(updatedCoupon);
@@ -253,14 +244,9 @@ public class StoreCouponManagementController {
     public ResponseEntity<?> updateCouponStatus(
             @Parameter(description = "상태를 변경할 쿠폰의 ID") @PathVariable Long couponId,
             @Valid @RequestBody CouponStatusUpdateRequestDto requestDto,
-            @Parameter(hidden = true) @AuthenticationPrincipal AppUser user) {
+            @Parameter(hidden = true) @AuthenticationPrincipal Store store) {
 
-        ResponseEntity<?> authResponse = checkStoreAuthorization(user);
-        if (authResponse != null) {
-            return authResponse;
-        }
-
-        Store store = (Store) user;
+        memberValidUtil.validateIsStore(store);
 
         try {
             CouponDto updatedCoupon = couponService.updateCouponStatus(couponId, store.getId(), requestDto.getStatus());
@@ -295,17 +281,12 @@ public class StoreCouponManagementController {
     @DeleteMapping("/{couponId}")
     public ResponseEntity<?> deleteCoupon(
             @Parameter(description = "삭제할 쿠폰의 ID", example = "1") @PathVariable Long couponId,
-            @Parameter(hidden = true) @AuthenticationPrincipal AppUser user) {
+            @Parameter(hidden = true) @AuthenticationPrincipal Store store) {
 
-        ResponseEntity<?> authResponse = checkStoreAuthorization(user);
-        if (authResponse != null) {
-            return authResponse;
-        }
-
-        Store store = (Store) user;
+        memberValidUtil.validateIsStore(store);
 
         try {
-            boolean deleted = couponService.deleteCoupon(couponId, store.getId());
+            couponService.deleteCoupon(couponId, store.getId());
             return ResponseEntity.ok("쿠폰이 성공적으로 삭제되었습니다.");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -393,12 +374,8 @@ public class StoreCouponManagementController {
     )
     @SecurityRequirement(name = "bearer-key")
     @GetMapping("/my")
-    public ResponseEntity<?> getMyCoupons(@Parameter(hidden = true) @AuthenticationPrincipal AppUser user) {
-        ResponseEntity<?> authResponse = checkStoreAuthorization(user);
-        if (authResponse != null) {
-            return authResponse;
-        }
-        Store store = (Store) user;
+    public ResponseEntity<?> getMyCoupons(@Parameter(hidden = true) @AuthenticationPrincipal Store store) {
+        memberValidUtil.validateIsStore(store);
         try {
             return ResponseEntity.ok(couponService.getCouponsByStore(store.getId()));
         } catch (IllegalArgumentException e) {
