@@ -6,6 +6,19 @@ import lombok.Data;
 @Data
 @Schema(description = "메뉴 등록/수정 요청 DTO")
 public class MenuRequestDto {
+    /**
+     * MenuRequestDto 주요 필드 요약
+     *
+     * ✅ 필수
+     * ⛔ 선택
+     *
+     * menuName    ✅ 메뉴 이름
+     * price       ✅ 가격
+     * description ⛔ 메뉴 설명
+     * imageUrl    ⛔ 이미지 URL
+     * available   ⛔ 판매 가능 여부
+     * category    ⛔ 메뉴 카테고리
+     */
     @Schema(description = "메뉴 이름", example = "불고기 버거", required = true)
     private String menuName;
     

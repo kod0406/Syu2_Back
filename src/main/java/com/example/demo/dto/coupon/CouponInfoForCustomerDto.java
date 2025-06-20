@@ -10,6 +10,19 @@ import lombok.Getter;
 @Builder
 @Schema(description = "고객에게 보여주기 위한 최소한의 쿠폰 정보")
 public class CouponInfoForCustomerDto {
+    /**
+     * CouponInfoForCustomerDto 주요 필드 요약
+     *
+     * ✅ 필수
+     * ⛔ 조건부 또는 선택
+     *
+     * couponName            ✅  쿠폰 이름
+     * discountType          ✅  할인 방식 (정액/정률)
+     * discountValue         ✅  할인 금액 또는 퍼센트
+     * discountLimit         ⛔  정률 할인 시 최대 한도
+     * minimumOrderAmount    ⛔  최소 주문 금액 조건
+     * storeName             ✅  쿠폰 발급 상점 이름
+     */
 
     @Schema(description = "쿠폰명", example = "가을맞이 10% 할인")
     private String couponName;

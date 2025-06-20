@@ -19,6 +19,24 @@ import java.util.List;
 @Schema(description = "쿠폰 생성 요청 DTO")
 public class CouponCreateRequestDto {
 
+    /**
+     * CouponCreateRequestDto 주요 필드 요약
+     *
+     * ✅ 필수
+     * ⛔ 조건부 또는 선택
+     *
+     * couponName          ✅  쿠폰 이름
+     * discountType        ✅  할인 타입 (정액/정률)
+     * discountValue       ✅  할인 금액 또는 퍼센트
+     * expiryType          ✅  만료 타입 (절대/상대)
+     * expiryDate          ⛔  expiryType == ABSOLUTE일 때만
+     * expiryDays          ⛔  expiryType == RELATIVE일 때만
+     * issueStartTime      ✅  발급 시작 시간 (미래 시점)
+     * totalQuantity       ✅  총 발급 수량
+     * applicableCategories⛔  특정 카테고리에만 적용할 경우 지정
+     */
+
+
     @NotBlank(message = "쿠폰명을 입력해주세요.")
     @Schema(description = "쿠폰명", example = "신규 고객 환영 쿠폰")
     private String couponName;
