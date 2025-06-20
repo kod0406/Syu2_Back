@@ -24,7 +24,7 @@ public class Coupon {
 //    private String couponUuid; // UUID 문자열 형태로 저장
 //
 //    @Column(name = "coupon_code", nullable = false)
-//    private String couponCode; // DB에 존재하는 coupon_code 필드
+//    private String couponCo:wqde; // DB에 존재하는 coupon_code 필드
 
     @Column(nullable = false)
     private String couponName; // 쿠폰명
@@ -119,5 +119,9 @@ public class Coupon {
         this.totalQuantity = totalQuantity;
         this.applicableCategories = applicableCategories;
 //        this.status = status;
+    }
+
+    public boolean getStatus() {
+        return true;
     }
 }

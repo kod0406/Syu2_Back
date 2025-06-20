@@ -12,7 +12,7 @@ import java.util.Base64;
 
 
 @Service
-public class QrCodeTestService {
+public class QrCodeService {
     public byte[] generateQrCodeBytes(String url, int width, int height) throws WriterException, IOException {
         QRCodeWriter qrCodeWriter = new QRCodeWriter();
         BitMatrix bitMatrix = qrCodeWriter.encode(url, BarcodeFormat.QR_CODE, width, height);
