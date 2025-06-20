@@ -36,9 +36,6 @@ public class Store implements AppUser {
     private List<StoreMenu> storeMenu = new ArrayList<>();
 
     @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<StoreCoupon> storeCoupon = new ArrayList<>();
-
-    @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderStatus> orderStatus = new ArrayList<>();
 
     @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, orphanRemoval = true)

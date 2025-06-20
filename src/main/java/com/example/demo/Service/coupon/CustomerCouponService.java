@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -30,28 +31,17 @@ public class CustomerCouponService {
     private final StoreRepository storeRepository;
 
     @Transactional
-    public void issueCoupon(Long customerId, Long couponId) {
+    public CustomerCouponDto issueCoupon(Long customerId, Long couponId) {
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new IllegalArgumentException("고객을 찾을 수 없습니다."));
 
         Coupon coupon = couponRepository.findByIdWithPessimisticLock(couponId)
                 .orElseThrow(() -> new IllegalArgumentException("쿠폰을 찾을 수 없습니다."));
 
-        issueCouponInternal(customer, coupon);
+        return issueCouponInternal(customer, coupon);
     }
 
-    @Transactional
-    public void issueCouponByUuid(Long customerId, String couponUuid) {
-        Customer customer = customerRepository.findById(customerId)
-                .orElseThrow(() -> new IllegalArgumentException("고객을 찾을 수 없습니���."));
-
-        Coupon coupon = couponRepository.findByCouponUuidWithPessimisticLock(couponUuid)
-                .orElseThrow(() -> new IllegalArgumentException("쿠폰을 찾을 수 없습니다."));
-
-        issueCouponInternal(customer, coupon);
-    }
-
-    private void issueCouponInternal(Customer customer, Coupon coupon) {
+    private CustomerCouponDto issueCouponInternal(Customer customer, Coupon coupon) {
         if (coupon.getStatus() != CouponStatus.ACTIVE) {
             throw new IllegalStateException("현재 발급 가능한 쿠폰이 아닙니다.");
         }
@@ -64,6 +54,7 @@ public class CustomerCouponService {
             throw new IllegalStateException("아직 쿠폰을 발급받을 수 없습니다.");
         }
 
+        // 중복 발급 체크
         customerCouponRepository.findByCustomerIdAndCouponId(customer.getId(), coupon.getId())
                 .ifPresent(cc -> {
                     throw new IllegalStateException("이미 발급받은 쿠폰입니다.");
@@ -79,14 +70,16 @@ public class CustomerCouponService {
         }
 
         CustomerCoupon customerCoupon = CustomerCoupon.builder()
+                .couponUuid(UUID.randomUUID().toString())
                 .customer(customer)
                 .coupon(coupon)
                 .issuedAt(LocalDateTime.now())
                 .expiresAt(expiresAt)
-                .isUsed(false)
+                .couponStatus(CouponStatus.UNUSED)
                 .build();
 
-        customerCouponRepository.save(customerCoupon);
+        CustomerCoupon savedCustomerCoupon = customerCouponRepository.save(customerCoupon);
+        return CustomerCouponDto.fromEntity(savedCustomerCoupon);
     }
 
     @Transactional(readOnly = true)
@@ -109,7 +102,7 @@ public class CustomerCouponService {
 
     @Transactional(readOnly = true)
     public List<CustomerCouponDto> getMyCoupons(Long customerId) {
-        if (!customerRepository.findById(customerId).isPresent()) {
+        if (!customerRepository.existsById(customerId)) {
             throw new IllegalArgumentException("고객을 찾을 수 없습니다.");
         }
         List<CustomerCoupon> myCoupons = customerCouponRepository.findByCustomerId(customerId);
@@ -119,9 +112,9 @@ public class CustomerCouponService {
     }
 
     @Transactional(readOnly = true)
-    public CouponDto getCouponByUuid(String couponUuid) {
-        Coupon coupon = couponRepository.findByCouponUuid(couponUuid)
+    public CustomerCouponDto getCouponByUuid(String couponUuid) {
+        CustomerCoupon customerCoupon = customerCouponRepository.findById(couponUuid)
                 .orElseThrow(() -> new IllegalArgumentException("해당 UUID의 쿠폰을 찾을 수 없습니다."));
-        return CouponDto.fromEntity(coupon);
+        return CustomerCouponDto.fromEntity(customerCoupon);
     }
 }
