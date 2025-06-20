@@ -12,6 +12,31 @@ import java.util.List;
 @Builder
 @Schema(description = "쿠폰 정보 응답 DTO")
 public class CouponDto {
+
+    /**
+     * CouponDto 주요 필드 요약
+     *
+     * ✅ 필수
+     * ⛔ 조건부 또는 선택
+     *
+     * id                    ✅  쿠폰 ID
+     * couponName            ✅  쿠폰 이름
+     * discountType          ✅  할인 방식 (정액/정률)
+     * discountValue         ✅  할인 금액 또는 퍼센트
+     * discountLimit         ⛔  정률 할인 시 최대 한도
+     * minimumOrderAmount    ⛔  최소 주문 금액 조건
+     * expiryType            ✅  만료 방식 (절대/상대)
+     * expiryDate            ⛔  expiryType == ABSOLUTE일 때
+     * expiryDays            ⛔  expiryType == RELATIVE일 때
+     * issueStartTime        ✅  발급 시작 시간
+     * totalQuantity         ✅  총 발급 수량
+     * issuedQuantity        ✅  현재 발급된 수량
+     * applicableCategories  ⛔  특정 카테고리 한정 적용
+     * storeId               ✅  소속 상점 ID
+     * storeName             ✅  소속 상점 이름
+     * status                ✅  쿠폰 상태 (예: ACTIVE)
+     */
+
     @Schema(description = "쿠폰 ID", example = "1")
     private Long id;
 

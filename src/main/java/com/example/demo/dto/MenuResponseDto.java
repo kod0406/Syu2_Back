@@ -10,6 +10,21 @@ import lombok.Getter;
 @Data
 @Schema(description = "메뉴 응답 DTO")
 public class MenuResponseDto {
+    /**
+     * MenuResponseDto 주요 필드 요약
+     *
+     * ✅ 필수 (일반적으로 항상 포함되는 정보)
+     * ⛔ 선택 (상황에 따라 없을 수도 있음)
+     *
+     * menuId       ✅ 메뉴 ID
+     * menuName     ✅ 메뉴 이름
+     * price        ✅ 가격
+     * rating       ⛔ 평점
+     * description  ⛔ 메뉴 설명
+     * imageUrl     ⛔ 이미지 URL
+     * available    ✅ 주문 가능 여부
+     * category     ⛔ 메뉴 카테고리
+     */
 
     @Schema(description = "메뉴 ID", example = "1")
     private Long menuId;
