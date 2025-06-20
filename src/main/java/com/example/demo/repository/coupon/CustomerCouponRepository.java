@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-public interface CustomerCouponRepository extends JpaRepository<CustomerCoupon, Long> {
+public interface CustomerCouponRepository extends JpaRepository<CustomerCoupon, String> {
     Optional<CustomerCoupon> findByCustomerIdAndCouponId(Long customerId, Long couponId);
     List<CustomerCoupon> findByCustomerId(Long customerId);
     void deleteByExpiresAtBefore(LocalDateTime now);

@@ -27,14 +27,8 @@ public interface CouponRepository extends JpaRepository<Coupon, Long> {
             "AND (c.issueStartTime IS NULL OR c.issueStartTime <= CURRENT_TIMESTAMP)")
     List<Coupon> findAllAvailableCoupons();
 
-    // UUID로 쿠폰 찾기
-    Optional<Coupon> findByCouponUuid(String couponUuid);
-
     // ID와 스토어로 쿠폰 찾기
     Optional<Coupon> findByIdAndStore(Long id, Store store);
 
-    // UUID로 쿠폰 조회 시 락 걸기
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("SELECT c FROM Coupon c WHERE c.couponUuid = :couponUuid")
-    Optional<Coupon> findByCouponUuidWithPessimisticLock(@Param("couponUuid") String couponUuid);
+    List<Coupon> findAllByStore(Store store);
 }

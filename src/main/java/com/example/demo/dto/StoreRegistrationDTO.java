@@ -4,11 +4,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
 @Data
-@Schema(description = "매장 회원가입 요청 DTO")
+@Schema(description = "매장 회원가입 요청 DTO", example = "{\n  \"storeName\": \"맛있는 식당\",\n  \"ownerEmail\": \"owner@example.com\",\n  \"password\": \"password123\"\n}")
 public class StoreRegistrationDTO {
-    @Schema(description = "매장 ID", example = "1")
-    private Long storeId;
-    
     @Schema(description = "매장 이름", example = "맛있는 식당")
     private String storeName;
     
