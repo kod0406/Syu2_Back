@@ -73,6 +73,11 @@ public class CustomerCouponController {
             @ApiResponse(responseCode = "400", description = "잘못된 요청", content = @Content(examples = @ExampleObject(value = "상점을 찾을 수 없습니다."))),
             @ApiResponse(responseCode = "500", description = "서버 내부 오류", content = @Content(examples = @ExampleObject(value = "쿠폰 목록 조회 중 오류가 발생했습니다.")))
     })
+    /*
+    =============================================================================================================================
+    */
+
+
     @GetMapping("/stores/{storeId}/coupons")
     public ResponseEntity<?> getAvailableCoupons(@Parameter(description = "조회할 상점의 ID", required = true, example = "1") @PathVariable Long storeId) {
         try {
