@@ -129,8 +129,4 @@ public class Coupon {
         this.totalQuantity = totalQuantity;
         this.applicableCategories = applicableCategories;
     }
-
-    public boolean getStatus() {
-        return true;
-    }
 }
