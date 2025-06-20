@@ -48,6 +48,12 @@ public class CustomerCouponService {
         Coupon coupon = couponRepository.findByCouponDetail_CouponUuidWithPessimisticLock(couponUuid)
                 .orElseThrow(() -> new IllegalArgumentException("쿠폰을 찾을 수 없습니다."));
 
+        // 중복 발급 체크: couponDetail의 couponUuid로 체크
+        customerCouponRepository.findByCustomerIdAndCouponDetail_CouponUuid(customer.getId(), coupon.getCouponDetail().getCouponUuid())
+                .ifPresent(cc -> {
+                    throw new IllegalStateException("이미 발급받은 쿠폰입니다.");
+                });
+
         issueCouponInternal(customer, coupon);
     }
 
@@ -64,7 +70,8 @@ public class CustomerCouponService {
             throw new IllegalStateException("아직 쿠폰을 발급받을 수 없습니다.");
         }
 
-        customerCouponRepository.findByCustomerIdAndCouponDetailId(customer.getId(), coupon.getCouponDetail().getId())
+        // 중복 발급 체크: couponDetail의 couponUuid로 체크
+        customerCouponRepository.findByCustomerIdAndCouponDetail_CouponUuid(customer.getId(), coupon.getCouponDetail().getCouponUuid())
                 .ifPresent(cc -> {
                     throw new IllegalStateException("이미 발급받은 쿠폰입니다.");
                 });

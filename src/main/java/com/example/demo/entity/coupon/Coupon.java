@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 
 @Entity
 @Getter
@@ -65,22 +64,22 @@ public class Coupon {
     private Store store; // 상점ID
 
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JoinColumn(name = "coupon_detail_id", nullable = false)
+    @JoinColumn(name = "coupon_detail_id", referencedColumnName = "couponUuid", nullable = false)
     private CouponDetail couponDetail;
 
+    @Getter
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private CouponStatus status = CouponStatus.ACTIVE; // 상태 (활성/비활성/회수)
 
     @Version // 낙관적 잠금을 위한 버전 필드
+    @Getter
     private Long version;
 
     @Builder
     public Coupon(String couponName, DiscountType discountType, int discountValue, Integer discountLimit,
                   Integer minimumOrderAmount, ExpiryType expiryType, LocalDateTime expiryDate, Integer expiryDays,
                   LocalDateTime issueStartTime, int totalQuantity, List<String> applicableCategories, Store store, CouponDetail couponDetail) {
-//        this.couponUuid = UUID.randomUUID().toString();
-//        this.couponCode = "CP" + UUID.randomUUID().toString().substring(0, 8).toUpperCase(); // 고유한 코드 생성
         this.couponName = couponName;
         this.discountType = discountType;
         this.discountValue = discountValue;
@@ -96,6 +95,13 @@ public class Coupon {
         this.couponDetail = couponDetail;
     }
 
+    public void setCouponDetail(CouponDetail couponDetail) {
+        this.couponDetail = couponDetail;
+        if (couponDetail.getCoupon() != this) {
+            couponDetail.setCoupon(this);
+        }
+    }
+
     public void issue() {
         if (this.issuedQuantity < this.totalQuantity) {
             this.issuedQuantity++;
@@ -104,9 +110,6 @@ public class Coupon {
         }
     }
 
-    public CouponStatus getStatus() {
-        return status;
-    }
     public void changeStatus(CouponStatus status) {
         this.status = status;
     }
