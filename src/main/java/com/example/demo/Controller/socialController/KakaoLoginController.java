@@ -5,6 +5,7 @@ import com.example.demo.dto.socialDto.KakaoUserInfoResponseDto;
 import com.example.demo.entity.customer.Customer;
 import com.example.demo.jwt.JwtTokenProvider;
 import com.example.demo.repository.CustomerRepository;
+import com.example.demo.util.JwtCookieUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -34,6 +35,9 @@ public class KakaoLoginController {
     private final CustomerRepository customerRepository;
     private final JwtTokenProvider jwtTokenProvider;
 
+    @Value("${app.frontend.url}")
+    private String frontendUrl;
+
     @Value("${kakao.client_id}")
     private String kakaoClientId;
 
@@ -60,17 +64,11 @@ public class KakaoLoginController {
             log.info("기존 회원입니다.");
         }
         String jwt = jwtTokenProvider.createToken(kakaoId);
-
-        ResponseCookie cookie = ResponseCookie.from("access_token", jwt)
-                .httpOnly(true)
-                .path("/")
-                .maxAge(Duration.ofHours(1))
-                .sameSite("Lax")
-                .build();
+        ResponseCookie cookie = JwtCookieUtil.createAccessTokenCookie(jwt);
 
         return ResponseEntity.status(HttpStatus.FOUND)
                 .header("Set-Cookie", cookie.toString())
-                .header("Location", "http://localhost:3000/")
+                .header("Location", frontendUrl + "/")
                 .build();
     }
 

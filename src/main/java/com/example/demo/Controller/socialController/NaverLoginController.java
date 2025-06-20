@@ -4,6 +4,7 @@ import com.example.demo.Service.NaverLoginService;
 import com.example.demo.entity.customer.Customer;
 import com.example.demo.jwt.JwtTokenProvider;
 import com.example.demo.repository.CustomerRepository;
+import com.example.demo.util.JwtCookieUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -28,6 +29,9 @@ public class NaverLoginController {
     private final NaverLoginService naverLoginService;
     private final CustomerRepository customerRepository;
     private final JwtTokenProvider jwtTokenProvider;
+
+    @Value("${app.frontend.url}")
+    private String frontendUrl;
 
     @Value("${naver.redirect_uri}")
     private String naverRedirectUri;
@@ -56,16 +60,11 @@ public class NaverLoginController {
         }
         String jwt = jwtTokenProvider.createToken(tokenResponse);
 
-        ResponseCookie cookie = ResponseCookie.from("access_token", jwt)
-                .httpOnly(true)
-                .path("/")
-                .maxAge(Duration.ofHours(1))
-                .sameSite("Lax")
-                .build();
+        ResponseCookie cookie = JwtCookieUtil.createAccessTokenCookie(jwt);
 
         return ResponseEntity.status(HttpStatus.FOUND)
                 .header("Set-Cookie", cookie.toString())
-                .header("Location", "http://localhost:3000/")
+                .header("Location", frontendUrl + "/")
                 .build();
     }
 
