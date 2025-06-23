@@ -37,27 +37,6 @@ public class StoreMenuManagementController {
     private final S3UploadService s3UploadService;
     private final MemberValidUtil memberValidUtil;
 
-    private ResponseEntity<?> checkAuthorization(AppUser user) {
-        if (user == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body("인증이 필요합니다.");
-        }
-
-        if (user instanceof Store) {
-            return null;
-        } else if (user instanceof Customer) {
-            Customer customer = (Customer) user;
-            if (!"local".equals(customer.getProvider())) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body("Local 사용자만 접근 가능합니다.");
-            }
-            return null;
-        } else {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body("권한이 없습니다.");
-        }
-    }
-
     @Operation(
             summary = "메뉴 목록 조회",
             description = "특정 매장에 등록된 모든 메뉴의 목록을 조회합니다.",

@@ -4,6 +4,7 @@ import com.example.demo.benefit.service.CustomerCouponService;
 import com.example.demo.benefit.dto.CouponDto;
 import com.example.demo.benefit.dto.CustomerCouponDto;
 import com.example.demo.customer.entity.Customer;
+import com.example.demo.setting.exception.UnauthorizedException;
 import com.example.demo.setting.util.MemberValidUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -77,17 +78,11 @@ public class CustomerCouponController {
     })@GetMapping("/customer/{storeId}/coupons")
     public ResponseEntity<?> getAvailableCoupons(@Parameter(description = "조회할 상점의 ID", required = true, example = "1") @PathVariable Long storeId, @AuthenticationPrincipal Customer customer) {
         if (!memberValidUtil.isCustomer(customer)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
+            throw new UnauthorizedException("로그인이 필요합니다.");
         }
 
-        try {
-            List<CouponDto> availableCoupons = customerCouponService.getAvailableCoupons(storeId);
-            return ResponseEntity.ok(availableCoupons);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("쿠폰 목록 조회 중 오류가 발생했습니다.");
-        }
+        List<CouponDto> availableCoupons = customerCouponService.getAvailableCoupons(storeId);
+        return ResponseEntity.ok(availableCoupons);
     }
 
     @Operation(summary = "발급 가능한 모든 쿠폰 목록 조회", description = "고객이 발급받을 수 있는 모든 쿠폰 목록을 조회합니다. 쿠폰 ID와 가게 이름이 함께 반환됩니다.")
@@ -118,15 +113,11 @@ public class CustomerCouponController {
     @GetMapping("/coupons/available")
     public ResponseEntity<?> getAllAvailableCoupons(@AuthenticationPrincipal Customer customer) {
         if (!memberValidUtil.isCustomer(customer)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
+            throw new UnauthorizedException("로그인이 필요합니다.");
         }
 
-        try {
-            List<CouponDto> availableCoupons = customerCouponService.getAllAvailableCoupons();
-            return ResponseEntity.ok(availableCoupons);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("전체 쿠폰 목록 조회 중 오류가 발생했습니다.");
-        }
+        List<CouponDto> availableCoupons = customerCouponService.getAllAvailableCoupons();
+        return ResponseEntity.ok(availableCoupons);
     }
 
     @Operation(summary = "쿠폰 발급받기", description = "고객이 쿠폰을 발급받습니다. 로그인이 필요하며, 고객(Customer) 권한이 있어야 합니다.")
@@ -147,7 +138,7 @@ public class CustomerCouponController {
     public ResponseEntity<?> issueCoupon(@Parameter(description = "발급받을 쿠폰의 ID", required = true, example = "1") @PathVariable Long couponId,
                                          @Parameter(hidden = true) @AuthenticationPrincipal Customer customer) {
         if (!memberValidUtil.isCustomer(customer)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
+            throw new UnauthorizedException("로그인이 필요합니다.");
         }
         try {
             customerCouponService.issueCoupon(customer.getId(), couponId);
@@ -194,7 +185,7 @@ public class CustomerCouponController {
     @GetMapping("/my-coupons")
     public ResponseEntity<?> getMyCoupons(@Parameter(hidden = true) @AuthenticationPrincipal Customer customer) {
         if (!memberValidUtil.isCustomer(customer)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
+            throw new UnauthorizedException("로그인이 필요합니다.");
         }
         try {
             return ResponseEntity.ok(customerCouponService.getMyCoupons(customer.getId()));

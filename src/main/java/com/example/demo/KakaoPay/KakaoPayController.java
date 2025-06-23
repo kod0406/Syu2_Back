@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,6 +29,9 @@ public class KakaoPayController {
     private final KakaoPayProvider kakaoPayProvider;
     private final CustomerOrderService customerOrderService;
     private final MemberValidUtil memberValidUtil;
+
+    @Value("${frontend.url}")
+    private String frontendUrl;
 
 //    @PostMapping("/ready")
 //    public KakaoPayResponse.ReadyResponse ready(@RequestBody KakaoPayRequest.OrderRequest request){
@@ -53,7 +57,7 @@ public class KakaoPayController {
         kakaoPayProvider.approve(pgToken, orderGroupId);
         //KakaoPayRequest.OrderRequest request = customerOrderService.order(orders, customer, storeId);;
         HttpHeaders headers = new HttpHeaders();
-        headers.setLocation(URI.create("http://localhost:3000/")); // ✅ 결제 완료 후 이동할 URL (React 메인 페이지 등)
+        headers.setLocation(URI.create(frontendUrl + "/")); // ✅ 결제 완료 후 이동할 URL (React 메인 페이지 등)
 
         return new ResponseEntity<>(headers, HttpStatus.FOUND); // 302 Redirect
 
