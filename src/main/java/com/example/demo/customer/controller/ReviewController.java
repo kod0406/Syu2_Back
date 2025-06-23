@@ -6,6 +6,7 @@ import com.example.demo.customer.dto.ReviewWriteDTO;
 import com.example.demo.customer.dto.UnreviewedStatisticsDto;
 import com.example.demo.customer.entity.Customer;
 import com.example.demo.customer.repository.CustomerRepository;
+import com.example.demo.setting.exception.UnauthorizedException;
 import com.example.demo.setting.util.MemberValidUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -48,7 +49,7 @@ public class ReviewController {
     public ResponseEntity<?> reviewList(
             @Parameter(hidden = true) @AuthenticationPrincipal Customer customer) {
         if (!memberValidUtil.isCustomer(customer)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
+            throw new UnauthorizedException("로그인이 필요합니다.");
         }
 
         List<UnreviewedStatisticsDto> reviewList = reviewService.getUnreviewedStatisticsByCustomer(customer);
@@ -79,7 +80,7 @@ public class ReviewController {
             @Parameter(hidden = true) @AuthenticationPrincipal Customer customer,
             @ModelAttribute ReviewWriteDTO reviewWriteDTO) {
         if (!memberValidUtil.isCustomer(customer)) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("로그인이 필요합니다.");
+            throw new UnauthorizedException("로그인이 필요합니다.");
         }
 
         reviewService.saveReview(customer, reviewWriteDTO);

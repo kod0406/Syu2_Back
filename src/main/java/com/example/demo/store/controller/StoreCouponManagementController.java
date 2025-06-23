@@ -109,16 +109,9 @@ public class StoreCouponManagementController {
             @Parameter(hidden = true) @AuthenticationPrincipal Store store) {
 
         memberValidUtil.validateIsStore(store);
+        CouponDto createdCoupon = couponService.createCoupon(couponCreateRequestDto, store.getId());
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdCoupon);
 
-        try {
-            CouponDto createdCoupon = couponService.createCoupon(couponCreateRequestDto, store.getId());
-            return ResponseEntity.status(HttpStatus.CREATED).body(createdCoupon);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("쿠폰 생성 중 오류가 발생했습니다.");
-        }
     }
 
     @Operation(
@@ -186,15 +179,8 @@ public class StoreCouponManagementController {
             @Parameter(hidden = true) @AuthenticationPrincipal Store store) {
 
         memberValidUtil.validateIsStore(store);
-        try {
-            CouponDto updatedCoupon = couponService.updateCoupon(couponId, store.getId(), couponUpdateRequestDto);
-            return ResponseEntity.ok(updatedCoupon);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (Exception e) {
-            // 로깅 추가 고려
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("쿠폰 수정 중 오류가 발생했습니다.");
-        }
+        CouponDto updatedCoupon = couponService.updateCoupon(couponId, store.getId(), couponUpdateRequestDto);
+        return ResponseEntity.ok(updatedCoupon);
     }
 
     @Operation(
@@ -247,15 +233,8 @@ public class StoreCouponManagementController {
             @Parameter(hidden = true) @AuthenticationPrincipal Store store) {
 
         memberValidUtil.validateIsStore(store);
-
-        try {
-            CouponDto updatedCoupon = couponService.updateCouponStatus(couponId, store.getId(), requestDto.getStatus());
-            return ResponseEntity.ok(updatedCoupon);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("쿠폰 상태 변경 중 오류가 발생했습니다.");
-        }
+        CouponDto updatedCoupon = couponService.updateCouponStatus(couponId, store.getId(), requestDto.getStatus());
+        return ResponseEntity.ok(updatedCoupon);
     }
 
     @Operation(
@@ -284,17 +263,9 @@ public class StoreCouponManagementController {
             @Parameter(hidden = true) @AuthenticationPrincipal Store store) {
 
         memberValidUtil.validateIsStore(store);
+        couponService.deleteCoupon(couponId, store.getId());
+        return ResponseEntity.ok("쿠폰이 성공적으로 삭제되었습니다.");
 
-        try {
-            couponService.deleteCoupon(couponId, store.getId());
-            return ResponseEntity.ok("쿠폰이 성공적으로 삭제되었습니다.");
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (IllegalStateException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("쿠폰 삭제 중 오류가 발생했습니다.");
-        }
     }
 
     @Operation(
@@ -376,12 +347,7 @@ public class StoreCouponManagementController {
     @GetMapping("/my")
     public ResponseEntity<?> getMyCoupons(@Parameter(hidden = true) @AuthenticationPrincipal Store store) {
         memberValidUtil.validateIsStore(store);
-        try {
-            return ResponseEntity.ok(couponService.getCouponsByStore(store.getId()));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("내 매장 쿠폰 목록 조회 중 오류가 발생했습니다.");
-        }
+        return ResponseEntity.ok(couponService.getCouponsByStore(store.getId()));
+
     }
 }
