@@ -1,6 +1,6 @@
 package com.example.demo.KakaoPay;
 
-import com.example.demo.entity.common.OrderGroup;
+import com.example.demo.order.entity.OrderGroup;
 import lombok.*;
 
 public class KakaoPayRequest {
