@@ -26,7 +26,10 @@ public enum ErrorCode {
     COUPON_EXHAUSTED("U004", "쿠폰이 모두 소진되었습니다."),
     COUPON_NOT_YET_AVAILABLE("U005", "아직 쿠폰을 발급받을 수 없습니다."),
     COUPON_DUPLICATE("U006", "이미 발급받은 쿠폰입니다."),
-    CUSTOMER_COUPON_NOT_FOUND("U007", "해당 UUID의 쿠폰을 찾을 수 없습니다.");
+    CUSTOMER_COUPON_NOT_FOUND("U007", "해당 UUID의 쿠폰을 찾을 수 없습니다."),
+
+    //비밀번호
+    PASSWORD_EXCEPTION("USER001", "비밀번호 오류");
     private final String code;
     private final String message;
 }
