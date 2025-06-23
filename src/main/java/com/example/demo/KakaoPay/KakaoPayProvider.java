@@ -1,14 +1,13 @@
 package com.example.demo.KakaoPay;
 
-import com.example.demo.dto.OrderGroupBatchMessage;
-import com.example.demo.entity.common.CustomerStatistics;
-import com.example.demo.entity.common.OrderGroup;
-import com.example.demo.entity.customer.Customer;
-import com.example.demo.entity.customer.CustomerPoint;
-import com.example.demo.repository.CustomerPointRepository;
-import com.example.demo.repository.CustomerStatisticsRepository;
-import com.example.demo.repository.OrderGroupRepository;
-import com.example.demo.webSock.WebBroadCast;
+import com.example.demo.order.dto.OrderGroupBatchMessage;
+import com.example.demo.customer.entity.CustomerStatistics;
+import com.example.demo.order.entity.OrderGroup;
+import com.example.demo.customer.entity.Customer;
+import com.example.demo.customer.entity.CustomerPoint;
+import com.example.demo.benefit.repository.CustomerPointRepository;
+import com.example.demo.order.repository.OrderGroupRepository;
+import com.example.demo.setting.webSock.WebBroadCast;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

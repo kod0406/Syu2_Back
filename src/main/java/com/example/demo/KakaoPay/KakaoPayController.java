@@ -1,10 +1,9 @@
 package com.example.demo.KakaoPay;
 
-import com.example.demo.Service.CustomerOrderService;
-import com.example.demo.dto.OrderDTO;
-import com.example.demo.dto.PointResponse;
-import com.example.demo.entity.customer.Customer;
-import com.example.demo.util.MemberValidUtil;
+import com.example.demo.customer.service.CustomerOrderService;
+import com.example.demo.order.dto.OrderDTO;
+import com.example.demo.customer.entity.Customer;
+import com.example.demo.setting.util.MemberValidUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
