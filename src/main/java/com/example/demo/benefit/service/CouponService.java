@@ -11,6 +11,8 @@ import com.example.demo.benefit.repository.CouponRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.example.demo.setting.exception.BusinessException;
+import com.example.demo.setting.exception.ErrorCode;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -25,7 +27,7 @@ public class CouponService {
     @Transactional
     public CouponDto createCoupon(CouponCreateRequestDto requestDto, Long storeId) {
         Store store = storeRepository.findById(storeId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 상점을 찾을 수 없습니다."));
+                .orElseThrow(() -> new BusinessException(ErrorCode.STORE_NOT_FOUND));
 
         //만료됐는지 검사
         validateExpiryPolicy(requestDto);
@@ -52,32 +54,31 @@ public class CouponService {
     private void validateExpiryPolicy(CouponCreateRequestDto requestDto) {
         if (requestDto.getExpiryType() == ExpiryType.ABSOLUTE) {
             if (requestDto.getExpiryDate() == null) {
-                throw new IllegalArgumentException("절대 만료 방식을 선택한 경우 만료 날짜를 입력해야 합니다.");
+                throw new BusinessException(ErrorCode.INVALID_ABSOLUTE_EXPIRY_DATE);
             }
             if (requestDto.getExpiryDate().isBefore(requestDto.getIssueStartTime())) {
-                throw new IllegalArgumentException("만료 날짜는 발급 시작 시간 이후여야 합니다.");
+                throw new BusinessException(ErrorCode.EXPIRY_BEFORE_ISSUE);
             }
         } else if (requestDto.getExpiryType() == ExpiryType.RELATIVE) {
             if (requestDto.getExpiryDays() == null || requestDto.getExpiryDays() <= 0) {
-                throw new IllegalArgumentException("상대 만료 방식을 선택한 경우 유효 기간(일)을 입력해야 합니다.");
+                throw new BusinessException(ErrorCode.INVALID_RELATIVE_EXPIRY_DAYS);
             }
             LocalDateTime expiryDate = requestDto.getIssueStartTime().plusDays(requestDto.getExpiryDays());
             if (expiryDate.isBefore(LocalDateTime.now())) {
-                throw new IllegalArgumentException("상대 만료 방식의 만료 날짜는 현재 시간 이후여야 합니다.");
+                throw new BusinessException(ErrorCode.EXPIRY_DATE_IN_PAST);
             }
         } else {
-            throw new IllegalArgumentException("유효하지 않은 만료 방식을 선택했습니다.");
-
+            throw new BusinessException(ErrorCode.INVALID_EXPIRY_TYPE);
         }
     }
 
     @Transactional
     public CouponDto updateCoupon(Long couponId, Long storeId, CouponCreateRequestDto requestDto) { // 쿠폰 수정 시 사용할 DTO는 필요에 따라 CouponUpdateRequestDto 등으로 분리 가능
         Store store = storeRepository.findById(storeId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 상점을 찾을 수 없습니다. ID: " + storeId));
+                .orElseThrow(() -> new BusinessException(ErrorCode.STORE_NOT_FOUND));
 
         Coupon coupon = couponRepository.findByIdAndStore(couponId, store) // ID와 Store로 쿠폰 조회
-                .orElseThrow(() -> new IllegalArgumentException("해당 상점에 존재하지 않는 쿠폰이거나 수정 권한이 없습니다. 쿠폰 ID: " + couponId));
+                .orElseThrow(() -> new BusinessException(ErrorCode.PERMISSION_DENIED));
 
         // 만료 정책 유효성 검사
         validateExpiryPolicy(requestDto);
@@ -104,10 +105,10 @@ public class CouponService {
     @Transactional
     public CouponDto updateCouponStatus(Long couponId, Long storeId, CouponStatus status) {
         Store store = storeRepository.findById(storeId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 상점을 찾을 수 없습니다. ID: " + storeId));
+                .orElseThrow(() -> new BusinessException(ErrorCode.STORE_NOT_FOUND));
 
         Coupon coupon = couponRepository.findByIdAndStore(couponId, store) // ID와 Store로 쿠폰 조회
-                .orElseThrow(() -> new IllegalArgumentException("해당 상점에 존재하지 않는 쿠폰이거나 수정 권한이 없습니다. 쿠폰 ID: " + couponId));
+                .orElseThrow(() -> new BusinessException(ErrorCode.PERMISSION_DENIED));
 
         coupon.changeStatus(status);
 
@@ -125,14 +126,14 @@ public class CouponService {
     @Transactional
     public boolean deleteCoupon(Long couponId, Long storeId) {
         Store store = storeRepository.findById(storeId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 상점을 찾을 수 없습니다. ID: " + storeId));
+                .orElseThrow(() -> new BusinessException(ErrorCode.STORE_NOT_FOUND));
 
         Coupon coupon = couponRepository.findByIdAndStore(couponId, store)
-                .orElseThrow(() -> new IllegalArgumentException("해당 상점에 존재하지 않는 쿠폰이거나 삭제 권한이 없습니다. 쿠폰 ID: " + couponId));
+                .orElseThrow(() -> new BusinessException(ErrorCode.PERMISSION_DENIED));
 
         // 발급된 쿠폰이 있는지 확인
         if (coupon.getIssuedQuantity() > 0) {
-            throw new IllegalStateException("이미 고객에게 발급된 쿠폰은 삭제할 수 없습니다. 대신 상태를 변경하세요.");
+            throw new BusinessException(ErrorCode.CHANGE_DENIED);
         }
 
         couponRepository.delete(coupon);
@@ -142,7 +143,7 @@ public class CouponService {
     @Transactional(readOnly = true)
     public List<CouponDto> getCouponsByStore(Long storeId) {
         Store store = storeRepository.findById(storeId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 상점을 찾을 수 없습니다. ID: " + storeId));
+                .orElseThrow(() -> new BusinessException(ErrorCode.STORE_NOT_FOUND));
         List<Coupon> coupons = couponRepository.findAllByStore(store);
         return coupons.stream().map(CouponDto::fromEntity).toList();
     }

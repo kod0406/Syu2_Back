@@ -1,5 +1,7 @@
 package com.example.demo.store.service;
 
+import com.example.demo.setting.exception.BusinessException;
+import com.example.demo.setting.exception.ErrorCode;
 import com.example.demo.store.dto.MenuSalesStatisticsDto;
 import com.example.demo.store.dto.StoreRegistrationDTO;
 import com.example.demo.store.dto.StoreSalesResponseDto;
@@ -59,7 +61,7 @@ public class StoreService {
     @Transactional // 회원 탈퇴
     public void deleteStore(Long storeId) {
         Store store = storeRepository.findById(storeId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 매장입니다."));
+                .orElseThrow(() -> new BusinessException(ErrorCode.STORE_NOT_FOUND));
 
         // 추후 연관된 데이터 삭제 로직 추가 가능
         // (예: 매장 메뉴, 리뷰 등 삭제)
@@ -86,7 +88,7 @@ public class StoreService {
 
     public Store authenticateStore(String email, String password) {
         Store store = storeRepository.findByOwnerEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이메일입니다."));
+                .orElseThrow(() -> new BusinessException(ErrorCode.STORE_NOT_FOUND));
 
 
         // 비밀번호 검증 로직 (예: BCrypt 사용)
@@ -100,7 +102,7 @@ public class StoreService {
     @Transactional(readOnly = true)
     public StoreSalesResponseDto getStoreSales(Long storeId) {
         Store store = storeRepository.findById(storeId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 매장입니다."));
+                .orElseThrow(() -> new BusinessException(ErrorCode.STORE_NOT_FOUND));
 
         List<StoreMenu> menus = store.getStoreMenu();
 

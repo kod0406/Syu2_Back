@@ -140,15 +140,8 @@ public class CustomerCouponController {
         if (!memberValidUtil.isCustomer(customer)) {
             throw new UnauthorizedException("로그인이 필요합니다.");
         }
-        try {
-            customerCouponService.issueCoupon(customer.getId(), couponId);
-            return ResponseEntity.ok("쿠폰이 성공적으로 발급되었습니다.");
-        } catch (IllegalStateException | IllegalArgumentException e) {
-            //예외 처리
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("쿠폰 발급 중 오류가 발생했습니다.");
-        }
+        customerCouponService.issueCoupon(customer.getId(), couponId);
+        return ResponseEntity.ok("쿠폰이 성공적으로 발급되었습니다.");
     }
 
     @Operation(summary = "내가 보유한 쿠폰 목록 조회", description = "고객이 보유한 쿠폰 목록 전체를 조회합니다. 로그인이 필요하며, 고객(Customer) 권한이 있어야 합니다.")
@@ -187,11 +180,7 @@ public class CustomerCouponController {
         if (!memberValidUtil.isCustomer(customer)) {
             throw new UnauthorizedException("로그인이 필요합니다.");
         }
-        try {
-            return ResponseEntity.ok(customerCouponService.getMyCoupons(customer.getId()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("내 쿠폰 목록 조회 중 오류가 발생했습니다.");
-        }
+        return ResponseEntity.ok(customerCouponService.getMyCoupons(customer.getId()));
     }
 
     @Operation(summary = "UUID로 쿠폰 정보 조회", description = "UUID로 특정 쿠폰의 상태 정보를 조회합니다.")
@@ -225,13 +214,8 @@ public class CustomerCouponController {
     public ResponseEntity<?> getCouponByUuid(
             @Parameter(description = "조회할 쿠폰의 UUID", required = true, example = "550e8400-e29b-41d4-a716-446655440000")
             @PathVariable String couponUuid) {
-        try {
-            CustomerCouponDto coupon = customerCouponService.getCouponByUuid(couponUuid);
-            return ResponseEntity.ok(coupon);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("쿠폰 조회 중 오류가 발생했습니다.");
-        }
+        CustomerCouponDto coupon = customerCouponService.getCouponByUuid(couponUuid);
+        return ResponseEntity.ok(coupon);
+
     }
 }

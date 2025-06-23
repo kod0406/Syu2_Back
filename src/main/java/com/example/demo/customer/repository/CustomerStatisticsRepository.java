@@ -17,7 +17,7 @@ public interface CustomerStatisticsRepository extends JpaRepository<CustomerStat
 //    List<CustomerStatistics> findByCreatedAtAfter(LocalDateTime dateTime);
 
     @Query("""
-    SELECT new com.example.demo.dto.MenuSalesStatisticsDto(
+    SELECT new com.example.demo.store.dto.MenuSalesStatisticsDto(
         m.menuName,
         m.imageUrl,
         SUM(s.orderAmount),
@@ -37,7 +37,7 @@ public interface CustomerStatisticsRepository extends JpaRepository<CustomerStat
     );
 
     @Query("""
-    SELECT new com.example.demo.dto.CustomerStatisticsDto(
+    SELECT new com.example.demo.customer.dto.CustomerStatisticsDto(
         m.menuName,
         m.imageUrl,
         SUM(s.orderAmount),
