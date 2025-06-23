@@ -50,7 +50,7 @@ public class CustomerOrderService {
             }
 
             long adjustedPrice = dto.getMenuPrice();
-            if ("UserPointUsedOrNotUsed".equals(dto.getMenuName())) {
+            if("UserPointUsedOrNotUsed".equals(dto.getMenuName())) {
                 adjustedPrice = -adjustedPrice; // 포인트 사용은 가격 차감
             }
 

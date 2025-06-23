@@ -17,6 +17,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
@@ -25,8 +26,7 @@ import java.util.Map;
 import java.util.Objects;
 
 @Slf4j
-@Component
-@Transactional
+@Service
 @RequiredArgsConstructor
 public class KakaoPayProvider {
     private final OrderGroupRepository orderGroupRepository;
@@ -78,7 +78,7 @@ public class KakaoPayProvider {
     }
 
 
-
+    @Transactional
     public KakaoPayResponse.ApproveResponse approve(String pgToken, Long orderGroupId) {
         log.info("orderGroupId는? " + orderGroupId);
         OrderGroup orderGroup = orderGroupRepository.findById(orderGroupId)
@@ -91,43 +91,42 @@ public class KakaoPayProvider {
                 .sum();
 
         Customer customer = orderGroup.getCustomer();
-        log.info("customer은?" + customer);
+        log.info("customer은? " + customer);
 
         if (customer != null) {
             int pointUsed = stats.stream()
                     .filter(stat -> "UserPointUsedOrNotUsed".equals(stat.getOrderDetails()))
-                    .mapToInt(stat -> (int) (stat.getOrderPrice() * stat.getOrderAmount()))
+                    .mapToInt(stat -> (int) (Math.abs(stat.getOrderPrice()) * stat.getOrderAmount()))  // ✅ 절대값 처리
                     .sum();
 
+            // 💡 CustomerPoint를 DB에서 먼저 조회하고, 없으면 저장
             CustomerPoint customerPoint = customerPointRepository.findByCustomer(customer)
-                    .orElseGet(() -> CustomerPoint.builder()
-                            .customer(customer)
-                            .pointAmount(0L)
-                            .build());
+                    .orElse(null);
 
+            if (customerPoint == null) {
+                customerPoint = CustomerPoint.builder()
+                        .customer(customer)
+                        .pointAmount(0L)
+                        .build();
+                customerPointRepository.save(customerPoint);
+            }
+            log.info("포인트 얼마 사용?" + pointUsed);
             if (pointUsed > 0) {
                 if (customerPoint.getPointAmount() < pointUsed) {
                     throw new IllegalStateException("포인트가 부족합니다. 보유 포인트: " + customerPoint.getPointAmount());
                 }
-                customerPoint.subtractPoint(pointUsed); // ⬅️ 차감 메서드는 엔티티에 정의해야 함
+                customerPoint.subtractPoint(pointUsed);
                 log.info("💸 포인트 {} 차감 완료", pointUsed);
             }
 
+            log.info("잔여 포인트: {}", customerPoint.getPointAmount());
+
             int point = (int) (totalAmount * 0.01);
-
-            customerPoint = customerPointRepository.findByCustomer(customer)
-                    .orElseGet(() -> CustomerPoint.builder()
-                            .customer(customer)
-                            .pointAmount(0L)
-                            .build());
-
             customerPoint.addPoint(point);
-            customerPointRepository.save(customerPoint);
-        }
+            log.info("📈 {} 포인트 적립됨 (총 잔여 포인트: {})", point, customerPoint.getPointAmount());
 
-        // ✅ 필요 시 결제 성공 로그 추가
-        log.info("✅ 결제 승인 성공: 주문번호 {}, 총금액 {}, 포인트 {} 적립됨", orderGroupId, totalAmount, (int)(totalAmount * 0.01));
-        //웹 소켓 추가 부분
+            customerPointRepository.save(customerPoint); // 최종 저장
+        }
 
         Long storeId = orderGroup.getStoreId();
         OrderGroupBatchMessage message = webBroadCast.createInactiveOrderGroupMessage(storeId);
