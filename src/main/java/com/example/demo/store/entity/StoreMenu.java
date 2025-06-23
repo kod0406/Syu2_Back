@@ -1,7 +1,11 @@
 package com.example.demo.store.entity;
 
+import com.example.demo.customer.entity.CustomerReviewCollect;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -49,6 +53,10 @@ public class StoreMenu {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "store_id") // 외래키 이름
     private Store store;
+
+    @OneToMany(mappedBy = "storeMenu", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<CustomerReviewCollect> reviews = new ArrayList<>();
+
 
     public void updateMenu(String menuName, Integer price, String description, String imageUrl, Boolean available, String category) {
         this.menuName = menuName;
