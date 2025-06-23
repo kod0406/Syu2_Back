@@ -1,5 +1,7 @@
 package com.example.demo.store.service;
 
+import com.example.demo.setting.exception.BusinessException;
+import com.example.demo.setting.exception.ErrorCode;
 import com.example.demo.setting.util.S3UploadService;
 import com.example.demo.store.dto.MenuRequestDto;
 import com.example.demo.store.dto.MenuResponseDto;
@@ -28,7 +30,7 @@ public class StoreMenuService {
     @Transactional
     public MenuResponseDto createMenu(Long storeId, MenuRequestDto menuRequestDto) {
         Store store = storeRepository.findById(storeId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 매장입니다."));
+                .orElseThrow(() -> new BusinessException(ErrorCode.STORE_NOT_FOUND));
 
         StoreMenu storeMenu = StoreMenu.builder()
                 .menuName(menuRequestDto.getMenuName())
@@ -60,10 +62,10 @@ public class StoreMenuService {
     @Transactional
     public MenuResponseDto updateMenu(Long storeId, Long menuId, MenuRequestDto menuRequestDto) {
         StoreMenu storeMenu = storeMenuRepository.findById(menuId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 메뉴입니다."));
+                .orElseThrow(() -> new BusinessException(ErrorCode.STORE_MENU_EXCEPTION));
 
         if (storeMenu.getStore().getStoreId() != storeId) {
-            throw new IllegalArgumentException("해당 매장의 메뉴가 아닙니다.");
+            throw new BusinessException(ErrorCode.STORE_MENU_EXCEPTION);
         }
 
         String oldImageUrl = storeMenu.getImageUrl();
@@ -103,10 +105,10 @@ public class StoreMenuService {
     @Transactional
     public void deleteMenu(Long storeId, Long menuId) {
         StoreMenu storeMenu = storeMenuRepository.findById(menuId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 메뉴입니다."));
+                .orElseThrow(() -> new BusinessException(ErrorCode.STORE_MENU_EXCEPTION));
 
         if (storeMenu.getStore().getStoreId() != storeId) {
-            throw new IllegalArgumentException("해당 매장의 메뉴가 아닙니다.");
+            throw new BusinessException(ErrorCode.STORE_MENU_EXCEPTION);
         }
 
         if (storeMenu.getImageUrl() != null && !storeMenu.getImageUrl().isEmpty()) {
@@ -120,7 +122,7 @@ public class StoreMenuService {
     @Transactional(readOnly = true)
     public List<MenuResponseDto> getAllMenus(Long storeId) {
         Store store = storeRepository.findById(storeId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 매장입니다."));
+                .orElseThrow(() -> new BusinessException(ErrorCode.STORE_NOT_FOUND));
 
         return storeMenuRepository.findByStore(store).stream()
                 .map(menu -> new MenuResponseDto(
@@ -140,7 +142,7 @@ public class StoreMenuService {
     @Transactional(readOnly = true)
     public List<MenuResponseDto> getMenusByCategory(Long storeId, String category) {
         Store store = storeRepository.findById(storeId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 매장입니다."));
+                .orElseThrow(() -> new BusinessException(ErrorCode.STORE_NOT_FOUND));
 
         return storeMenuRepository.findByStoreAndCategory(store, category).stream()
                 .map(menu -> new MenuResponseDto(
@@ -160,7 +162,7 @@ public class StoreMenuService {
     @Transactional(readOnly = true)
     public List<String> getAllCategories(Long storeId) {
         Store store = storeRepository.findById(storeId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 매장입니다."));
+                .orElseThrow(() -> new BusinessException(ErrorCode.STORE_NOT_FOUND));
 
         return storeMenuRepository.findCategoriesByStore(store);
     }
@@ -168,10 +170,10 @@ public class StoreMenuService {
     @Transactional
     public MenuResponseDto toggleMenuAvailability(Long storeId, Long menuId) {
         StoreMenu storeMenu = storeMenuRepository.findById(menuId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 메뉴입니다."));
+                .orElseThrow(() -> new BusinessException(ErrorCode.STORE_MENU_EXCEPTION));
 
         if (storeMenu.getStore().getStoreId() != storeId) {
-            throw new IllegalArgumentException("해당 매장의 메뉴가 아닙니다.");
+            throw new BusinessException(ErrorCode.STORE_NOT_FOUND);
         }
 
         boolean newAvailability = !storeMenu.getAvailable();

@@ -55,4 +55,12 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT) // 혹은 400
                 .body(new ErrorResponse("ILLEGAL_STATE", ex.getMessage()));
     }
+
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<ErrorResponse> handleBusinessException(BusinessException ex) {
+        ErrorCode code = ex.getErrorCode();
+        log.warn("[BusinessException] {} - {}", code.name(), code.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(new ErrorResponse(code.name(), code.getMessage()));
+    }
 }
