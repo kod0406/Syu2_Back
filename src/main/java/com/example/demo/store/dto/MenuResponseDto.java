@@ -27,6 +27,8 @@ public class MenuResponseDto {
     @Schema(description = "메뉴 ID", example = "1")
     private Long menuId;
 
+    private Long storeId;
+
     @Schema(description = "메뉴 이름", example = "불고기 버거")
     private String menuName;
     

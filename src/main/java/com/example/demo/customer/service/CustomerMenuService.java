@@ -20,6 +20,7 @@ public class CustomerMenuService {
         return storeMenus.stream()
                 .map(menu -> new MenuResponseDto(
                         menu.getMenuId(),
+                        menu.getStore().getStoreId(),
                         menu.getMenuName(),
                         menu.getPrice(),
                         menu.getRating(),

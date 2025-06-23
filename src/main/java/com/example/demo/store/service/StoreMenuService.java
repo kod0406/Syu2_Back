@@ -48,6 +48,7 @@ public class StoreMenuService {
 
         return new MenuResponseDto(
                 storeMenu.getMenuId(),
+                storeMenu.getStore().getId(),
                 storeMenu.getMenuName(),
                 storeMenu.getPrice(),
                 storeMenu.getRating(),
@@ -91,6 +92,7 @@ public class StoreMenuService {
 
         return new MenuResponseDto(
                 storeMenu.getMenuId(),
+                storeMenu.getStore().getId(),
                 storeMenu.getMenuName(),
                 storeMenu.getPrice(),
                 storeMenu.getRating(),
@@ -127,6 +129,7 @@ public class StoreMenuService {
         return storeMenuRepository.findByStore(store).stream()
                 .map(menu -> new MenuResponseDto(
                         menu.getMenuId(),
+                        menu.getStore().getId(),
                         menu.getMenuName(),
                         menu.getPrice(),
                         menu.getRating(),
@@ -147,6 +150,7 @@ public class StoreMenuService {
         return storeMenuRepository.findByStoreAndCategory(store, category).stream()
                 .map(menu -> new MenuResponseDto(
                         menu.getMenuId(),
+                        menu.getStore().getId(),
                         menu.getMenuName(),
                         menu.getPrice(),
                         menu.getRating(),
@@ -188,6 +192,7 @@ public class StoreMenuService {
 
         return new MenuResponseDto(
                 storeMenu.getMenuId(),
+                storeMenu.getStore().getId(),
                 storeMenu.getMenuName(),
                 storeMenu.getPrice(),
                 storeMenu.getRating(),
