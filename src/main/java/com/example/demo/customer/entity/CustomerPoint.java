@@ -23,9 +23,6 @@ public class CustomerPoint {
         this.pointAmount += point;
     }
 
-    public void usePoint(long point) {
-        this.pointAmount -= point;
-    }
 
     public void subtractPoint(int amount) {
         if (this.pointAmount < amount) {
