@@ -18,7 +18,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfigurationSource;
 
-
+//TODO: SecurityConfig는 현재 어떤 API든 토큰 없이 호출 가능하기에 배포 직전에 이를 수정해야함
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
