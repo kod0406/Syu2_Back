@@ -5,6 +5,7 @@ import com.example.demo.store.repository.StoreRepository;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,7 +26,11 @@ public class JwtTokenProvider {
 
 
     @Value("${jwt.expiration-hours}")
-    private long expirationHours;
+    private long accessTokenExpirationMillis;
+
+    @Getter
+    @Value("${jwt.refresh}")
+    private long refreshTokenExpirationMillis;
 
     private Key key;
 
@@ -42,29 +47,42 @@ public class JwtTokenProvider {
      */
     public String createToken(String userId) {
         Date now = new Date();
-        Date expiry = new Date(now.getTime() + expirationHours * 60 * 60 * 1000L); // 시간 → 밀리초
-
+        Date expiry = new Date(now.getTime() + accessTokenExpirationMillis);
         String role;
-
         if(storeRepository.findByOwnerEmail(userId).isPresent()) {
             role = "ROLE_STORE";
-        }
-        else {
+        } else {
             role = "ROLE_CUSTOMER";
         }
-
         Map<String, Object> claims = new HashMap<>();
-        claims.put("sub", userId);       // 표준 클레임: subject
+        claims.put("sub", userId);
         claims.put("role", role);
+        return Jwts.builder()
+                .setClaims(claims)
+                .setIssuedAt(now)
+                .setExpiration(expiry)
+                .signWith(key, SignatureAlgorithm.HS256)
+                .compact();
+    }
 
-
-            return Jwts.builder()
-                    .setClaims(claims)
-                    .setIssuedAt(now)
-                    .setExpiration(expiry)
-                    .signWith(key, SignatureAlgorithm.HS256)
-                    .compact();
-
+    public String createRefreshToken(String userId) {
+        Date now = new Date();
+        Date expiry = new Date(now.getTime() + refreshTokenExpirationMillis);
+        String role;
+        if(storeRepository.findByOwnerEmail(userId).isPresent()) {
+            role = "ROLE_STORE";
+        } else {
+            role = "ROLE_CUSTOMER";
+        }
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("sub", userId);
+        claims.put("role", role);
+        return Jwts.builder()
+                .setClaims(claims)
+                .setIssuedAt(now)
+                .setExpiration(expiry)
+                .signWith(key, SignatureAlgorithm.HS256)
+                .compact();
     }
 
     /**
@@ -80,6 +98,21 @@ public class JwtTokenProvider {
     public String getRole(String token) {
         Claims claims = extractAllClaims(token);
         return claims.get("role", String.class);
+    }
+
+    public String getRoleFromToken(String token) {
+        try {
+            return Jwts.parserBuilder()
+                    .setSigningKey(key)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody()
+                    .get("role", String.class);
+        } catch (ExpiredJwtException e) {
+            return e.getClaims().get("role", String.class);
+        } catch (JwtException | IllegalArgumentException e) {
+            return null;
+        }
     }
 
     private Claims extractAllClaims(String token) {
@@ -104,4 +137,13 @@ public class JwtTokenProvider {
             return false;
         }
     }
+
+    public long getAccessTokenExpirationHours() {
+        return accessTokenExpirationMillis / (60 * 60 * 1000); // 밀리초를 시간 단위로 변환
+    }
+
+    public long getAccessTokenExpirationSeconds() {
+        return accessTokenExpirationMillis / 1000;
+    }
+
 }

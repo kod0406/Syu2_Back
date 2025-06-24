@@ -9,6 +9,7 @@ import com.example.demo.store.entity.Store;
 import com.example.demo.setting.util.MemberValidUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -171,7 +172,7 @@ public class StoreCouponManagementController {
             @ApiResponse(responseCode = "500", description = "서버 내부 오류",
                     content = @Content(examples = @ExampleObject(value = "쿠폰 수정 중 오류가 발생했습니다.")))
     })
-    @SecurityRequirement(name = "bearer-key")
+    @SecurityRequirement(name = "access_token")
     @PutMapping("/{couponId}")
     public ResponseEntity<?> updateCoupon(
             @Parameter(description = "수정할 쿠폰의 ID") @PathVariable Long couponId,
@@ -225,7 +226,7 @@ public class StoreCouponManagementController {
             @ApiResponse(responseCode = "500", description = "서버 내부 오류",
                     content = @Content(examples = @ExampleObject(value = "쿠폰 상태 변경 중 오류가 발생했습니다.")))
     })
-    @SecurityRequirement(name = "bearer-key")
+    @SecurityRequirement(name = "access_token")
     @PatchMapping("/{couponId}/status")
     public ResponseEntity<?> updateCouponStatus(
             @Parameter(description = "상태를 변경할 쿠폰의 ID") @PathVariable Long couponId,
@@ -256,7 +257,7 @@ public class StoreCouponManagementController {
             @ApiResponse(responseCode = "500", description = "서버 내부 오류",
                     content = @Content(examples = @ExampleObject(value = "쿠폰 삭제 중 오류가 발생했습니다.")))
     })
-    @SecurityRequirement(name = "bearer-key")
+    @SecurityRequirement(name = "access_token")
     @DeleteMapping("/{couponId}")
     public ResponseEntity<?> deleteCoupon(
             @Parameter(description = "삭제할 쿠폰의 ID", example = "1") @PathVariable Long couponId,
@@ -269,81 +270,81 @@ public class StoreCouponManagementController {
     }
 
     @Operation(
-        summary = "내 매장 쿠폰 목록 조회",
-        description = "로그인한 매장 주인이 자신의 매장에 대한 모든 쿠폰과 상태를 조회합니다.",
-        responses = {
-            @ApiResponse(
-                responseCode = "200",
-                description = "쿠폰 목록 조회 성공",
-                content = @Content(
-                    mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = @Schema(implementation = CouponDto.class),
-                    examples = @ExampleObject(value = "[\n" +
-                            "  {\n" +
-                            "    \"id\": 1,\n" +
-                            "    \"couponName\": \"여름맞이 20% 할인\",\n" +
-                            "    \"discountType\": \"PERCENTAGE\",\n" +
-                            "    \"discountValue\": 20,\n" +
-                            "    \"discountLimit\": 3000,\n" +
-                            "    \"minimumOrderAmount\": 15000,\n" +
-                            "    \"expiryType\": \"ABSOLUTE\",\n" +
-                            "    \"expiryDate\": \"2025-08-31T23:59:59\",\n" +
-                            "    \"expiryDays\": null,\n" +
-                            "    \"issueStartTime\": \"2025-06-01T00:00:00\",\n" +
-                            "    \"totalQuantity\": 500,\n" +
-                            "    \"issuedQuantity\": 120,\n" +
-                            "    \"applicableCategories\": [\"음료\", \"디저트\"],\n" +
-                            "    \"storeId\": 10,\n" +
-                            "    \"storeName\": \"카페봄\",\n" +
-                            "    \"status\": \"ACTIVE\",\n" +
-                            "    \"detail\": {\n" +
-                            "      \"couponUuid\": \"550e8400-e29b-41d4-a716-446655440000\",\n" +
-                            "      \"couponCode\": \"CP12345678\"\n" +
-                            "    }\n" +
-                            "  },\n" +
-                            "  {\n" +
-                            "    \"id\": 2,\n" +
-                            "    \"couponName\": \"신규 고객 3000원 할인\",\n" +
-                            "    \"discountType\": \"FIXED_AMOUNT\",\n" +
-                            "    \"discountValue\": 3000,\n" +
-                            "    \"discountLimit\": null,\n" +
-                            "    \"minimumOrderAmount\": 20000,\n" +
-                            "    \"expiryType\": \"RELATIVE\",\n" +
-                            "    \"expiryDate\": null,\n" +
-                            "    \"expiryDays\": 30,\n" +
-                            "    \"issueStartTime\": \"2025-06-10T00:00:00\",\n" +
-                            "    \"totalQuantity\": 300,\n" +
-                            "    \"issuedQuantity\": 50,\n" +
-                            "    \"applicableCategories\": [],\n" +
-                            "    \"storeId\": 10,\n" +
-                            "    \"storeName\": \"카페봄\",\n" +
-                            "    \"status\": \"INACTIVE\",\n" +
-                            "    \"detail\": {\n" +
-                            "      \"couponUuid\": \"550e8400-e29b-41d4-a716-446655440001\",\n" +
-                            "      \"couponCode\": \"CP87654321\"\n" +
-                            "    }\n" +
-                            "  }\n" +
-                            "]")
-                )
-            ),
-            @ApiResponse(
-                responseCode = "401",
-                description = "인증 실패",
-                content = @Content(examples = @ExampleObject(value = "인증이 필요합니다."))
-            ),
-            @ApiResponse(
-                responseCode = "403",
-                description = "권한 없음",
-                content = @Content(examples = @ExampleObject(value = "매장 주인만 접근 가능합니다."))
-            ),
-            @ApiResponse(
-                responseCode = "500",
-                description = "서버 내부 오류",
-                content = @Content(examples = @ExampleObject(value = "내 매장 쿠폰 목록 조회 중 오류가 발생했습니다."))
-            )
-        }
+            summary = "내 매장 쿠폰 목록 조회",
+            description = "로그인한 매장 주인이 자신의 매장에 대한 모든 쿠폰과 상태를 조회합니다.",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "쿠폰 목록 조회 성공",
+                            content = @Content(
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    array = @ArraySchema(schema = @Schema(implementation = CouponDto.class)),
+                                    examples = @ExampleObject(value = "[\n" +
+                                            "  {\n" +
+                                            "    \"id\": 1,\n" +
+                                            "    \"couponName\": \"여름맞이 20% 할인\",\n" +
+                                            "    \"discountType\": \"PERCENTAGE\",\n" +
+                                            "    \"discountValue\": 20,\n" +
+                                            "    \"discountLimit\": 3000,\n" +
+                                            "    \"minimumOrderAmount\": 15000,\n" +
+                                            "    \"expiryType\": \"ABSOLUTE\",\n" +
+                                            "    \"expiryDate\": \"2025-08-31T23:59:59\",\n" +
+                                            "    \"expiryDays\": null,\n" +
+                                            "    \"issueStartTime\": \"2025-06-01T00:00:00\",\n" +
+                                            "    \"totalQuantity\": 500,\n" +
+                                            "    \"issuedQuantity\": 120,\n" +
+                                            "    \"applicableCategories\": [\"음료\", \"디저트\"],\n" +
+                                            "    \"storeId\": 10,\n" +
+                                            "    \"storeName\": \"카페봄\",\n" +
+                                            "    \"status\": \"ACTIVE\",\n" +
+                                            "    \"detail\": {\n" +
+                                            "      \"couponUuid\": \"550e8400-e29b-41d4-a716-446655440000\",\n" +
+                                            "      \"couponCode\": \"CP12345678\"\n" +
+                                            "    }\n" +
+                                            "  },\n" +
+                                            "  {\n" +
+                                            "    \"id\": 2,\n" +
+                                            "    \"couponName\": \"신규 고객 3000원 할인\",\n" +
+                                            "    \"discountType\": \"FIXED_AMOUNT\",\n" +
+                                            "    \"discountValue\": 3000,\n" +
+                                            "    \"discountLimit\": null,\n" +
+                                            "    \"minimumOrderAmount\": 20000,\n" +
+                                            "    \"expiryType\": \"RELATIVE\",\n" +
+                                            "    \"expiryDate\": null,\n" +
+                                            "    \"expiryDays\": 30,\n" +
+                                            "    \"issueStartTime\": \"2025-06-10T00:00:00\",\n" +
+                                            "    \"totalQuantity\": 300,\n" +
+                                            "    \"issuedQuantity\": 50,\n" +
+                                            "    \"applicableCategories\": [],\n" +
+                                            "    \"storeId\": 10,\n" +
+                                            "    \"storeName\": \"카페봄\",\n" +
+                                            "    \"status\": \"INACTIVE\",\n" +
+                                            "    \"detail\": {\n" +
+                                            "      \"couponUuid\": \"550e8400-e29b-41d4-a716-446655440001\",\n" +
+                                            "      \"couponCode\": \"CP87654321\"\n" +
+                                            "    }\n" +
+                                            "  }\n" +
+                                            "]")
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "401",
+                            description = "인증 실패",
+                            content = @Content(examples = @ExampleObject(value = "인증이 필요합니다."))
+                    ),
+                    @ApiResponse(
+                            responseCode = "403",
+                            description = "권한 없음",
+                            content = @Content(examples = @ExampleObject(value = "매장 주인만 접근 가능합니다."))
+                    ),
+                    @ApiResponse(
+                            responseCode = "500",
+                            description = "서버 내부 오류",
+                            content = @Content(examples = @ExampleObject(value = "내 매장 쿠폰 목록 조회 중 오류가 발생했습니다."))
+                    )
+            }
     )
-    @SecurityRequirement(name = "bearer-key")
+    @SecurityRequirement(name = "access_token")
     @GetMapping("/my")
     public ResponseEntity<?> getMyCoupons(@Parameter(hidden = true) @AuthenticationPrincipal Store store) {
         memberValidUtil.validateIsStore(store);

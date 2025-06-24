@@ -5,6 +5,7 @@ import com.example.demo.customer.entity.Customer;
 import com.example.demo.setting.jwt.JwtTokenProvider;
 import com.example.demo.customer.repository.CustomerRepository;
 import com.example.demo.setting.util.JwtCookieUtil;
+import com.example.demo.setting.util.TokenRedisService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -28,6 +29,7 @@ public class NaverLoginController {
     private final NaverLoginService naverLoginService;
     private final CustomerRepository customerRepository;
     private final JwtTokenProvider jwtTokenProvider;
+    private final TokenRedisService tokenRedisService;
 
     @Value("${frontend.url}")
     private String frontendUrl;
@@ -41,7 +43,7 @@ public class NaverLoginController {
     @Operation(summary = "네이버 로그인 콜백", description = "네이버 인증 후 콜백을 처리합니다.")
     @GetMapping("/login/naver")
     public ResponseEntity<?> naverCallback(
-            @Parameter(description = "인증 코드") @RequestParam String code, 
+            @Parameter(description = "인증 코드") @RequestParam String code,
             @Parameter(description = "상태 값") @RequestParam String state) {
         String tokenResponse = naverLoginService.getNaverAccessToken(code, state); // 네이버 토큰 요청 메서드 호출
 
@@ -58,11 +60,26 @@ public class NaverLoginController {
             log.info("기존 회원입니다.");
         }
         String jwt = jwtTokenProvider.createToken(tokenResponse);
+        String refreshToken = jwtTokenProvider.createRefreshToken(tokenResponse);
 
-        ResponseCookie cookie = JwtCookieUtil.createAccessTokenCookie(jwt);
+        // 리프레시 토큰 저장 (Redis)
+        long refreshTokenExpirationMillis = jwtTokenProvider.getRefreshTokenExpirationMillis();
+        tokenRedisService.saveRefreshToken(tokenResponse, refreshToken, refreshTokenExpirationMillis);
+
+        // 액세스 토큰 쿠키 설정
+        ResponseCookie accessTokenCookie = JwtCookieUtil.createAccessTokenCookie(jwt);
+
+        // 리프레시 토큰 쿠키 설정 (HttpOnly)
+        ResponseCookie refreshTokenCookie = ResponseCookie.from("refresh_token", refreshToken)
+                .httpOnly(true)
+                .path("/")
+                .maxAge(refreshTokenExpirationMillis / 1000)
+                .sameSite("Lax")
+                .build();
 
         return ResponseEntity.status(HttpStatus.FOUND)
-                .header("Set-Cookie", cookie.toString())
+                .header(HttpHeaders.SET_COOKIE, accessTokenCookie.toString())
+                .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
                 .header("Location", frontendUrl + "/")
                 .build();
     }
