@@ -45,7 +45,7 @@ public class JwtTokenProvider {
      * @param userId 사용자 ID (문자열로 저장됨)
      * @return 생성된 JWT 토큰
      */
-    public String createAccessToken(String userId) {
+    public String createToken(String userId) {
         Date now = new Date();
         Date expiry = new Date(now.getTime() + accessTokenExpirationMillis);
         String role;
