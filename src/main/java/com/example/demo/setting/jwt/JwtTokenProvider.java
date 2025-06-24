@@ -43,17 +43,12 @@ public class JwtTokenProvider {
     /**
      * JWT 토큰 생성
      * @param userId 사용자 ID (문자열로 저장됨)
+     * @param role 사용자 역할
      * @return 생성된 JWT 토큰
      */
-    public String createToken(String userId) {
+    public String createToken(String userId, String role) {
         Date now = new Date();
         Date expiry = new Date(now.getTime() + accessTokenExpirationMillis);
-        String role;
-        if(storeRepository.findByOwnerEmail(userId).isPresent()) {
-            role = "ROLE_STORE";
-        } else {
-            role = "ROLE_CUSTOMER";
-        }
         Map<String, Object> claims = new HashMap<>();
         claims.put("sub", userId);
         claims.put("role", role);
@@ -65,15 +60,9 @@ public class JwtTokenProvider {
                 .compact();
     }
 
-    public String createRefreshToken(String userId) {
+    public String createRefreshToken(String userId, String role) {
         Date now = new Date();
         Date expiry = new Date(now.getTime() + refreshTokenExpirationMillis);
-        String role;
-        if(storeRepository.findByOwnerEmail(userId).isPresent()) {
-            role = "ROLE_STORE";
-        } else {
-            role = "ROLE_CUSTOMER";
-        }
         Map<String, Object> claims = new HashMap<>();
         claims.put("sub", userId);
         claims.put("role", role);

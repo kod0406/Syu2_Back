@@ -67,27 +67,41 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
-        String token = extractToken(request);
-        log.info("JWT token토큰토큰아: {}", token);
-        if (token != null && jwtTokenProvider.validateToken(token)) {
-            String userId = jwtTokenProvider.getUserId(token);
-            String role = jwtTokenProvider.getRole(token);
+        // 인증이 필요 없는 경로는 필터를 통과시킵니다.
+        if (isPermitAllUrl(request)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
-            if(role.equals("ROLE_STORE")) {
-                storeRepository.findByOwnerEmail(userId).ifPresent(store -> {
-                    UsernamePasswordAuthenticationToken authToken =
-                            new UsernamePasswordAuthenticationToken(store, null, null);
-                    SecurityContextHolder.getContext().setAuthentication(authToken);
-                });
-            }
-            else if(role.equals("ROLE_CUSTOMER")) {
-                customerRepository.findByEmail(userId).ifPresent(customer -> {
-                    UsernamePasswordAuthenticationToken authToken =
-                            new UsernamePasswordAuthenticationToken(customer, null, null);
-                    SecurityContextHolder.getContext().setAuthentication(authToken);
-                });
+        String token = extractToken(request);
+
+        if (token != null) {
+            if (jwtTokenProvider.validateToken(token)) {
+                // 토큰이 유효하면 인증 정보를 설정합니다.
+                String userId = jwtTokenProvider.getUserId(token);
+                String role = jwtTokenProvider.getRole(token);
+
+                if (role != null && role.equals("ROLE_STORE")) {
+                    storeRepository.findByOwnerEmail(userId).ifPresent(store -> {
+                        UsernamePasswordAuthenticationToken authToken =
+                                new UsernamePasswordAuthenticationToken(store, null, null);
+                        SecurityContextHolder.getContext().setAuthentication(authToken);
+                    });
+                } else if (role != null && role.equals("ROLE_CUSTOMER")) {
+                    customerRepository.findByEmail(userId).ifPresent(customer -> {
+                        UsernamePasswordAuthenticationToken authToken =
+                                new UsernamePasswordAuthenticationToken(customer, null, null);
+                        SecurityContextHolder.getContext().setAuthentication(authToken);
+                    });
+                }
+            } else {
+                // 토큰이 유효하지 않은 경우(만료 등), 401 에러를 응답합니다.
+                log.warn("유효하지 않은 JWT 토큰입니다. URI: {}", request.getRequestURI());
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid JWT Token");
+                return; // 필터 체인 중단
             }
         }
+
         filterChain.doFilter(request, response);
     }
 }

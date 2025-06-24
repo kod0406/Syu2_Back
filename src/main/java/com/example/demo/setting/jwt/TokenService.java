@@ -30,6 +30,7 @@ public class TokenService {
         }
 
         String userId = jwtTokenProvider.getUserId(refreshTokenFromCookie);
+        String role = jwtTokenProvider.getRole(refreshTokenFromCookie);
         String refreshTokenFromRedis = tokenRedisService.getRefreshToken(userId);
 
         if (refreshTokenFromRedis == null || !refreshTokenFromRedis.equals(refreshTokenFromCookie)) {
@@ -37,7 +38,7 @@ public class TokenService {
             throw new JwtException("Refresh token is compromised or expired. Please login again.");
         }
 
-        String newAccessToken = jwtTokenProvider.createToken(userId);
+        String newAccessToken = jwtTokenProvider.createToken(userId, role);
         return new TokenResponseDto(newAccessToken);
     }
 

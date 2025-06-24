@@ -98,8 +98,8 @@ public class StoreController {
         String ownerEmail = store.getOwnerEmail();
 
         // 토큰 생성
-        String accessToken = jwtTokenProvider.createToken(ownerEmail);
-        String refreshToken = jwtTokenProvider.createRefreshToken(ownerEmail);
+        String accessToken = jwtTokenProvider.createToken(ownerEmail, "ROLE_STORE");
+        String refreshToken = jwtTokenProvider.createRefreshToken(ownerEmail, "ROLE_STORE");
 
         // 리프레시 토큰 저장 (Redis)
         long refreshTokenExpirationMillis = jwtTokenProvider.getRefreshTokenExpirationMillis();

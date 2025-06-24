@@ -1,6 +1,8 @@
 package com.example.demo.benefit.dto;
 
+import com.example.demo.benefit.entity.Coupon;
 import com.example.demo.benefit.entity.CouponStatus;
+import com.example.demo.benefit.entity.DiscountType;
 import com.example.demo.customer.entity.CustomerCoupon;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
@@ -12,24 +14,24 @@ import java.time.LocalDateTime;
 @Builder
 @Schema(description = "고객 보유 쿠폰 정보 응답 DTO")
 public class CustomerCouponDto {
-    /**
-     * CustomerCouponDto 주요 필드 요약
-     *
-     * ✅ 필수
-     * ⛔ 선택/부가 정보
-     *
-     * couponUuid       ✅  발급된 쿠폰의 고유 UUID
-     * coupon           ✅  쿠폰 정보 (이름, 할인 방식, 할인 값 등)
-     * issuedAt         ✅  발급 시각
-     * expiresAt        ✅  만료 시각
-     * couponStatus     ✅  쿠폰 상태 (UNUSED, USED 등)
-     */
-    
-    @Schema(description = "고객 쿠폰 고유 ID (UUID), 발급시 각기 다른 값이 들어감. ", example = "a1b2c3d4-e5f6-7890-1234-567890abcdef")
-    private String couponUuid;
 
-    @Schema(description = "쿠폰 정보(쿠폰명, 할인방식, 할인값, 할인한도, 최소주문 금액, 상점 이름 정보만 제공)")
-    private CouponInfoForCustomerDto coupon;
+    @Schema(description = "고객 쿠폰의 고유 ID (UUID)", example = "a1b2c3d4-e5f6-7890-1234-567890abcdef")
+    private String id;
+
+    @Schema(description = "원본 쿠폰의 ID", example = "1")
+    private Long couponId;
+
+    @Schema(description = "쿠폰명", example = "가을맞이 10% 할인")
+    private String couponName;
+
+    @Schema(description = "할인 방식", example = "PERCENTAGE")
+    private DiscountType discountType;
+
+    @Schema(description = "할인 값", example = "10")
+    private int discountValue;
+
+    @Schema(description = "최소 주문 금액", example = "10000")
+    private Integer minimumOrderAmount;
 
     @Schema(description = "쿠폰 발급일시", example = "2023-10-27T10:00:00")
     private LocalDateTime issuedAt;
@@ -37,16 +39,25 @@ public class CustomerCouponDto {
     @Schema(description = "쿠폰 만료일시", example = "2023-11-26T23:59:59")
     private LocalDateTime expiresAt;
 
-    @Schema(description = "쿠폰 사용 상태", example = "UNUSED")
-    private CouponStatus couponStatus;
+    @Schema(description = "쿠폰 사용 여부", example = "false")
+    private boolean isUsed;
+
+    @Schema(description = "쿠폰을 발급한 상점 이름", example = "메가커피")
+    private String storeName;
 
     public static CustomerCouponDto fromEntity(CustomerCoupon customerCoupon) {
+        Coupon coupon = customerCoupon.getCoupon();
         return CustomerCouponDto.builder()
-                .couponUuid(customerCoupon.getCouponUuid())
-                .coupon(CouponInfoForCustomerDto.fromEntity(customerCoupon.getCoupon()))
+                .id(customerCoupon.getCouponUuid()) // CustomerCoupon의 PK는 UUID
+                .couponId(coupon.getId()) // 원본 Coupon의 PK
+                .couponName(coupon.getCouponName())
+                .discountType(coupon.getDiscountType())
+                .discountValue(coupon.getDiscountValue())
+                .minimumOrderAmount(coupon.getMinimumOrderAmount())
                 .issuedAt(customerCoupon.getIssuedAt())
                 .expiresAt(customerCoupon.getExpiresAt())
-                .couponStatus(customerCoupon.getCouponStatus())
+                .isUsed(customerCoupon.getCouponStatus() == CouponStatus.USED)
+                .storeName(coupon.getStore().getStoreName())
                 .build();
     }
 }

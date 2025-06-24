@@ -32,6 +32,17 @@ public class CouponService {
         //만료됐는지 검사
         validateExpiryPolicy(requestDto);
 
+        LocalDateTime issueStartTime = requestDto.getIssueStartTime();
+
+        // 사용자가 발급 시작 시간을 '현재' 또는 '과거'로 지정한 경우,
+        // DB와 서버 시간의 미세한 차이(race condition)로 인해 쿠폰이 즉시 조회되지 않는 문제를 해결합니다.
+        // issueStartTime을 null로 설정하면, CouponRepository의 조회 쿼리에서
+        // `c.issueStartTime IS NULL` 조건에 의해 '즉시 발급 가능한' 쿠폰으로 올바르게 인식됩니다.
+        if (issueStartTime != null && !issueStartTime.isAfter(LocalDateTime.now())) {
+            issueStartTime = null;
+        }
+        // 미래의 특정 시간으로 발급이 예약된 경우는, 해당 시간이 그대로 유지됩니다.
+
         Coupon coupon = Coupon.builder()
                 .couponName(requestDto.getCouponName())
                 .discountType(requestDto.getDiscountType())
@@ -41,7 +52,7 @@ public class CouponService {
                 .expiryType(requestDto.getExpiryType())
                 .expiryDate(requestDto.getExpiryDate())
                 .expiryDays(requestDto.getExpiryDays())
-                .issueStartTime(requestDto.getIssueStartTime())
+                .issueStartTime(issueStartTime) // 조정된 값을 사용
                 .totalQuantity(requestDto.getTotalQuantity())
                 .applicableCategories(requestDto.getApplicableCategories())
                 .store(store)
