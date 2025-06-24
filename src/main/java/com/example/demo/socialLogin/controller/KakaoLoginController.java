@@ -6,6 +6,7 @@ import com.example.demo.customer.entity.Customer;
 import com.example.demo.setting.jwt.JwtTokenProvider;
 import com.example.demo.customer.repository.CustomerRepository;
 import com.example.demo.setting.util.JwtCookieUtil;
+import com.example.demo.setting.util.TokenRedisService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -33,6 +34,7 @@ public class KakaoLoginController {
     private final KakaoService kakaoService;
     private final CustomerRepository customerRepository;
     private final JwtTokenProvider jwtTokenProvider;
+    private final TokenRedisService tokenRedisService;
 
     @Value("${frontend.url}")
     private String frontendUrl;
@@ -62,11 +64,28 @@ public class KakaoLoginController {
         } else {
             log.info("기존 회원입니다.");
         }
+        // 토큰 생성
         String jwt = jwtTokenProvider.createToken(kakaoId);
-        ResponseCookie cookie = JwtCookieUtil.createAccessTokenCookie(jwt);
+        String refreshToken = jwtTokenProvider.createRefreshToken(kakaoId);
+
+        // 리프레시 토큰 저장 (Redis)
+        long refreshTokenExpirationMillis = jwtTokenProvider.getRefreshTokenExpirationMillis();
+        tokenRedisService.saveRefreshToken(kakaoId, refreshToken, refreshTokenExpirationMillis);
+
+        // 액세스 토큰 쿠키 설정
+        ResponseCookie accessTokenCookie = JwtCookieUtil.createAccessTokenCookie(jwt);
+
+        // 리프레시 토큰 쿠키 설정 (HttpOnly)
+        ResponseCookie refreshTokenCookie = ResponseCookie.from("refresh_token", refreshToken)
+                .httpOnly(true)
+                .path("/")
+                .maxAge(refreshTokenExpirationMillis / 1000)
+                .sameSite("Lax")
+                .build();
 
         return ResponseEntity.status(HttpStatus.FOUND)
-                .header("Set-Cookie", cookie.toString())
+                .header(HttpHeaders.SET_COOKIE, accessTokenCookie.toString())
+                .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
                 .header("Location", frontendUrl + "/")
                 .build();
     }

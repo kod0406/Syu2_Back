@@ -12,6 +12,7 @@ import com.example.demo.store.entity.Store;
 import com.example.demo.setting.jwt.JwtTokenProvider;
 import com.example.demo.setting.util.JwtCookieUtil;
 import com.example.demo.setting.util.MemberValidUtil;
+import com.example.demo.setting.util.TokenRedisService;
 import com.google.zxing.WriterException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -39,6 +40,7 @@ public class StoreController {
     private final QRCodeRepository qrCodeRepository;
     private final QrCodeService qrCodeService;
     private final MemberValidUtil memberValidUtil;
+    private final TokenRedisService tokenRedisService;
 
 
     @Operation(
@@ -93,9 +95,29 @@ public class StoreController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody StoreLoginDTO loginDTO, HttpServletResponse response) {
         Store store = storeService.authenticateStore(loginDTO.getOwnerEmail(), loginDTO.getPassword());
-        String token = jwtTokenProvider.createToken(store.getOwnerEmail());
-        ResponseCookie cookie = JwtCookieUtil.createAccessTokenCookie(token);
-        response.setHeader("Set-Cookie", cookie.toString());
+        String ownerEmail = store.getOwnerEmail();
+
+        // 토큰 생성
+        String accessToken = jwtTokenProvider.createToken(ownerEmail);
+        String refreshToken = jwtTokenProvider.createRefreshToken(ownerEmail);
+
+        // 리프레시 토큰 저장 (Redis)
+        long refreshTokenExpirationMillis = jwtTokenProvider.getRefreshTokenExpirationMillis();
+        tokenRedisService.saveRefreshToken(ownerEmail, refreshToken, refreshTokenExpirationMillis);
+
+        // 액세스 토큰 쿠키 설정
+        ResponseCookie accessTokenCookie = JwtCookieUtil.createAccessTokenCookie(accessToken);
+        response.addHeader(HttpHeaders.SET_COOKIE, accessTokenCookie.toString());
+
+        // 리프레시 토큰 쿠키 설정 (HttpOnly)
+        ResponseCookie refreshTokenCookie = ResponseCookie.from("refresh_token", refreshToken)
+                .httpOnly(true)
+                .path("/")
+                .maxAge(refreshTokenExpirationMillis / 1000) //밀리초를 초로 변환
+                .sameSite("Lax")
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
+
         return ResponseEntity.ok(Map.of("message", "로그인 성공"));
     }
 
