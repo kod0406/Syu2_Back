@@ -37,7 +37,7 @@ public class TokenService {
             throw new JwtException("Refresh token is compromised or expired. Please login again.");
         }
 
-        String newAccessToken = jwtTokenProvider.createAccessToken(userId);
+        String newAccessToken = jwtTokenProvider.createToken(userId);
         return new TokenResponseDto(newAccessToken);
     }
 

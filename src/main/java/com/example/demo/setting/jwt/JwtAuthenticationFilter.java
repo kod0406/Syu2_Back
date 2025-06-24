@@ -28,16 +28,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     // 인증이 필요하지 않은 URL 패턴 목록 (SecurityConfig와 일치하게 유지)
     private final List<RequestMatcher> permitAllMatchers = Arrays.asList(
-            new AntPathRequestMatcher("/greeting"),
-            new AntPathRequestMatcher("/login/**"),
-            new AntPathRequestMatcher("/oauth2/**"),
+            new AntPathRequestMatcher("/api/stores/login"),
+            new AntPathRequestMatcher("/api/customer/login"), // 고객 로그인 API
+            new AntPathRequestMatcher("/api/oauth2/kakao/login"),
+            new AntPathRequestMatcher("/api/oauth2/naver/login"),
+            new AntPathRequestMatcher("/OAuth2/login/kakao"), // 카카오 로그인 콜백
+            new AntPathRequestMatcher("/login/naver"), // 네이버 로그인 콜백
+            new AntPathRequestMatcher("/owner/login"), //프론트엔드 상점 로그인 화면
+            new AntPathRequestMatcher("/customer/login"), //프론트엔드 고객 로그인 화면
             new AntPathRequestMatcher("/api/auth/refresh-token"),
             new AntPathRequestMatcher("/api/v1/kakao-pay/ready"),
+            new AntPathRequestMatcher("/v3/api-docs/**"),  // Swagger API 문서
+            new AntPathRequestMatcher("/swagger-ui/**"),
             new AntPathRequestMatcher("/error"),
-            new AntPathRequestMatcher("/favicon.ico"),
-            new AntPathRequestMatcher("/logo.png"),
-            new AntPathRequestMatcher("/_next/**"),
-            new AntPathRequestMatcher("/static/**"),
             new AntPathRequestMatcher("/manifest.json"),
             new AntPathRequestMatcher("/robots.txt"),
             new AntPathRequestMatcher("/**", "OPTIONS") // OPTIONS 메소드는 허용
@@ -69,9 +72,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
         String token = extractToken(request);
-        // API 경로에 대해서는 토큰이 없거나 유효하지 않으면 직접 401 응답
 
-        log.info("JWT token토큰토큰아: {}", token);
+
 
         if (request.getRequestURI().startsWith("/api/")) {
             if (token == null || !jwtTokenProvider.validateToken(token)) {
@@ -83,6 +85,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
         }
         if (token != null && jwtTokenProvider.validateToken(token)) {
+            log.info("JWT token토큰토큰아: {}", token);
             String userId = jwtTokenProvider.getUserId(token);
             String role = jwtTokenProvider.getRole(token);
             if(role != null && role.equals("ROLE_STORE")) {
