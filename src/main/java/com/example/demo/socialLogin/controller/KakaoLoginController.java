@@ -65,8 +65,8 @@ public class KakaoLoginController {
             log.info("기존 회원입니다.");
         }
         // 토큰 생성
-        String jwt = jwtTokenProvider.createToken(kakaoId);
-        String refreshToken = jwtTokenProvider.createRefreshToken(kakaoId);
+        String jwt = jwtTokenProvider.createToken(kakaoId, "ROLE_CUSTOMER");
+        String refreshToken = jwtTokenProvider.createRefreshToken(kakaoId, "ROLE_CUSTOMER");
 
         // 리프레시 토큰 저장 (Redis)
         long refreshTokenExpirationMillis = jwtTokenProvider.getRefreshTokenExpirationMillis();

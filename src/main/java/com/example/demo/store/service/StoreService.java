@@ -94,7 +94,7 @@ public class StoreService {
         // 비밀번호 검증 로직 (예: BCrypt 사용)
         if (!passwordEncoder.matches(password, store.getPassword())) {
             throw new BusinessException(ErrorCode.PASSWORD_EXCEPTION);
-        } else jwtTokenProvider.createToken(store.getStoreName());
+        } // else jwtTokenProvider.createToken(store.getStoreName());
 
         return store;
     }

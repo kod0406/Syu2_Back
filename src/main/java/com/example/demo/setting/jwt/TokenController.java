@@ -13,7 +13,9 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -45,13 +47,16 @@ public class TokenController {
         try {
             TokenResponseDto tokenResponseDto = tokenService.refreshAccessToken(request);
 
-            // 새로운 Access Token을 쿠키에 저장
-            Cookie accessTokenCookie = new Cookie("access_token", tokenResponseDto.getAccessToken());
-            accessTokenCookie.setPath("/");
-            accessTokenCookie.setHttpOnly(false); // JavaScript에서 접근 가능하도록 설정
-            // Access Token의 만료 시간 설정 (JwtTokenProvider에서 가져옴)
-            accessTokenCookie.setMaxAge((int) (jwtTokenProvider.getAccessTokenExpirationHours() * 60 * 60)); // 초 단위
-            response.addCookie(accessTokenCookie);
+            // 새로운 Access Token을 ResponseCookie를 사용하여 쿠키에 저장
+            ResponseCookie accessTokenCookie = ResponseCookie.from("access_token", tokenResponseDto.getAccessToken())
+                    .path("/")
+                    .httpOnly(false) // JavaScript에서 접근하도록
+                    .maxAge(jwtTokenProvider.getAccessTokenExpirationSeconds()) // 초 단위로 만료 시간 설정
+                    .sameSite("Lax") // CSRF 방지를 위한 SameSite 설정
+                    .build();
+
+            response.addHeader(HttpHeaders.SET_COOKIE, accessTokenCookie.toString());
+
 
             return ResponseEntity.ok(tokenResponseDto);
         } catch (JwtException e) {

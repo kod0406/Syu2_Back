@@ -59,8 +59,8 @@ public class NaverLoginController {
         } else {
             log.info("기존 회원입니다.");
         }
-        String jwt = jwtTokenProvider.createToken(tokenResponse);
-        String refreshToken = jwtTokenProvider.createRefreshToken(tokenResponse);
+        String jwt = jwtTokenProvider.createToken(tokenResponse, "ROLE_CUSTOMER");
+        String refreshToken = jwtTokenProvider.createRefreshToken(tokenResponse, "ROLE_CUSTOMER");
 
         // 리프레시 토큰 저장 (Redis)
         long refreshTokenExpirationMillis = jwtTokenProvider.getRefreshTokenExpirationMillis();
