@@ -67,45 +67,26 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
-        if (isPermitAllUrl(request)) {
-            filterChain.doFilter(request, response);
-            return;
-        }
         String token = extractToken(request);
-
-
-
-        if (request.getRequestURI().startsWith("/api/")) {
-            if (token == null || !jwtTokenProvider.validateToken(token)) {
-                SecurityContextHolder.clearContext();
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.setContentType("application/json;charset=UTF-8");
-                response.getWriter().write("{\"message\": \"API 요청에 유효한 인증 토큰이 필요합니다.\"}");
-                return;
-            }
-        }
+        log.info("JWT token토큰토큰아: {}", token);
         if (token != null && jwtTokenProvider.validateToken(token)) {
-            log.info("JWT token토큰토큰아: {}", token);
             String userId = jwtTokenProvider.getUserId(token);
             String role = jwtTokenProvider.getRole(token);
-            if(role != null && role.equals("ROLE_STORE")) {
+
+            if(role.equals("ROLE_STORE")) {
                 storeRepository.findByOwnerEmail(userId).ifPresent(store -> {
                     UsernamePasswordAuthenticationToken authToken =
                             new UsernamePasswordAuthenticationToken(store, null, null);
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 });
             }
-            else if(role != null && role.equals("ROLE_CUSTOMER")) {
+            else if(role.equals("ROLE_CUSTOMER")) {
                 customerRepository.findByEmail(userId).ifPresent(customer -> {
                     UsernamePasswordAuthenticationToken authToken =
                             new UsernamePasswordAuthenticationToken(customer, null, null);
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 });
-            } else {
-                SecurityContextHolder.clearContext();
             }
-        } else {
-            SecurityContextHolder.clearContext();
         }
         filterChain.doFilter(request, response);
     }
