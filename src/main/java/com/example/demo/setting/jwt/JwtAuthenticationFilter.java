@@ -18,7 +18,7 @@ import org.springframework.security.web.util.matcher.RequestMatcher;
 import java.io.IOException;
 import java.util.List;
 import java.util.Arrays;
-
+//TODO: JwtAuthenticationFilter는 현재 어떤 API든 토큰 없이 호출 가능하기에 배포 직전에 이를 수정해야함
 @RequiredArgsConstructor
 @Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
