@@ -53,33 +53,17 @@ public class CustomerOrderService {
             }
 
             long adjustedPrice = dto.getMenuPrice();
-            String orderDetails;
+            String orderDetails = dto.getMenuName(); // 프론트에서 받은 데이터를 그대로 저장
             int orderAmount = Math.toIntExact(dto.getMenuAmount());
-            if (dto.getMenuName().startsWith("CouponUsed:")) {
-                String couponUuid = dto.getMenuName().substring("CouponUsed:".length());
-                try {
-                    CustomerCouponDto couponDto = customerCouponService.getCouponByUuid(couponUuid);
-                    String discountInfo = couponDto.getDiscountType() == com.example.demo.benefit.entity.DiscountType.PERCENTAGE
-                            ? couponDto.getDiscountValue() + "%"
-                            : couponDto.getDiscountValue() + "원";
-                    orderDetails = String.format("[쿠폰] %s 할인", discountInfo);
-                } catch (Exception e) {
-                    log.error("쿠폰 정보 조회 실패: UUID = {}", couponUuid, e);
-                    orderDetails = "쿠폰 할인"; // 조회 실패 시 기본값
-                }
-                adjustedPrice = -adjustedPrice; // 쿠폰 할인은 가격 차감
-                orderAmount = 0; // 쿠폰은 수량 표시하지 않음
-            } else if("UserPointUsedOrNotUsed".equals(dto.getMenuName())) {
-                adjustedPrice = -adjustedPrice; // 포인트 사용은 가격 차감
-                orderDetails = "포인트 사용";
-                orderAmount = 0; // 포인트는 수량 표시하지 않음
-            } else {
-                orderDetails = dto.getMenuName();
+
+            // 쿠폰 또는 포인트 사용 시, 가격을 음수로 조정
+            if (orderDetails.startsWith("CouponUsed:") || orderDetails.equals("UserPointUsedOrNotUsed")) {
+                adjustedPrice = -adjustedPrice;
             }
 
             CustomerStatistics customerStatistics = CustomerStatistics.builder()
                     .store(store)
-                    .orderDetails(orderDetails)
+                    .orderDetails(orderDetails) // "CouponUsed:[UUID]" 또는 "UserPointUsedOrNotUsed"가 저장됨
                     .orderAmount(orderAmount)
                     .date(LocalDate.now())
                     .orderPrice(adjustedPrice)
