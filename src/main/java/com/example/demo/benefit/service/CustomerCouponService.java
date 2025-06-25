@@ -115,6 +115,26 @@ public class CustomerCouponService {
     }
 
     @Transactional(readOnly = true)
+    public List<CustomerCouponDto> getMyUsableCouponsInStore(Long customerId, Long storeId) {
+        if (!customerRepository.existsById(customerId)) {
+            throw new BusinessException(ErrorCode.CUSTOMER_NOT_FOUND);
+        }
+        if (!storeRepository.existsById(storeId)) {
+            throw new BusinessException(ErrorCode.STORE_NOT_FOUND);
+        }
+
+        List<CustomerCoupon> myCoupons = customerCouponRepository.findByCustomerId(customerId);
+
+        return myCoupons.stream()
+                .filter(cc -> cc.getCoupon().getStore().getId().equals(storeId)) // Check storeId
+                .filter(cc -> cc.getCoupon().getStatus() == CouponStatus.ACTIVE) // Check coupon master status
+                .filter(cc -> cc.getCouponStatus() == CouponStatus.UNUSED) // Check if used
+                .filter(cc -> cc.getExpiresAt().isAfter(LocalDateTime.now())) // Check expiry
+                .map(CustomerCouponDto::fromEntity)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
     public CustomerCouponDto getCouponByUuid(String couponUuid) {
         CustomerCoupon customerCoupon = customerCouponRepository.findById(couponUuid)
                 .orElseThrow(() -> new BusinessException(ErrorCode.CUSTOMER_COUPON_NOT_FOUND));

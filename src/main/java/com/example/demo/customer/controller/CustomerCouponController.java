@@ -183,6 +183,54 @@ public class CustomerCouponController {
         return ResponseEntity.ok(customerCouponService.getMyCoupons(customer.getId()));
     }
 
+    @Operation(summary = "특정 가게에서 사용 가능한 내 쿠폰 목록 조회", description = "고객이 특정 가게에서 사용할 수 있는, 보유 중인 쿠폰 목록을 조회합니다. 로그인이 필요하며, 고객(Customer) 권한이 있어야 합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "사용 가능한 내 쿠폰 목록 조회 성공",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = CustomerCouponDto.class),
+                            examples = @ExampleObject(value = "[\n" +
+                                    "  {\n" +
+                                    "    \"id\": \"a1b2c3d4-e5f6-7890-1234-567890abcdef\",\n" +
+                                    "    \"couponId\": 1,\n" +
+                                    "    \"couponName\": \"가을맞이 10% 할인\",\n" +
+                                    "    \"discountType\": \"PERCENTAGE\",\n" +
+                                    "    \"discountValue\": 10,\n" +
+                                    "    \"minimumOrderAmount\": 10000,\n" +
+                                    "    \"issuedAt\": \"2025-06-01T10:00:00\",\n" +
+                                    "    \"expiresAt\": \"2025-07-01T23:59:59\",\n" +
+                                    "    \"isUsed\": false,\n" +
+                                    "    \"storeName\": \"메가커피\"\n" +
+                                    "  },\n" +
+                                    "  {\n" +
+                                    "    \"id\": \"b2c3d4e5-f6a1-8901-2345-67890bcdef12\",\n" +
+                                    "    \"couponId\": 2,\n" +
+                                    "    \"couponName\": \"신규 고객 3000원 할인\",\n" +
+                                    "    \"discountType\": \"FIXED_AMOUNT\",\n" +
+                                    "    \"discountValue\": 3000,\n" +
+                                    "    \"minimumOrderAmount\": 15000,\n" +
+                                    "    \"issuedAt\": \"2025-06-10T09:00:00\",\n" +
+                                    "    \"expiresAt\": \"2025-07-10T23:59:59\",\n" +
+                                    "    \"isUsed\": false,\n" +
+                                    "    \"storeName\": \"메가커피\"\n" +
+                                    "  }\n" +
+                                    "]"))),
+            @ApiResponse(responseCode = "401", description = "인증 실패"),
+            @ApiResponse(responseCode = "403", description = "권한 없음"),
+            @ApiResponse(responseCode = "404", description = "상점을 찾을 수 없음"),
+            @ApiResponse(responseCode = "500", description = "서버 내부 오류")
+    })
+    @SecurityRequirement(name = "access_token")
+    @GetMapping("/my-coupons/store/{storeId}")
+    public ResponseEntity<?> getMyUsableCouponsInStore(
+            @Parameter(description = "조회할 상점의 ID", required = true, example = "1") @PathVariable Long storeId,
+            @Parameter(hidden = true) @AuthenticationPrincipal Customer customer) {
+        if (!memberValidUtil.isCustomer(customer)) {
+            throw new UnauthorizedException("로그인이 필요합니다.");
+        }
+        List<CustomerCouponDto> coupons = customerCouponService.getMyUsableCouponsInStore(customer.getId(), storeId);
+        return ResponseEntity.ok(coupons);
+    }
+
     @Operation(summary = "UUID로 쿠폰 정보 조회", description = "UUID로 특정 쿠폰의 상태 정보를 조회합니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "쿠폰 조회 성공",
