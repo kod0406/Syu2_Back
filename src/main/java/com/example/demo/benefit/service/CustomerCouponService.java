@@ -109,6 +109,7 @@ public class CustomerCouponService {
         }
         List<CustomerCoupon> myCoupons = customerCouponRepository.findByCustomerId(customerId);
         return myCoupons.stream()
+                .filter(customerCoupon -> customerCoupon.getCoupon().getStatus() == CouponStatus.ACTIVE)
                 .map(CustomerCouponDto::fromEntity)
                 .collect(Collectors.toList());
     }
