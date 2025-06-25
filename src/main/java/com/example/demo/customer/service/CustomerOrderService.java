@@ -1,7 +1,9 @@
 package com.example.demo.customer.service;
 
 import com.example.demo.KakaoPay.KakaoPayRequest;
+import com.example.demo.benefit.dto.CustomerCouponDto;
 import com.example.demo.benefit.repository.CustomerPointRepository;
+import com.example.demo.benefit.service.CustomerCouponService;
 import com.example.demo.customer.repository.CustomerStatisticsRepository;
 import com.example.demo.order.dto.OrderDTO;
 import com.example.demo.customer.entity.CustomerStatistics;
@@ -28,6 +30,7 @@ public class CustomerOrderService {
     private final CustomerStatisticsRepository customerStatisticsRepository;
     private final StoreRepository storeRepository;
     private final OrderGroupRepository orderGroupRepository;
+    private final CustomerCouponService customerCouponService;
 
     @Transactional
     public KakaoPayRequest.OrderRequest order(List<OrderDTO> orders, Customer customer, Long storeId) {
@@ -50,14 +53,34 @@ public class CustomerOrderService {
             }
 
             long adjustedPrice = dto.getMenuPrice();
-            if("UserPointUsedOrNotUsed".equals(dto.getMenuName())) {
+            String orderDetails;
+            int orderAmount = Math.toIntExact(dto.getMenuAmount());
+            if (dto.getMenuName().startsWith("CouponUsed:")) {
+                String couponUuid = dto.getMenuName().substring("CouponUsed:".length());
+                try {
+                    CustomerCouponDto couponDto = customerCouponService.getCouponByUuid(couponUuid);
+                    String discountInfo = couponDto.getDiscountType() == com.example.demo.benefit.entity.DiscountType.PERCENTAGE
+                            ? couponDto.getDiscountValue() + "%"
+                            : couponDto.getDiscountValue() + "원";
+                    orderDetails = String.format("[쿠폰] %s 할인", discountInfo);
+                } catch (Exception e) {
+                    log.error("쿠폰 정보 조회 실패: UUID = {}", couponUuid, e);
+                    orderDetails = "쿠폰 할인"; // 조회 실패 시 기본값
+                }
+                adjustedPrice = -adjustedPrice; // 쿠폰 할인은 가격 차감
+                orderAmount = 0; // 쿠폰은 수량 표시하지 않음
+            } else if("UserPointUsedOrNotUsed".equals(dto.getMenuName())) {
                 adjustedPrice = -adjustedPrice; // 포인트 사용은 가격 차감
+                orderDetails = "포인트 사용";
+                orderAmount = 0; // 포인트는 수량 표시하지 않음
+            } else {
+                orderDetails = dto.getMenuName();
             }
 
             CustomerStatistics customerStatistics = CustomerStatistics.builder()
                     .store(store)
-                    .orderDetails(dto.getMenuName())
-                    .orderAmount(dto.getMenuAmount())
+                    .orderDetails(orderDetails)
+                    .orderAmount(orderAmount)
                     .date(LocalDate.now())
                     .orderPrice(adjustedPrice)
                     .customer(customer)
