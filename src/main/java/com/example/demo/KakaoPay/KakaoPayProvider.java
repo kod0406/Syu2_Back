@@ -24,6 +24,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import com.example.demo.benefit.repository.CustomerCouponRepository;
+import com.example.demo.customer.entity.CustomerCoupon;
 
 @Slf4j
 @Service
@@ -31,6 +33,7 @@ import java.util.Objects;
 public class KakaoPayProvider {
     private final OrderGroupRepository orderGroupRepository;
     private final CustomerPointRepository customerPointRepository;
+    private final CustomerCouponRepository customerCouponRepository;
     private final SimpMessagingTemplate messagingTemplate;
     private final WebBroadCast webBroadCast;
 
@@ -87,6 +90,7 @@ public class KakaoPayProvider {
         List<CustomerStatistics> stats = orderGroup.getCustomerStatisticsList();
 
         int totalAmount = stats.stream()
+                .filter(stat -> !stat.getOrderDetails().startsWith("UserPointUsedOrNotUsed") && !stat.getOrderDetails().startsWith("CouponUsed:"))
                 .mapToInt(stat -> (int) (stat.getOrderPrice() * stat.getOrderAmount()))
                 .sum();
 
@@ -94,6 +98,27 @@ public class KakaoPayProvider {
         log.info("customer은? " + customer);
 
         if (customer != null) {
+            // --- 쿠폰 사용 처리 로직 ---
+            stats.stream()
+                .filter(stat -> stat.getOrderDetails().startsWith("CouponUsed:"))
+                .findFirst()
+                .ifPresent(couponStat -> {
+                    String couponUuid = couponStat.getOrderDetails().substring("CouponUsed:".length()).trim();
+                    log.info("사용된 쿠폰 UUID: {}", couponUuid);
+
+                    CustomerCoupon customerCoupon = customerCouponRepository.findById(couponUuid)
+                        .orElseThrow(() -> new IllegalStateException("사용된 쿠폰을 찾을 수 없습니다: " + couponUuid));
+
+                    if (customerCoupon.getCouponStatus() != com.example.demo.benefit.entity.CouponStatus.UNUSED) {
+                        throw new IllegalStateException("이미 사용되었거나 유효하지 않은 쿠폰입니다.");
+                    }
+
+                    customerCoupon.markAsUsed();
+                    customerCouponRepository.save(customerCoupon);
+                    log.info("✅ 쿠폰 {} 사용 처리 완료", couponUuid);
+                });
+
+            // --- 포인트 사용 처리 로직 ---
             int pointUsed = stats.stream()
                     .filter(stat -> "UserPointUsedOrNotUsed".equals(stat.getOrderDetails()))
                     .mapToInt(stat -> (int) (Math.abs(stat.getOrderPrice()) * stat.getOrderAmount()))  // ✅ 절대값 처리

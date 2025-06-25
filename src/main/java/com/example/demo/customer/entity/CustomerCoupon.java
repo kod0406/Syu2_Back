@@ -35,4 +35,8 @@ public class CustomerCoupon {
 
     @Column(nullable = false)
     private LocalDateTime expiresAt; //CleanUp 쓰려면 이게 필요함.
+
+    public void markAsUsed() {
+        this.couponStatus = CouponStatus.USED;
+    }
 }
