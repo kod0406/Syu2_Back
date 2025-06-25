@@ -4,6 +4,7 @@ import com.example.demo.benefit.entity.Coupon;
 import com.example.demo.benefit.entity.CouponStatus;
 import com.example.demo.benefit.entity.DiscountType;
 import com.example.demo.customer.entity.CustomerCoupon;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
@@ -47,6 +48,7 @@ public class CustomerCouponDto {
     private LocalDateTime expiresAt;
 
     @Schema(description = "쿠폰 사용 여부", example = "false")
+    @JsonProperty("isUsed") // JSON으로 변환 시 필드명을 "isUsed"로 명시
     private boolean isUsed;
 
     @Schema(description = "쿠폰을 발급한 상점 이름", example = "메가커피")
