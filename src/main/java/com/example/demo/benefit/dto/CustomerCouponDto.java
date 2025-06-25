@@ -9,6 +9,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Builder
@@ -33,6 +34,12 @@ public class CustomerCouponDto {
     @Schema(description = "최소 주문 금액", example = "10000")
     private Integer minimumOrderAmount;
 
+    @Schema(description = "할인 한도 (정률 할인 시)", example = "5000", nullable = true)
+    private Integer discountLimit;
+
+    @Schema(description = "사용 가능 카테고리 목록 (비어있으면 전체 적용)", example = "[\"커피\", \"베이커리\"]", nullable = true)
+    private List<String> applicableCategories;
+
     @Schema(description = "쿠폰 발급일시", example = "2023-10-27T10:00:00")
     private LocalDateTime issuedAt;
 
@@ -54,6 +61,8 @@ public class CustomerCouponDto {
                 .discountType(coupon.getDiscountType())
                 .discountValue(coupon.getDiscountValue())
                 .minimumOrderAmount(coupon.getMinimumOrderAmount())
+                .discountLimit(coupon.getDiscountLimit())
+                .applicableCategories(coupon.getApplicableCategories())
                 .issuedAt(customerCoupon.getIssuedAt())
                 .expiresAt(customerCoupon.getExpiresAt())
                 .isUsed(customerCoupon.getCouponStatus() == CouponStatus.USED)
