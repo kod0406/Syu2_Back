@@ -23,7 +23,7 @@ public class OrderController {
 
     @Operation(summary = "고객 포인트 조회", description = "현재 로그인된 고객의 보유 포인트를 조회합니다. 조회를 위해서는 고객으로 인증되어야 합니다.")
     @SecurityRequirement(name = "bearer-key")
-    @PostMapping("/pointCheck")
+    @PostMapping("/api/pointCheck")
     public ResponseEntity<PointResponse> pointCheck(@AuthenticationPrincipal Customer customer) {
 
         if (!memberValidUtil.isCustomer(customer)) {

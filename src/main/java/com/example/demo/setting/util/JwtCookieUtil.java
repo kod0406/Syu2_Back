@@ -16,7 +16,12 @@ public class JwtCookieUtil {
     public static ResponseCookie createAccessTokenCookie(String jwt) {
         return ResponseCookie.from(COOKIE_NAME, jwt)
                 .httpOnly(true)
+<<<<<<< HEAD
                 .secure(true)
+=======
+                .secure(true) // HTTPS 환경에서 필수
+                .domain("igo.ai.kr") // 도메인 명시적 설정
+>>>>>>> a839863c5e39ef039347f2b72c3bd88039117f3a
                 .path("/")
                 .maxAge(MAX_AGE)
                 .sameSite("Lax")
@@ -36,6 +41,8 @@ public class JwtCookieUtil {
     public static ResponseCookie deleteAccessTokenCookie() {
         return ResponseCookie.from(COOKIE_NAME, "")
                 .httpOnly(true)
+                .secure(true) // HTTPS 환경에서 필수
+                .domain("igo.ai.kr") // 도메인 명시적 설정
                 .path("/")
                 .maxAge(0) // 즉시 삭제
                 .sameSite("Lax")
