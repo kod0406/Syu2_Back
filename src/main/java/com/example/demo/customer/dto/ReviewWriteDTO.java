@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.multipart.MultipartFile;
+import java.util.List;
 
 import java.time.LocalDate;
 
@@ -20,15 +21,15 @@ public class ReviewWriteDTO {
     private LocalDate date;
     private String comment;
     private Double reviewRating;
-    private MultipartFile images;
-    public CustomerReviewCollect toEntity(Customer customer, Store store, CustomerStatistics customerStatistics, StoreMenu storeMenu, String url) {
+    private String imageUrl;
+    public CustomerReviewCollect toEntity(Customer customer, Store store, CustomerStatistics customerStatistics, StoreMenu storeMenu) {
 
         CustomerReviewCollect customerReviewCollect = CustomerReviewCollect.builder()
                         .score(this.reviewRating)
                         .reviewDetails(this.comment)
                         .reviewDate(this.date)
-                        .imageUrl(url)
                         .customer(customer)
+                        .imageUrl(this.imageUrl)
                         .storeMenu(storeMenu)
                         .store(store)
                         .build();
