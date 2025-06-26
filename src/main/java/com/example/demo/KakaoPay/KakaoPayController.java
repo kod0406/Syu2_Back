@@ -38,14 +38,26 @@ public class KakaoPayController {
 //        return kakaoPayProvider.ready(request);
 //    }
 
-    @Operation(summary = "카카오페이 결제 준비", description = "고객이 주문한 내역을 바탕으로 카카오페이 결제를 준비합니다. 성공 시, 결제 페이지로 리다이렉트할 수 있는 URL이 포함된 응답을 반환합니다. 고객으로 인증해야 합니다.")
-    @SecurityRequirement(name = "bearer-key")
-    @PostMapping("/ready")
-    public KakaoPayResponse.ReadyResponse ready(@RequestBody List<OrderDTO> orders, @AuthenticationPrincipal Customer customer, @RequestParam Long storeId){
+//    @Operation(summary = "카카오페이 결제 준비", description = "고객이 주문한 내역을 바탕으로 카카오페이 결제를 준비합니다. 성공 시, 결제 페이지로 리다이렉트할 수 있는 URL이 포함된 응답을 반환합니다. 고객으로 인증해야 합니다.")
+//    @SecurityRequirement(name = "bearer-key")
+//    @PostMapping("/ready")
+//    public KakaoPayResponse.ReadyResponse ready(@RequestBody List<OrderDTO> orders, @AuthenticationPrincipal Customer customer, @RequestParam Long storeId, @RequestHeader("User-Agent") String userAgent){
+//
+//        log.info("Kakao Pay ready : " + customer);
+//        KakaoPayRequest.OrderRequest request = customerOrderService.order(orders, customer, storeId);;
+//        return kakaoPayProvider.ready(request, userAgent);
+//    }
 
-        log.info("Kakao Pay ready : " + customer);
-        KakaoPayRequest.OrderRequest request = customerOrderService.order(orders, customer, storeId);;
-        return kakaoPayProvider.ready(request);
+    @PostMapping("/ready")
+    public KakaoPayResponse.RedirectUrlResponse ready(
+            @RequestBody List<OrderDTO> orders,
+            @AuthenticationPrincipal Customer customer,
+            @RequestParam Long storeId,
+            @RequestHeader("User-Agent") String userAgent) {
+
+        log.info("Kakao Pay ready : {}, UA: {}", customer, userAgent);
+        KakaoPayRequest.OrderRequest request = customerOrderService.order(orders, customer, storeId);
+        return kakaoPayProvider.ready(request, userAgent); // ✅ redirectUrl만 담긴 응답
     }
 
     @Operation(summary = "카카오페이 결제 승인", description = "사용자가 카카오페이 결제를 성공적으로 완료한 후, 카카오로부터 리다이렉트되는 엔드포인트입니다. 결제 승인 처리를 진행하고, 성공 시 지정된 페이지로 리다이렉트됩니다.")
