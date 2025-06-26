@@ -13,6 +13,7 @@ import com.example.demo.customer.repository.CustomerStatisticsRepository;
 import com.example.demo.store.repository.QRCodeRepository;
 import com.example.demo.store.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,7 @@ import java.util.List;
 
 import java.time.LocalDate;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class StoreService {
@@ -40,9 +42,9 @@ public class StoreService {
     public Store registerStore(StoreRegistrationDTO storeRegistrationDTO) {
         // 이메일 중복 검사
         if (storeRepository.findByOwnerEmail(storeRegistrationDTO.getOwnerEmail()).isPresent()) {
+            log.warn("[매장 회원가입 실패] 이미 존재하는 이메일: {}", storeRegistrationDTO.getOwnerEmail());
             throw new IllegalArgumentException("이미 존재하는 이메일입니다.");
         }
-
         // DTO에서 Entity로 변환 (필요한 값만 설정)
         Store store = Store.builder()
                 .storeName(storeRegistrationDTO.getStoreName())
@@ -50,11 +52,9 @@ public class StoreService {
                 .password(passwordEncoder.encode(storeRegistrationDTO.getPassword())) // 비밀번호 암호화
                 .provider("local")
                 .build();
-
         store = storeRepository.save(store);
-
         createQRCode(store); // QR코드 생성 로직 호출
-
+        log.info("[매장 회원가입 성공] 이메일: {}, 매장명: {}", store.getOwnerEmail(), store.getStoreName());
         return store;
     }
 
@@ -88,14 +88,16 @@ public class StoreService {
 
     public Store authenticateStore(String email, String password) {
         Store store = storeRepository.findByOwnerEmail(email)
-                .orElseThrow(() -> new BusinessException(ErrorCode.STORE_NOT_FOUND));
-
-
+                .orElseThrow(() -> {
+                    log.warn("[매장 로그인 실패] 존재하지 않는 이메일: {}", email);
+                    return new BusinessException(ErrorCode.STORE_NOT_FOUND);
+                });
         // 비밀번호 검증 로직 (예: BCrypt 사용)
         if (!passwordEncoder.matches(password, store.getPassword())) {
+            log.warn("[매장 로그인 실패] 비밀번호 불일치. 이메일: {}", email);
             throw new BusinessException(ErrorCode.PASSWORD_EXCEPTION);
-        } // else jwtTokenProvider.createToken(store.getStoreName());
-
+        }
+        log.info("[매장 로그인 성공] 이메일: {}, 매장명: {}", store.getOwnerEmail(), store.getStoreName());
         return store;
     }
 
