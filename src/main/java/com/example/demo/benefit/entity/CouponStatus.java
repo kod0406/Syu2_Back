@@ -8,3 +8,4 @@ public enum CouponStatus {
     USED,   // 사용됨
     EXPIRED  // 만료됨
 }
+    

@@ -51,6 +51,8 @@ public class TokenController {
             ResponseCookie accessTokenCookie = ResponseCookie.from("access_token", tokenResponseDto.getAccessToken())
                     .path("/")
                     .httpOnly(false) // JavaScript에서 접근하도록
+                    .secure(true) // HTTPS 환경에서 필수
+                    .domain("igo.ai.kr") // 도메인 명시적 설정
                     .maxAge(jwtTokenProvider.getAccessTokenExpirationSeconds()) // 초 단위로 만료 시간 설정
                     .sameSite("Lax") // CSRF 방지를 위한 SameSite 설정
                     .build();

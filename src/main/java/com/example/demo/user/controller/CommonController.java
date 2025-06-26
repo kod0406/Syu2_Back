@@ -33,3 +33,4 @@ public class CommonController {
         return ResponseEntity.ok(ApiResponse.success("회원 정보 조회 성공", new MemberResponseDTO(store)));
     }
 }
+
