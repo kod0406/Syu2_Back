@@ -28,6 +28,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @Tag(name = "리뷰 관리", description = "고객 리뷰 작성 및 조회 API")
+@RequestMapping("/api")
 public class ReviewController {
     private final CustomerRepository customerRepository;
     private final ReviewService reviewService;
