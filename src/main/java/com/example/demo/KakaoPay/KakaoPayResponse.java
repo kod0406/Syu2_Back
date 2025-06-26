@@ -12,6 +12,7 @@ public class KakaoPayResponse {
 
         String tid;
         String next_redirect_pc_url;
+        String next_redirect_mobile_url;
     }
 
     @Getter
@@ -32,5 +33,12 @@ public class KakaoPayResponse {
         String created_at;          // 결제 준비 요청 시각
         String approved_at;         // 결제 승인 시각
         String payload;             // 결제 승인 요청에 대해 저장한 값, 요청 시 전달된 내용
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class RedirectUrlResponse {
+        private String redirectUrl;
     }
 }

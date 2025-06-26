@@ -110,10 +110,6 @@ public class StoreController {
         ResponseCookie accessTokenCookie = jwtCookieUtil.createAccessTokenCookie(accessToken);
         response.addHeader(HttpHeaders.SET_COOKIE, accessTokenCookie.toString());
 
-<<<<<<< HEAD
-        // 리프레시 토큰 쿠키 설정
-        ResponseCookie refreshTokenCookie = jwtCookieUtil.createRefreshTokenCookie(refreshToken, refreshTokenExpirationMillis);
-=======
         // 리프레시 토큰 쿠키 설정 (HttpOnly)
         ResponseCookie refreshTokenCookie = ResponseCookie.from("refresh_token", refreshToken)
                 .httpOnly(true)
@@ -123,7 +119,6 @@ public class StoreController {
                 .maxAge(refreshTokenExpirationMillis / 1000) //밀리초를 초로 변환
                 .sameSite("Lax")
                 .build();
->>>>>>> a839863c5e39ef039347f2b72c3bd88039117f3a
         response.addHeader(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
 
         return ResponseEntity.ok(Map.of("message", "로그인 성공"));
