@@ -41,6 +41,7 @@ public class StoreController {
     private final QrCodeService qrCodeService;
     private final MemberValidUtil memberValidUtil;
     private final TokenRedisService tokenRedisService;
+    private final JwtCookieUtil jwtCookieUtil;
 
 
     @Operation(
@@ -105,17 +106,12 @@ public class StoreController {
         long refreshTokenExpirationMillis = jwtTokenProvider.getRefreshTokenExpirationMillis();
         tokenRedisService.saveRefreshToken(ownerEmail, refreshToken, refreshTokenExpirationMillis);
 
-        // 액세스 토큰 쿠키 설정
-        ResponseCookie accessTokenCookie = JwtCookieUtil.createAccessTokenCookie(accessToken);
+        // 액세스 토큰 쿠키 설정 (static 메서드 대신 인스턴스 메서드 사용)
+        ResponseCookie accessTokenCookie = jwtCookieUtil.createAccessTokenCookie(accessToken);
         response.addHeader(HttpHeaders.SET_COOKIE, accessTokenCookie.toString());
 
-        // 리프레시 토큰 쿠키 설정 (HttpOnly)
-        ResponseCookie refreshTokenCookie = ResponseCookie.from("refresh_token", refreshToken)
-                .httpOnly(true)
-                .path("/")
-                .maxAge(refreshTokenExpirationMillis / 1000) //밀리초를 초로 변환
-                .sameSite("Lax")
-                .build();
+        // 리프레시 토큰 쿠키 설정
+        ResponseCookie refreshTokenCookie = jwtCookieUtil.createRefreshTokenCookie(refreshToken, refreshTokenExpirationMillis);
         response.addHeader(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
 
         return ResponseEntity.ok(Map.of("message", "로그인 성공"));
