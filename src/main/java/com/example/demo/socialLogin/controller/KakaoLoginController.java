@@ -78,6 +78,8 @@ public class KakaoLoginController {
         // 리프레시 토큰 쿠키 설정 (HttpOnly)
         ResponseCookie refreshTokenCookie = ResponseCookie.from("refresh_token", refreshToken)
                 .httpOnly(true)
+                .secure(true) // HTTPS 환경에서 필수
+                .domain("igo.ai.kr") // 도메인 명시적 설정
                 .path("/")
                 .maxAge(refreshTokenExpirationMillis / 1000)
                 .sameSite("Lax")

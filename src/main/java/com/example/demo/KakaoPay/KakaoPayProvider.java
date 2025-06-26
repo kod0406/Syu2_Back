@@ -56,9 +56,9 @@ public class KakaoPayProvider {
         parameters.put("quantity", request.getQuantity()); // 상품 수량
         parameters.put("total_amount", request.getTotalPrice()); // 상품 총액
         parameters.put("tax_free_amount", "0"); // 상품 비과세 금액
-        parameters.put("approval_url", "http://localhost:8080/api/v1/kakao-pay/approve?orderGroupId=" + request.getOrderGroup().getId()); // 결제 성공 시 redirct URL
-        parameters.put("cancel_url", "http://localhost:8080/api/v1/kakao-pay/cancel"); // 결제 취소 시
-        parameters.put("fail_url", "http://localhost:8080/kakao-pay/fail"); // 결제 실패 시
+        parameters.put("approval_url", "https://igo.ai.kr/api/v1/kakao-pay/approve?orderGroupId=" + request.getOrderGroup().getId()); // 결제 성공 시 redirct URL
+        parameters.put("cancel_url", "https://igo.ai.kr/api/v1/kakao-pay/cancel"); // 결제 취소 시
+        parameters.put("fail_url", "https://igo.ai.kr/kakao-pay/fail"); // 결제 실패 시
 
         HttpEntity<Map<String, String>> entity = new HttpEntity<>(parameters, getHeaders());
 
