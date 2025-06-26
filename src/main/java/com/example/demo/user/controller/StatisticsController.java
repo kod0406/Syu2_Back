@@ -23,7 +23,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/statistics")
+@RequestMapping("/api/statistics")
 public class StatisticsController {
     private final StoreService storeService;
     private final CustomerService customerService;
