@@ -28,7 +28,6 @@ public class JwtCookieUtil {
         return ResponseCookie.from(REFRESH_TOKEN_NAME, refreshToken)
                 .httpOnly(true)
                 .secure(true)  // 추가된 부분
-                .domain("igo.ai.kr") // 도메인 명시적 설정
                 .path("/")
                 .maxAge(expirationMillis / 1000) // 밀리초를 초로 변환
                 .sameSite("Lax")

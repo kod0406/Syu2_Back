@@ -1,6 +1,7 @@
 package com.example.demo.customer.entity;
 import com.example.demo.order.entity.OrderGroup;
 import com.example.demo.store.entity.Store;
+import com.example.demo.store.entity.StoreMenu;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -38,9 +39,9 @@ public class CustomerStatistics {
     @JoinColumn(name = "store_id") // 외래키 이름
     private Store store;
 
-//    @OneToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "menu_id")
-//    private StoreMenu storeMenu;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "menu_id")
+    private StoreMenu storeMenu;
 
     public void markAsReviewed() {
         this.reviewed = true;

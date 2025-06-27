@@ -8,6 +8,7 @@ import com.example.demo.customer.entity.Customer;
 import com.example.demo.customer.repository.CustomerRepository;
 import com.example.demo.setting.exception.UnauthorizedException;
 import com.example.demo.setting.util.MemberValidUtil;
+import com.example.demo.setting.util.S3UploadService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -22,6 +23,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -33,6 +35,7 @@ public class ReviewController {
     private final CustomerRepository customerRepository;
     private final ReviewService reviewService;
     private final MemberValidUtil memberValidUtil;
+    private final S3UploadService s3UploadService;
 
     @Operation(
             summary = "작성하지 않은 리뷰 목록 조회",
@@ -79,9 +82,15 @@ public class ReviewController {
     @PostMapping("/review/write")
     public ResponseEntity<?> writeReview(
             @Parameter(hidden = true) @AuthenticationPrincipal Customer customer,
-            @ModelAttribute ReviewWriteDTO reviewWriteDTO) {
+            @ModelAttribute ReviewWriteDTO reviewWriteDTO,
+            @RequestParam(value = "image", required = false) MultipartFile image) {
         if (!memberValidUtil.isCustomer(customer)) {
             throw new UnauthorizedException("로그인이 필요합니다.");
+        }
+
+        if (image != null && !image.isEmpty()) {
+            String imageUrl = s3UploadService.uploadFile(image);
+            reviewWriteDTO.setImageUrl(imageUrl);
         }
 
         reviewService.saveReview(customer, reviewWriteDTO);
