@@ -18,6 +18,7 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Optional;
 
 @Slf4j
@@ -44,8 +45,14 @@ public class NaverLoginController {
     @GetMapping("/login/naver")
     public ResponseEntity<?> naverCallback(
             @Parameter(description = "인증 코드") @RequestParam String code,
-            @Parameter(description = "상태 값") @RequestParam String state) {
+            @Parameter(description = "상태 값") @RequestParam String state,
+            HttpServletRequest request) {
         String tokenResponse = naverLoginService.getNaverAccessToken(code, state); // 네이버 토큰 요청 메서드 호출
+
+        // 기기 정보 추출
+        String userAgent = request.getHeader("User-Agent");
+        String clientIp = getClientIpAddress(request);
+        String deviceInfo = String.format("IP:%s,UA:%s", clientIp, userAgent != null ? userAgent.substring(0, Math.min(50, userAgent.length())) : "unknown");
 
         Optional<Customer> optionalCustomer = customerRepository.findByEmail(tokenResponse);
 
@@ -62,9 +69,9 @@ public class NaverLoginController {
         String jwt = jwtTokenProvider.createToken(tokenResponse, "ROLE_CUSTOMER");
         String refreshToken = jwtTokenProvider.createRefreshToken(tokenResponse, "ROLE_CUSTOMER");
 
-        // 리프레시 토큰 저장 (Redis)
+        // 리프레시 토큰 저장 (Redis) - 기존 세션 자동 무효화
         long refreshTokenExpirationMillis = jwtTokenProvider.getRefreshTokenExpirationMillis();
-        tokenRedisService.saveRefreshToken(tokenResponse, refreshToken, refreshTokenExpirationMillis);
+        tokenRedisService.saveRefreshToken(tokenResponse, refreshToken, refreshTokenExpirationMillis, deviceInfo);
 
         // 액세스 토큰 쿠키 설정
         ResponseCookie accessTokenCookie = JwtCookieUtil.createAccessTokenCookie(jwt);
@@ -98,5 +105,23 @@ public class NaverLoginController {
         return ResponseEntity.status(HttpStatus.FOUND)
                 .header(HttpHeaders.LOCATION, naverAuthUrl)
                 .build();
+    }
+
+    /**
+     * 클라이언트 실제 IP 주소 추출
+     */
+    private String getClientIpAddress(HttpServletRequest request) {
+        String[] headers = {
+            "X-Forwarded-For", "X-Real-IP", "Proxy-Client-IP",
+            "WL-Proxy-Client-IP", "HTTP_X_FORWARDED_FOR", "HTTP_CLIENT_IP"
+        };
+
+        for (String header : headers) {
+            String ip = request.getHeader(header);
+            if (ip != null && !ip.isEmpty() && !"unknown".equalsIgnoreCase(ip)) {
+                return ip.split(",")[0].trim();
+            }
+        }
+        return request.getRemoteAddr();
     }
 }

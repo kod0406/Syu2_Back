@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Optional;
 
 @Slf4j
@@ -48,10 +49,17 @@ public class KakaoLoginController {
     @Operation(summary = "카카오 로그인 콜백", description = "카카오 인증 코드를 받아 사용자 정보를 처리하고 JWT 토큰을 발급합니다.")
     @GetMapping("OAuth2/login/kakao")
     public ResponseEntity<?> callback(
-            @Parameter(description = "카카오 인증 코드") @RequestParam("code") String code) {
+            @Parameter(description = "카카오 인증 코드") @RequestParam("code") String code,
+            HttpServletRequest request) {
         String accessToken = kakaoService.getAccessTokenFromKakao(code);
         KakaoUserInfoResponseDto userInfo = kakaoService.getUserInfo(accessToken);
         String kakaoId = userInfo.getId().toString();
+
+        // 기기 정보 추출
+        String userAgent = request.getHeader("User-Agent");
+        String clientIp = getClientIpAddress(request);
+        String deviceInfo = String.format("IP:%s,UA:%s", clientIp, userAgent != null ? userAgent.substring(0, Math.min(50, userAgent.length())) : "unknown");
+
         Optional<Customer> optionalCustomer = customerRepository.findByEmail(kakaoId);
 
         if (optionalCustomer.isEmpty()) {
@@ -68,9 +76,9 @@ public class KakaoLoginController {
         String jwt = jwtTokenProvider.createToken(kakaoId, "ROLE_CUSTOMER");
         String refreshToken = jwtTokenProvider.createRefreshToken(kakaoId, "ROLE_CUSTOMER");
 
-        // 리프레시 토큰 저장 (Redis)
+        // 리프레시 토큰 저장 (Redis) - 기존 세션 자동 무효화
         long refreshTokenExpirationMillis = jwtTokenProvider.getRefreshTokenExpirationMillis();
-        tokenRedisService.saveRefreshToken(kakaoId, refreshToken, refreshTokenExpirationMillis);
+        tokenRedisService.saveRefreshToken(kakaoId, refreshToken, refreshTokenExpirationMillis, deviceInfo);
 
         // 액세스 토큰 쿠키 설정
         ResponseCookie accessTokenCookie = JwtCookieUtil.createAccessTokenCookie(jwt);
@@ -103,5 +111,23 @@ public class KakaoLoginController {
         return ResponseEntity.status(HttpStatus.FOUND)
                 .header(HttpHeaders.LOCATION, kakaoUrl)
                 .build();
+    }
+
+    /**
+     * 클라이언트 실제 IP 주소 추출
+     */
+    private String getClientIpAddress(HttpServletRequest request) {
+        String[] headers = {
+            "X-Forwarded-For", "X-Real-IP", "Proxy-Client-IP",
+            "WL-Proxy-Client-IP", "HTTP_X_FORWARDED_FOR", "HTTP_CLIENT_IP"
+        };
+
+        for (String header : headers) {
+            String ip = request.getHeader(header);
+            if (ip != null && !ip.isEmpty() && !"unknown".equalsIgnoreCase(ip)) {
+                return ip.split(",")[0].trim();
+            }
+        }
+        return request.getRemoteAddr();
     }
 }
