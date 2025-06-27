@@ -231,39 +231,4 @@ public class CustomerCouponController {
         return ResponseEntity.ok(coupons);
     }
 
-    @Operation(summary = "UUID로 쿠폰 정보 조회", description = "UUID로 특정 쿠폰의 상태 정보를 조회합니다.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "쿠폰 조회 성공",
-                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = CouponDto.class),
-                            examples = @ExampleObject(value = "{\n" +
-                                    "  \"id\": 1,\n" +
-                                    "  \"couponUuid\": \"550e8400-e29b-41d4-a716-446655440000\",\n" +
-                                    "  \"couponName\": \"가을맞이 10% 할인\",\n" +
-                                    "  \"discountType\": \"PERCENTAGE\",\n" +
-                                    "  \"discountValue\": 10,\n" +
-                                    "  \"discountLimit\": 5000,\n" +
-                                    "  \"minimumOrderAmount\": 10000,\n" +
-                                    "  \"expiryType\": \"ABSOLUTE\",\n" +
-                                    "  \"expiryDate\": \"2024-11-30T23:59:59\",\n" +
-                                    "  \"expiryDays\": null,\n" +
-                                    "  \"issueStartTime\": \"2023-10-01T00:00:00\",\n" +
-                                    "  \"totalQuantity\": 1000,\n" +
-                                    "  \"issuedQuantity\": 150,\n" +
-                                    "  \"applicableCategories\": [\"커피\", \"베이커리\"],\n" +
-                                    "  \"storeId\": 101,\n" +
-                                    "  \"storeName\": \"메가커피\",\n" +
-                                    "  \"status\": \"ACTIVE\"\n" +
-                                    "}"))),
-            @ApiResponse(responseCode = "404", description = "쿠폰을 찾을 수 없음", content = @Content(examples = @ExampleObject(value = "해당 UUID의 쿠폰을 찾을 수 없습니다."))),
-            @ApiResponse(responseCode = "500", description = "서버 내부 오류", content = @Content(examples = @ExampleObject(value = "쿠폰 조회 중 오류가 발생했습니다.")))
-    })
-    @GetMapping("/coupons/uuid/{couponUuid}")
-    public ResponseEntity<?> getCouponByUuid(
-            @Parameter(description = "조회할 쿠폰의 UUID", required = true, example = "550e8400-e29b-41d4-a716-446655440000")
-            @PathVariable String couponUuid) {
-        CustomerCouponDto coupon = customerCouponService.getCouponByUuid(couponUuid);
-        return ResponseEntity.ok(coupon);
-
-    }
 }

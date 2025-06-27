@@ -148,8 +148,20 @@ public class KakaoPayProvider {
                     CustomerCoupon customerCoupon = customerCouponRepository.findById(couponUuid)
                         .orElseThrow(() -> new IllegalStateException("사용된 쿠폰을 찾을 수 없습니다: " + couponUuid));
 
+                    // ✅ 쿠폰 상태 검증
                     if (customerCoupon.getCouponStatus() != com.example.demo.benefit.entity.CouponStatus.UNUSED) {
                         throw new IllegalStateException("이미 사용되었거나 유효하지 않은 쿠폰입니다.");
+                    }
+
+                    // ✅ 쿠폰 만료 시간 검증 추가
+                    if (customerCoupon.getExpiresAt().isBefore(java.time.LocalDateTime.now())) {
+                        throw new IllegalStateException("만료된 쿠폰입니다. 만료 시간: " + customerCoupon.getExpiresAt());
+                    }
+
+                    // ✅ 부모 쿠폰의 절대 만료 시간 검증 (Coupon 엔티티의 expiryDate)
+                    if (customerCoupon.getCoupon().getExpiryDate() != null &&
+                        customerCoupon.getCoupon().getExpiryDate().isBefore(java.time.LocalDateTime.now())) {
+                        throw new IllegalStateException("만료된 쿠폰입니다. 쿠폰 만료 시간: " + customerCoupon.getCoupon().getExpiryDate());
                     }
 
                     customerCoupon.markAsUsed();
