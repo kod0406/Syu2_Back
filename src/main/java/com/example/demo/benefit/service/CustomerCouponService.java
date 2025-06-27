@@ -110,6 +110,13 @@ public class CustomerCouponService {
         List<CustomerCoupon> myCoupons = customerCouponRepository.findByCustomerId(customerId);
         return myCoupons.stream()
                 .filter(customerCoupon -> customerCoupon.getCoupon().getStatus() == CouponStatus.ACTIVE)
+                // ✅ 만료된 CustomerCoupon 필터링 추가
+                .filter(customerCoupon -> customerCoupon.getExpiresAt().isAfter(LocalDateTime.now()))
+                // ✅ 부모 쿠폰의 절대 만료 시간 검증 추가
+                .filter(customerCoupon -> {
+                    LocalDateTime couponExpiryDate = customerCoupon.getCoupon().getExpiryDate();
+                    return couponExpiryDate == null || couponExpiryDate.isAfter(LocalDateTime.now());
+                })
                 .map(CustomerCouponDto::fromEntity)
                 .collect(Collectors.toList());
     }
@@ -126,18 +133,16 @@ public class CustomerCouponService {
         List<CustomerCoupon> myCoupons = customerCouponRepository.findByCustomerId(customerId);
 
         return myCoupons.stream()
-                .filter(cc -> cc.getCoupon().getStore().getId().equals(storeId)) // Check storeId
-                .filter(cc -> cc.getCoupon().getStatus() == CouponStatus.ACTIVE) // Check coupon master status
-                .filter(cc -> cc.getCouponStatus() == CouponStatus.UNUSED) // Check if used
-                .filter(cc -> cc.getExpiresAt().isAfter(LocalDateTime.now())) // Check expiry
+                .filter(cc -> cc.getCoupon().getStore().getId().equals(storeId))
+                .filter(cc -> cc.getCoupon().getStatus() == CouponStatus.ACTIVE)
+                .filter(cc -> cc.getCouponStatus() == CouponStatus.UNUSED)
+                .filter(cc -> cc.getExpiresAt().isAfter(LocalDateTime.now()))
+                // ✅ 부모 쿠폰의 절대 만료 시간 검증 추가
+                .filter(cc -> {
+                    LocalDateTime couponExpiryDate = cc.getCoupon().getExpiryDate();
+                    return couponExpiryDate == null || couponExpiryDate.isAfter(LocalDateTime.now());
+                })
                 .map(CustomerCouponDto::fromEntity)
                 .collect(Collectors.toList());
-    }
-
-    @Transactional(readOnly = true)
-    public CustomerCouponDto getCouponByUuid(String couponUuid) {
-        CustomerCoupon customerCoupon = customerCouponRepository.findById(couponUuid)
-                .orElseThrow(() -> new BusinessException(ErrorCode.CUSTOMER_COUPON_NOT_FOUND));
-        return CustomerCouponDto.fromEntity(customerCoupon);
     }
 }
