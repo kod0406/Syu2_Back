@@ -18,16 +18,21 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/store")
@@ -96,13 +101,28 @@ public class StoreMenuManagementController {
 
         memberValidUtil.validateIsStore(store);
 
-        if (image != null && !image.isEmpty()) {
-            String imageUrl = s3UploadService.uploadFile(image);
-            menuRequestDto.setImageUrl(imageUrl);
-        }
+        try {
+            if (image != null && !image.isEmpty()) {
+                String imageUrl = s3UploadService.uploadFile(image);
+                menuRequestDto.setImageUrl(imageUrl);
+            }
 
-        MenuResponseDto newMenu = storeMenuService.createMenu(storeId, menuRequestDto);
-        return ResponseEntity.ok(newMenu);
+            MenuResponseDto newMenu = storeMenuService.createMenu(storeId, menuRequestDto);
+            return ResponseEntity.ok(newMenu);
+
+        } catch (IllegalArgumentException e) {
+            log.error("메뉴 생성 중 파일 검증 오류: {}", e.getMessage());
+            return createErrorResponse(HttpStatus.BAD_REQUEST, "파일 검증 오류", e.getMessage());
+        } catch (RuntimeException e) {
+            if (e.getMessage().contains("시간이 초과")) {
+                log.error("메뉴 생성 중 타임아웃 오류: {}", e.getMessage());
+                return createErrorResponse(HttpStatus.REQUEST_TIMEOUT, "업로드 타임아웃", e.getMessage());
+            } else if (e.getMessage().contains("업로드")) {
+                log.error("메뉴 생성 중 업로드 오류: {}", e.getMessage());
+                return createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "파일 업로드 오류", e.getMessage());
+            }
+            throw e;
+        }
     }
 
     @Operation(
@@ -167,13 +187,28 @@ public class StoreMenuManagementController {
 
         memberValidUtil.validateIsStore(store);
 
-        if (image != null && !image.isEmpty()) {
-            String imageUrl = s3UploadService.uploadFile(image);
-            menuRequestDto.setImageUrl(imageUrl);
-        }
+        try {
+            if (image != null && !image.isEmpty()) {
+                String imageUrl = s3UploadService.uploadFile(image);
+                menuRequestDto.setImageUrl(imageUrl);
+            }
 
-        MenuResponseDto updatedMenu = storeMenuService.updateMenu(storeId, menuId, menuRequestDto);
-        return ResponseEntity.ok(updatedMenu);
+            MenuResponseDto updatedMenu = storeMenuService.updateMenu(storeId, menuId, menuRequestDto);
+            return ResponseEntity.ok(updatedMenu);
+
+        } catch (IllegalArgumentException e) {
+            log.error("메뉴 수정 중 파일 검증 오류: {}", e.getMessage());
+            return createErrorResponse(HttpStatus.BAD_REQUEST, "파일 검증 오류", e.getMessage());
+        } catch (RuntimeException e) {
+            if (e.getMessage().contains("시간이 초과")) {
+                log.error("메뉴 수정 중 타임아웃 오류: {}", e.getMessage());
+                return createErrorResponse(HttpStatus.REQUEST_TIMEOUT, "업로드 타임아웃", e.getMessage());
+            } else if (e.getMessage().contains("업로드")) {
+                log.error("메뉴 수정 중 업로드 오류: {}", e.getMessage());
+                return createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "파일 업로드 오류", e.getMessage());
+            }
+            throw e;
+        }
     }
 
     @Operation(
@@ -275,4 +310,42 @@ public class StoreMenuManagementController {
         MenuResponseDto updatedMenu = storeMenuService.toggleMenuAvailability(storeId, menuId);
         return ResponseEntity.ok(updatedMenu);
     }
+
+    // 파일 크기 초과 예외 처리
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<?> handleMaxUploadSizeExceeded(MaxUploadSizeExceededException e) {
+        log.error("파일 크기 초과: {}", e.getMessage());
+        return createErrorResponse(HttpStatus.BAD_REQUEST, "파일 크기 초과",
+                "파일 크기가 너무 큽니다. 최대 5MB까지 업로드 가능합니다.");
+    }
+
+    // 일반적인 파일 업로드 관련 예외 처리
+    @ExceptionHandler({IllegalArgumentException.class})
+    public ResponseEntity<?> handleFileValidationError(IllegalArgumentException e) {
+        log.error("파일 검증 오류: {}", e.getMessage());
+        return createErrorResponse(HttpStatus.BAD_REQUEST, "파일 검증 오류", e.getMessage());
+    }
+
+    // 타임아웃 관련 예외 처리
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<?> handleRuntimeException(RuntimeException e) {
+        if (e.getMessage() != null && e.getMessage().contains("시간이 초과")) {
+            log.error("타임아웃 오류: {}", e.getMessage());
+            return createErrorResponse(HttpStatus.REQUEST_TIMEOUT, "요청 타임아웃", e.getMessage());
+        }
+        // 다른 RuntimeException은 기본 처리
+        log.error("예상치 못한 오류: {}", e.getMessage());
+        return createErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류",
+                "처리 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+    }
+
+    private ResponseEntity<?> createErrorResponse(HttpStatus status, String error, String message) {
+        Map<String, Object> errorResponse = new HashMap<>();
+        errorResponse.put("status", status.value());
+        errorResponse.put("error", error);
+        errorResponse.put("message", message);
+        errorResponse.put("timestamp", System.currentTimeMillis());
+        return ResponseEntity.status(status).body(errorResponse);
+    }
 }
+
