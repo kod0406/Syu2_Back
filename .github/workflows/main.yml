@@ -24,6 +24,59 @@ jobs:
       - name: Grant execute permission to Gradle
         run: chmod +x ./gradlew
 
+      - name: Generate application.properties
+        run: |
+          mkdir -p src/main/resources
+          cat <<EOF > src/main/resources/application.properties
+          spring.profiles.active=prod
+          server.port=8080
+          spring.security.user.name=${{ secrets.SECURITY_USER_NAME }}
+          spring.security.user.password=${{ secrets.SECURITY_USER_PASSWORD }}
+          thymeleaf.cache=${{ secrets.THYMELEAF_CACHE }}
+          spring.jpa.hibernate.ddl-auto=${{ secrets.JPA_DDL_AUTO }}
+
+          spring.datasource.url=${{ secrets.DB_URL }}
+          spring.datasource.username=${{ secrets.DB_USERNAME }}
+          spring.datasource.password=${{ secrets.DB_PASSWORD }}
+
+          jwt.secret=${{ secrets.JWT_SECRET }}
+          jwt.refresh=${{ secrets.JWT_REFRESH }}
+          jwt.expiration.hours=${{ secrets.JWT_EXPIRATION_HOURS }}
+
+          kakao.client.id=${{ secrets.KAKAO_CLIENT_ID }}
+          kakao.redirect.uri=${{ secrets.KAKAO_REDIRECT_URI }}
+          naver.client.id=${{ secrets.NAVER_CLIENT_ID }}
+          naver.client.secret=${{ secrets.NAVER_CLIENT_SECRET }}
+          naver.redirect.uri=${{ secrets.NAVER_REDIRECT_URI }}
+
+          kakaoPay.secretKey=${{ secrets.KAKAOPAY_SECRET_KEY }}
+          kakaoPay.cid=${{ secrets.KAKAOPAY_CID }}
+
+          spring.servlet.multipart.max-file-size=${{ secrets.MAX_FILE_SIZE }}
+          spring.servlet.multipart.max-request-size=${{ secrets.MAX_REQUEST_SIZE }}
+          server.tomcat.connection-timeout=${{ secrets.TOMCAT_CONNECTION_TIMEOUT }}
+          spring.async.timeout=${{ secrets.SPRING_ASYNC_TIMEOUT }}
+          server.tomcat.keep-alive-timeout=${{ secrets.TOMCAT_KEEP_ALIVE_TIMEOUT }}
+
+          cloud.aws.credentials.access-key=${{ secrets.AWS_ACCESS_KEY }}
+          cloud.aws.credentials.secret-key=${{ secrets.AWS_SECRET_KEY }}
+          cloud.aws.s3.bucket=${{ secrets.AWS_BUCKET_NAME }}
+          cloud.aws.region.static=${{ secrets.AWS_REGION }}
+          cloud.aws.stack.auto=${{ secrets.AWS_STACK_AUTO }}
+
+          cors.allowed.origins=${{ secrets.CORS_ALLOWED_ORIGINS }}
+          frontend.url=${{ secrets.FRONTEND_URL }}
+
+          spring.data.redis.host=${{ secrets.REDIS_HOST }}
+          spring.data.redis.port=${{ secrets.REDIS_PORT }}
+          spring.data.redis.password=${{ secrets.REDIS_PASSWORD }}
+
+          spring.mail.host=${{ secrets.MAIL_HOST }}
+          spring.mail.port=${{ secrets.MAIL_PORT }}
+          spring.mail.username=${{ secrets.MAIL_USERNAME }}
+          spring.mail.password=${{ secrets.MAIL_PASSWORD }}
+          EOF
+
       - name: Build with Gradle (Skip Tests)
         run: ./gradlew clean build -x test --no-daemon
 
@@ -47,62 +100,6 @@ jobs:
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
             nvm use node
             cd /home/ubuntu/QrStore
-            mkdir -p src/main/resources
-
-            echo "🔧 Generating application.properties..."
-            cat <<EOF > src/main/resources/application.properties
-            spring.profiles.active=prod
-            server.port=8080
-            spring.security.user.name=${{ secrets.SECURITY_USER_NAME }}
-            spring.security.user.password=${{ secrets.SECURITY_USER_PASSWORD }}
-            thymeleaf.cache=${{ secrets.THYMELEAF_CACHE }}
-            spring.jpa.hibernate.ddl-auto=${{ secrets.JPA_DDL_AUTO }}
-
-            spring.datasource.url=${{ secrets.DB_URL }}
-            spring.datasource.username=${{ secrets.DB_USERNAME }}
-            spring.datasource.password=${{ secrets.DB_PASSWORD }}
-
-            jwt.secret=${{ secrets.JWT_SECRET }}
-            jwt.refresh=${{ secrets.JWT_REFRESH }}
-            jwt.expiration.hours=${{ secrets.JWT_EXPIRATION_HOURS }}
-
-            kakao.client.id=${{ secrets.KAKAO_CLIENT_ID }}
-            kakao.redirect.uri=${{ secrets.KAKAO_REDIRECT_URI }}
-            naver.client.id=${{ secrets.NAVER_CLIENT_ID }}
-            naver.client.secret=${{ secrets.NAVER_CLIENT_SECRET }}
-            naver.redirect.uri=${{ secrets.NAVER_REDIRECT_URI }}
-
-            kakaoPay.secretKey=${{ secrets.KAKAOPAY_SECRET_KEY }}
-            kakaoPay.cid=${{ secrets.KAKAOPAY_CID }}
-
-            spring.servlet.multipart.max-file-size=${{ secrets.MAX_FILE_SIZE }}
-            spring.servlet.multipart.max-request-size=${{ secrets.MAX_REQUEST_SIZE }}
-            server.tomcat.connection-timeout=${{ secrets.TOMCAT_CONNECTION_TIMEOUT }}
-            spring.async.timeout=${{ secrets.SPRING_ASYNC_TIMEOUT }}
-            server.tomcat.keep-alive-timeout=${{ secrets.TOMCAT_KEEP_ALIVE_TIMEOUT }}
-
-            cloud.aws.credentials.access-key=${{ secrets.AWS_ACCESS_KEY }}
-            cloud.aws.credentials.secret-key=${{ secrets.AWS_SECRET_KEY }}
-            cloud.aws.s3.bucket=${{ secrets.AWS_BUCKET_NAME }}
-            cloud.aws.region.static=${{ secrets.AWS_REGION }}
-            cloud.aws.stack.auto=${{ secrets.AWS_STACK_AUTO }}
-
-            cors.allowed.origins=${{ secrets.CORS_ALLOWED_ORIGINS }}
-            frontend.url=${{ secrets.FRONTEND_URL }}
-
-            spring.data.redis.host=${{ secrets.REDIS_HOST }}
-            spring.data.redis.port=${{ secrets.REDIS_PORT }}
-            spring.data.redis.password=${{ secrets.REDIS_PASSWORD }}
-
-            spring.mail.host=${{ secrets.MAIL_HOST }}
-            spring.mail.port=${{ secrets.MAIL_PORT }}
-            spring.mail.username=${{ secrets.MAIL_USERNAME }}
-            spring.mail.password=${{ secrets.MAIL_PASSWORD }}
-            EOF
-
-            echo "✅ application.properties 생성 완료"
-
-            echo "📦 애플리케이션 재시작"
             JAR_NAME=$(ls -t *.jar | head -n 1)
             pm2 delete demo-app || true
             pm2 start "$JAR_NAME" --name demo-app --interpreter=none -- \
