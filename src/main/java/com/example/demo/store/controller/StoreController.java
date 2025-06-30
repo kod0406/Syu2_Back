@@ -9,7 +9,6 @@ import com.example.demo.store.dto.StoreLoginDTO;
 import com.example.demo.store.dto.StoreRegistrationDTO;
 import com.example.demo.store.entity.Store;
 import com.example.demo.setting.jwt.JwtTokenProvider;
-import com.example.demo.setting.util.JwtCookieUtil;
 import com.example.demo.setting.util.MemberValidUtil;
 import com.example.demo.setting.util.TokenRedisService;
 import com.example.demo.setting.exception.BusinessException;
