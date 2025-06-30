@@ -1,5 +1,7 @@
 package com.example.demo.setting.jwt;
 
+import com.example.demo.setting.jwt.TokenResponseDto;
+import com.example.demo.setting.jwt.TokenService;
 import io.jsonwebtoken.JwtException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -50,7 +52,7 @@ public class TokenController {
                     .path("/")
                     .httpOnly(false) // JavaScript에서 접근하도록
                     .secure(true) // HTTPS 환경에서 필수
-                    //.domain("igo.ai.kr") // 도메인 명시적 설정
+                    .domain("igo.ai.kr") // 도메인 명시적 설정
                     .maxAge(jwtTokenProvider.getAccessTokenExpirationSeconds()) // 초 단위로 만료 시간 설정
                     .sameSite("Lax") // CSRF 방지를 위한 SameSite 설정
                     .build();

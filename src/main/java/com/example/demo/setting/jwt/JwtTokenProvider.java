@@ -129,7 +129,7 @@ public class JwtTokenProvider {
     }
 
     public long getAccessTokenExpirationHours() {
-        return accessTokenExpirationMillis / (60 * 60 * 1000); // 밀리���를 시간 단위로 변환
+        return accessTokenExpirationMillis / (60 * 60 * 1000); // 밀리���를 시간  return accessTokenExpirationMillis / (60 * 60 * 1000); // 밀리초를 시간 단위로 변환단위로 변환
     }
 
     public long getAccessTokenExpirationSeconds() {
