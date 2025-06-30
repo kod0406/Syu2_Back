@@ -54,7 +54,10 @@ jobs:
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
             nvm use node
             cd /home/ubuntu/QrStore/build/libs
+            echo "📦 현재 디렉토리 파일 목록:"
+            ls -al
             JAR_NAME=$(ls -t *.jar | head -n 1)
+            echo "📦 가장 최신 JAR: $JAR_NAME"
             pm2 delete demo-app || true
             pm2 start "$JAR_NAME" --name demo-app --interpreter=none -- \
               --spring.profiles.active=prod
