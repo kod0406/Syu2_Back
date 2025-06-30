@@ -100,4 +100,4 @@ jobs:
             pm2 delete spring || true
             pm2 start "$JAR_NAME" --name spring --interpreter=none -- \
               --spring.profiles.active=prod
-            pm2 logs spring --lines 30
+           
