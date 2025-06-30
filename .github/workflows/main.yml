@@ -40,7 +40,7 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          source: "build/libs/*.jar"
+          source: "build/libs/demo-0.0.1-SNAPSHOT.jar"
           target: "/home/ubuntu/QrStore"
 
       - name: Restart Spring Boot on EC2
@@ -53,7 +53,7 @@ jobs:
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
             nvm use node
-            cd /home/ubuntu/QrStore
+            cd /home/ubuntu/QrStore/build/libs
             JAR_NAME=$(ls -t *.jar | head -n 1)
             pm2 delete demo-app || true
             pm2 start "$JAR_NAME" --name demo-app --interpreter=none -- \
