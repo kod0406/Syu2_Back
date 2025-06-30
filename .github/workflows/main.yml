@@ -19,8 +19,8 @@ jobs:
         run: |
           mkdir -p ./src/main/resources
           cat <<EOF > ./src/main/resources/application.properties
-      ${{ secrets.APPLICATION_PROPERTIES }}
-      EOF
+          ${{ secrets.APPLICATION_PROPERTIES }}
+          EOF
 
       - name: Set up JDK
         uses: actions/setup-java@v3
