@@ -15,6 +15,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Generate application.properties from secret
+        run: |
+          mkdir -p ./src/main/resources
+          cat <<EOF > ./src/main/resources/application.properties
+          ${{ secrets.APPLICATION_PROPERTIES }}
+          EOF
+
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
@@ -23,59 +30,6 @@ jobs:
 
       - name: Grant execute permission to Gradle
         run: chmod +x ./gradlew
-
-      - name: Generate application.properties
-        run: |
-          mkdir -p src/main/resources
-          cat <<EOF > src/main/resources/application.properties
-          spring.profiles.active=prod
-          server.port=8080
-          spring.security.user.name=${{ secrets.SECURITY_USER_NAME }}
-          spring.security.user.password=${{ secrets.SECURITY_USER_PASSWORD }}
-          thymeleaf.cache=${{ secrets.THYMELEAF_CACHE }}
-          spring.jpa.hibernate.ddl-auto=${{ secrets.JPA_DDL_AUTO }}
-
-          spring.datasource.url=${{ secrets.DB_URL }}
-          spring.datasource.username=${{ secrets.DB_USERNAME }}
-          spring.datasource.password=${{ secrets.DB_PASSWORD }}
-
-          jwt.secret=${{ secrets.JWT_SECRET }}
-          jwt.refresh=${{ secrets.JWT_REFRESH }}
-          jwt.expiration.hours=${{ secrets.JWT_EXPIRATION_HOURS }}
-
-          kakao.client.id=${{ secrets.KAKAO_CLIENT_ID }}
-          kakao.redirect.uri=${{ secrets.KAKAO_REDIRECT_URI }}
-          naver.client.id=${{ secrets.NAVER_CLIENT_ID }}
-          naver.client.secret=${{ secrets.NAVER_CLIENT_SECRET }}
-          naver.redirect.uri=${{ secrets.NAVER_REDIRECT_URI }}
-
-          kakaoPay.secretKey=${{ secrets.KAKAOPAY_SECRET_KEY }}
-          kakaoPay.cid=${{ secrets.KAKAOPAY_CID }}
-
-          spring.servlet.multipart.max-file-size=${{ secrets.MAX_FILE_SIZE }}
-          spring.servlet.multipart.max-request-size=${{ secrets.MAX_REQUEST_SIZE }}
-          server.tomcat.connection-timeout=${{ secrets.TOMCAT_CONNECTION_TIMEOUT }}
-          spring.async.timeout=${{ secrets.SPRING_ASYNC_TIMEOUT }}
-          server.tomcat.keep-alive-timeout=${{ secrets.TOMCAT_KEEP_ALIVE_TIMEOUT }}
-
-          cloud.aws.credentials.access-key=${{ secrets.AWS_ACCESS_KEY }}
-          cloud.aws.credentials.secret-key=${{ secrets.AWS_SECRET_KEY }}
-          cloud.aws.s3.bucket=${{ secrets.AWS_BUCKET_NAME }}
-          cloud.aws.region.static=${{ secrets.AWS_REGION }}
-          cloud.aws.stack.auto=${{ secrets.AWS_STACK_AUTO }}
-
-          cors.allowed.origins=${{ secrets.CORS_ALLOWED_ORIGINS }}
-          frontend.url=${{ secrets.FRONTEND_URL }}
-
-          spring.data.redis.host=${{ secrets.REDIS_HOST }}
-          spring.data.redis.port=${{ secrets.REDIS_PORT }}
-          spring.data.redis.password=${{ secrets.REDIS_PASSWORD }}
-
-          spring.mail.host=${{ secrets.MAIL_HOST }}
-          spring.mail.port=${{ secrets.MAIL_PORT }}
-          spring.mail.username=${{ secrets.MAIL_USERNAME }}
-          spring.mail.password=${{ secrets.MAIL_PASSWORD }}
-          EOF
 
       - name: Build with Gradle (Skip Tests)
         run: ./gradlew clean build -x test --no-daemon
@@ -86,7 +40,7 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          source: "build/libs/*.jar"
+          source: "build/libs/demo-0.0.1-SNAPSHOT.jar"
           target: "/home/ubuntu/QrStore"
 
       - name: Restart Spring Boot on EC2
@@ -99,9 +53,11 @@ jobs:
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
             nvm use node
-            cd /home/ubuntu/QrStore
+            cd /home/ubuntu/QrStore/build/libs
+            echo "📦 현재 디렉토리 파일 목록:"
+            ls -al
             JAR_NAME=$(ls -t *.jar | head -n 1)
+            echo "📦 가장 최신 JAR: $JAR_NAME"
             pm2 delete demo-app || true
-            pm2 start "$JAR_NAME" --name demo-app --interpreter=none -- \
-              --spring.profiles.active=prod
+            pm2 start "java -jar $JAR_NAME" --name demo-app
             pm2 save
