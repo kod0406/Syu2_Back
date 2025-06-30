@@ -67,6 +67,7 @@ jobs:
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
+          distribution: 'temurin'
           java-version: '17'
 
       - name: Grant permission to Gradle
