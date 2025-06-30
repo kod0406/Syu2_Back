@@ -83,7 +83,7 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           source: "build/libs/*.jar"
-          target: "/home/QrStore"
+          target: "/home/ubuntu/QrStore"
 
       - name: Restart Spring Boot on EC2
         uses: appleboy/ssh-action@v1.0.0
@@ -92,7 +92,7 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            cd /home/QrStore
+            cd /home/ubuntu/QrStore
             JAR_NAME=$(ls -t *.jar | head -n 1)
             pm2 delete spring || true
             pm2 start $JAR_NAME --name spring --interpreter=none -- \
