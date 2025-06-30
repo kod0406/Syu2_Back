@@ -1,0 +1,89 @@
+name: Spring Boot CI/CD
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      SPRING_PROFILES_ACTIVE: prod
+
+      APP_NAME: ${{ secrets.APP_NAME }}
+      SECURITY_USER_NAME: ${{ secrets.SECURITY_USER_NAME }}
+      SECURITY_USER_PASSWORD: ${{ secrets.SECURITY_USER_PASSWORD }}
+      SERVER_PORT: ${{ secrets.SERVER_PORT }}
+      THYMELEAF_CACHE: ${{ secrets.THYMELEAF_CACHE }}
+      JPA_DDL_AUTO: ${{ secrets.JPA_DDL_AUTO }}
+      
+      DB_URL: ${{ secrets.DB_URL }}
+      DB_USERNAME: ${{ secrets.DB_USERNAME }}
+      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+      
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      JWT_REFRESH: ${{ secrets.JWT_REFRESH }}
+      JWT_EXPIRATION_HOURS: ${{ secrets.JWT_EXPIRATION_HOURS }}
+
+      KAKAO_CLIENT_ID: ${{ secrets.KAKAO_CLIENT_ID }}
+      KAKAO_REDIRECT_URI: ${{ secrets.KAKAO_REDIRECT_URI }}
+      NAVER_CLIENT_ID: ${{ secrets.NAVER_CLIENT_ID }}
+      NAVER_CLIENT_NAME: ${{ secrets.NAVER_CLIENT_NAME }}
+      NAVER_CLIENT_SECRET: ${{ secrets.NAVER_CLIENT_SECRET }}
+      NAVER_REDIRECT_URI: ${{ secrets.NAVER_REDIRECT_URI }}
+
+      KAKAOPAY_SECRET_KEY: ${{ secrets.KAKAOPAY_SECRET_KEY }}
+      KAKAOPAY_CID: ${{ secrets.KAKAOPAY_CID }}
+
+      MAX_FILE_SIZE: ${{ secrets.MAX_FILE_SIZE }}
+      MAX_REQUEST_SIZE: ${{ secrets.MAX_REQUEST_SIZE }}
+      TOMCAT_CONNECTION_TIMEOUT: ${{ secrets.TOMCAT_CONNECTION_TIMEOUT }}
+      SPRING_ASYNC_TIMEOUT: ${{ secrets.SPRING_ASYNC_TIMEOUT }}
+      TOMCAT_KEEP_ALIVE_TIMEOUT: ${{ secrets.TOMCAT_KEEP_ALIVE_TIMEOUT }}
+
+      AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
+      AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_KEY }}
+      AWS_BUCKET_NAME: ${{ secrets.AWS_BUCKET_NAME }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      AWS_STACK_AUTO: ${{ secrets.AWS_STACK_AUTO }}
+
+      CORS_ALLOWED_ORIGINS: ${{ secrets.CORS_ALLOWED_ORIGINS }}
+      FRONTEND_URL: ${{ secrets.FRONTEND_URL }}
+
+      REDIS_HOST: ${{ secrets.REDIS_HOST }}
+      REDIS_PORT: ${{ secrets.REDIS_PORT }}
+      REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+
+      MAIL_HOST: ${{ secrets.MAIL_HOST }}
+      MAIL_PORT: ${{ secrets.MAIL_PORT }}
+      MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
+      MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+
+      - name: Grant permission to Gradle
+        run: chmod +x ./gradlew
+
+      - name: Build with Gradle
+        run: ./gradlew clean build --no-daemon
+
+      - name: Deploy to EC2 via SSH (예시)
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /home/ec2-user/app
+            git pull origin main
+            ./gradlew bootJar
+            pkill -f 'java -jar' || true
+            nohup java -jar build/libs/*.jar --spring.profiles.active=prod > app.log 2>&1 &
