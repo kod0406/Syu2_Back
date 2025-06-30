@@ -100,5 +100,3 @@ jobs:
             pm2 delete "$JAR_NAME" || true
             pm2 start "$JAR_NAME" --name "$JAR_NAME" --interpreter=none -- \
               --spring.profiles.active=prod
-              --spring.profiles.active=prod
-           
