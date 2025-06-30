@@ -8,6 +8,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class TestController {
     @GetMapping("/test/test/CICD")
     private String testCICD() {
-        return "testCICD is Working~!!!_ver3";
+        return "testCICD is Working~!!!_ver4";
     }
 }
