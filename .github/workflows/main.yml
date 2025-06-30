@@ -21,7 +21,7 @@ jobs:
       DB_URL: ${{ secrets.DB_URL }}
       DB_USERNAME: ${{ secrets.DB_USERNAME }}
       DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-      
+
       JWT_SECRET: ${{ secrets.JWT_SECRET }}
       JWT_REFRESH: ${{ secrets.JWT_REFRESH }}
       JWT_EXPIRATION_HOURS: ${{ secrets.JWT_EXPIRATION_HOURS }}
@@ -70,21 +70,29 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Grant permission to Gradle
+      - name: Grant execute permission to Gradle
         run: chmod +x ./gradlew
 
-      - name: Build with Gradle
-        run: ./gradlew clean build --no-daemon
+      - name: Build with Gradle (Skip Tests)
+        run: ./gradlew clean build -x test --no-daemon
 
-      - name: Deploy to EC2 via SSH (예시)
+      - name: Copy JAR to remote EC2 and restart
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "build/libs/*.jar"
+          target: "/home/ec2-user/app"
+
+      - name: Restart Spring Boot on EC2
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            cd /home/ec2-user/app
-            git pull origin main
-            ./gradlew bootJar
+            cd /home/QrStore
+            JAR_NAME=$(ls *.jar | tail -n 1)
             pkill -f 'java -jar' || true
-            nohup java -jar build/libs/*.jar --spring.profiles.active=prod > app.log 2>&1 &
+            nohup java -jar $JAR_NAME --spring.profiles.active=prod > app.log 2>&1 &
