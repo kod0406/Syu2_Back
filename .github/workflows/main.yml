@@ -97,7 +97,8 @@ jobs:
             nvm use node
             cd /home/ubuntu/QrStore
             JAR_NAME=$(ls -t *.jar | head -n 1)
-            pm2 delete spring || true
-            pm2 start "$JAR_NAME" --name spring --interpreter=none -- \
+            pm2 delete "$JAR_NAME" || true
+            pm2 start "$JAR_NAME" --name "$JAR_NAME" --interpreter=none -- \
+              --spring.profiles.active=prod
               --spring.profiles.active=prod
            
