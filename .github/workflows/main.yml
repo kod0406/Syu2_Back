@@ -17,7 +17,7 @@ jobs:
       SERVER_PORT: ${{ secrets.SERVER_PORT }}
       THYMELEAF_CACHE: ${{ secrets.THYMELEAF_CACHE }}
       JPA_DDL_AUTO: ${{ secrets.JPA_DDL_AUTO }}
-      
+
       DB_URL: ${{ secrets.DB_URL }}
       DB_USERNAME: ${{ secrets.DB_USERNAME }}
       DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
@@ -76,7 +76,7 @@ jobs:
       - name: Build with Gradle (Skip Tests)
         run: ./gradlew clean build -x test --no-daemon
 
-      - name: Copy JAR to remote EC2 and restart
+      - name: Copy JAR to remote EC2
         uses: appleboy/scp-action@v0.1.4
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -92,9 +92,12 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            nvm use node
             cd /home/ubuntu/QrStore
             JAR_NAME=$(ls -t *.jar | head -n 1)
             pm2 delete spring || true
-            pm2 start $JAR_NAME --name spring --interpreter=none -- \
+            pm2 start "$JAR_NAME" --name spring --interpreter=none -- \
               --spring.profiles.active=prod
             pm2 logs spring --lines 30
