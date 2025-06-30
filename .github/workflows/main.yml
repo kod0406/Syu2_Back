@@ -59,6 +59,5 @@ jobs:
             JAR_NAME=$(ls -t *.jar | head -n 1)
             echo "📦 가장 최신 JAR: $JAR_NAME"
             pm2 delete demo-app || true
-            pm2 start "$JAR_NAME" --name demo-app --interpreter=none -- \
-              --spring.profiles.active=prod
+            pm2 start "java -jar $JAR_NAME" --name demo-app
             pm2 save
