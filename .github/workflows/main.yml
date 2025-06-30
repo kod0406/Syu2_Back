@@ -93,6 +93,8 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             cd /home/QrStore
-            JAR_NAME=$(ls *.jar | tail -n 1)
-            pkill -f 'java -jar' || true
-            nohup java -jar $JAR_NAME --spring.profiles.active=prod > app.log 2>&1 &
+            JAR_NAME=$(ls -t *.jar | head -n 1)
+            pm2 delete spring || true
+            pm2 start $JAR_NAME --name spring --interpreter=none -- \
+              --spring.profiles.active=prod
+            pm2 logs spring --lines 30
