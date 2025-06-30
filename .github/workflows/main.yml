@@ -47,6 +47,7 @@ jobs:
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
             nvm use node
             cd /home/ubuntu/QrStore
+            mkdir -p src/main/resources
 
             echo "🔧 Generating application.properties..."
             cat <<EOF > src/main/resources/application.properties
