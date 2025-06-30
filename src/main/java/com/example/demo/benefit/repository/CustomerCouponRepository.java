@@ -25,6 +25,11 @@ public interface CustomerCouponRepository extends JpaRepository<CustomerCoupon, 
     @Query("DELETE FROM CustomerCoupon cc WHERE cc.couponStatus = :status")
     int deleteByCouponStatus(@Param("status") com.example.demo.benefit.entity.CouponStatus status);
 
+    // 특정 쿠폰을 발급받은 모든 고객 쿠폰 삭제 (상점 탈퇴 시 사용)
+    @Modifying
+    @Query("DELETE FROM CustomerCoupon cc WHERE cc.coupon = :coupon")
+    int deleteByCoupon(@Param("coupon") Coupon coupon);
+
     @Query("""
         SELECT c.coupon.couponName
         FROM CustomerCoupon c

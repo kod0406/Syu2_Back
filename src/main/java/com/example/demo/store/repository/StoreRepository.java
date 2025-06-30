@@ -7,4 +7,6 @@ import java.util.Optional;
 
 public interface StoreRepository extends JpaRepository<Store, Long> {
     Optional<Store> findByOwnerEmail(String email);
+    Optional<Store> findByEmailVerificationToken(String token);
+    Optional<Store> findByPasswordResetToken(String token);
 }

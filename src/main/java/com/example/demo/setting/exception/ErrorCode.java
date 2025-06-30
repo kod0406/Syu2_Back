@@ -29,7 +29,13 @@ public enum ErrorCode {
     CUSTOMER_COUPON_NOT_FOUND("U007", "해당 UUID의 쿠폰을 찾을 수 없습니다."),
 
     //비밀번호
-    PASSWORD_EXCEPTION("USER001", "비밀번호 오류");
+    PASSWORD_EXCEPTION("USER001", "비밀번호 오류"),
+
+    //이메일 인증 관련
+    EMAIL_NOT_VERIFIED("AUTH001", "이메일 인증이 필요합니다. 메일함을 확인해주세요."),
+    INVALID_VERIFICATION_TOKEN("AUTH002", "유효하지 않은 인증 토큰입니다."),
+    EXPIRED_VERIFICATION_TOKEN("AUTH003", "인증 토큰이 만료되었습니다. 재발송을 요청해주세요."),
+    EMAIL_ALREADY_VERIFIED("AUTH004", "이미 인증된 이메일입니다.");
     private final String code;
     private final String message;
 }

@@ -9,6 +9,7 @@ import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.time.LocalDateTime;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -26,6 +27,14 @@ public class Store implements AppUser {
     private String password;
 
     private String provider;
+
+    // 이메일 인증 관련 필드
+    @Builder.Default
+    private boolean emailVerified = false;
+
+    private String emailVerificationToken;
+
+    private LocalDateTime emailVerificationExpiry;
 
     @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<QR_Code> qr_Code = new ArrayList<>();
@@ -58,5 +67,46 @@ public class Store implements AppUser {
     }
     // 매장 이름으로 검색
 
+    // 이메일 인증 관련 메서드
+    public void verifyEmail() {
+        this.emailVerified = true;
+        this.emailVerificationToken = null;
+        this.emailVerificationExpiry = null;
+    }
 
+    public void setEmailVerificationToken(String token, LocalDateTime expiry) {
+        this.emailVerificationToken = token;
+        this.emailVerificationExpiry = expiry;
+    }
+
+    public boolean isEmailVerificationExpired() {
+        return emailVerificationExpiry != null && LocalDateTime.now().isAfter(emailVerificationExpiry);
+    }
+
+    // 매장 정보 업데이트 메서드
+    public void updateStoreName(String newStoreName) {
+        this.storeName = newStoreName;
+    }
+
+    public void updatePassword(String newPassword) {
+        this.password = newPassword;
+    }
+
+    // 비밀번호 재설정 관련 필드 및 메서드
+    private String passwordResetToken;
+    private LocalDateTime passwordResetExpiry;
+
+    public void setPasswordResetToken(String token, LocalDateTime expiry) {
+        this.passwordResetToken = token;
+        this.passwordResetExpiry = expiry;
+    }
+
+    public void clearPasswordResetToken() {
+        this.passwordResetToken = null;
+        this.passwordResetExpiry = null;
+    }
+
+    public boolean isPasswordResetTokenExpired() {
+        return passwordResetExpiry != null && LocalDateTime.now().isAfter(passwordResetExpiry);
+    }
 }
