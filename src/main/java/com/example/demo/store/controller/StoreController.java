@@ -371,7 +371,7 @@ public class StoreController {
             ResponseCookie accessTokenCookie = ResponseCookie.from("access_token", accessToken)
                     .httpOnly(false) // 액세스 토큰은 JavaScript에서 접근 가능해야 함
                     .secure(true) // HTTPS 환경에서 필수
-                    .domain("igo.ai.kr") // 도메인 명시적 설정 (운영)
+                    //.domain("igo.ai.kr") // 도메인 명시적 설정 (운영)
                     .path("/")
                     .maxAge(jwtTokenProvider.getAccessTokenExpirationMillis() / 1000) // 밀리초를 초로 변환
                     .sameSite("Lax")
@@ -382,7 +382,7 @@ public class StoreController {
             ResponseCookie refreshTokenCookie = ResponseCookie.from("refresh_token", refreshToken)
                     .httpOnly(true)
                     .secure(true) // HTTPS 환경에서 필수
-                    .domain("igo.ai.kr") // 도메인 명시적 설정 (운영)
+                    //.domain("igo.ai.kr") // 도메인 명시적 설정 (운영)
                     .path("/")
                     .maxAge(refreshTokenExpirationMillis / 1000) //밀리초를 초로 변환
                     .sameSite("Lax")
