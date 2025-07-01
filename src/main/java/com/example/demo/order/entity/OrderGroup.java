@@ -28,6 +28,8 @@ public class OrderGroup {
 
     private boolean active;
 
+    private boolean approved;
+
     @OneToMany(mappedBy = "orderGroup", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CustomerStatistics> customerStatisticsList = new ArrayList<>();
 
@@ -35,4 +37,7 @@ public class OrderGroup {
         this.active = true;
     }
 
+    public void markAsApproved() {
+        this.approved = true;
+    }
 }

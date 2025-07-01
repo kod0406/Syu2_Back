@@ -45,32 +45,6 @@ public class KakaoPayProvider {
     //tid값 클라이언트에서 받아오게 수정
     private String tid;
 
-//    public KakaoPayResponse.ReadyResponse ready(KakaoPayRequest.OrderRequest request) {
-//
-//        Map<String, String> parameters = new HashMap<>();
-//
-//        parameters.put("cid", cid); // 가맹점 코드, 테스트용은 TC0ONETIME
-//        parameters.put("partner_order_id", "1234567890"); // 주문번호, 임시 : 1234567890
-//        parameters.put("partner_user_id", "1234567890"); // 회원아이디, 임시 : 1234567890
-//        parameters.put("item_name", request.getItemName()); // 상품명
-//        parameters.put("quantity", request.getQuantity()); // 상품 수량
-//        parameters.put("total_amount", request.getTotalPrice()); // 상품 총액
-//        parameters.put("tax_free_amount", "0"); // 상품 비과세 금액
-//        parameters.put("approval_url", "https://igo.ai.kr/api/v1/kakao-pay/approve?orderGroupId=" + request.getOrderGroup().getId()); // 결제 성공 시 redirct URL
-//        parameters.put("cancel_url", "https://igo.ai.kr/api/v1/kakao-pay/cancel"); // 결제 취소 시
-//        parameters.put("fail_url", "https://igo.ai.kr/kakao-pay/fail"); // 결제 실패 시
-//
-//        HttpEntity<Map<String, String>> entity = new HttpEntity<>(parameters, getHeaders());
-//
-//        RestTemplate restTemplate = new RestTemplate();
-//        String url = "https://open-api.kakaopay.com/online/v1/payment/ready";
-//        ResponseEntity<KakaoPayResponse.ReadyResponse> response = restTemplate.postForEntity(url, entity, KakaoPayResponse.ReadyResponse.class);
-//
-//        tid = Objects.requireNonNull(response.getBody()).getTid();
-//        log.info("로그: " + response.getBody().getTid());
-//        return response.getBody();
-//    }
-
     public KakaoPayResponse.RedirectUrlResponse ready(KakaoPayRequest.OrderRequest request, String userAgent) {
         Map<String, String> parameters = new HashMap<>();
         parameters.put("cid", cid);
@@ -204,11 +178,10 @@ public class KakaoPayProvider {
             customerPointRepository.save(customerPoint); // 최종 저장
         }
 
-        Long storeId = orderGroup.getStoreId();
-        OrderGroupBatchMessage message = webBroadCast.createInactiveOrderGroupMessage(storeId);
+//        Long storeId = orderGroup.getStoreId();
+//        OrderGroupBatchMessage message = webBroadCast.createInactiveOrderGroupMessage(storeId);
+//        messagingTemplate.convertAndSend("/topic/orders/" + storeId, message);
 
-
-        messagingTemplate.convertAndSend("/topic/orders/" + storeId, message);
         //웹 소켓 추가 끝
         Map<String, String> parameters = new HashMap<>();
         parameters.put("cid", cid);
@@ -223,6 +196,8 @@ public class KakaoPayProvider {
         String url = "https://open-api.kakaopay.com/online/v1/payment/approve";
         ResponseEntity<KakaoPayResponse.ApproveResponse> response =
                 restTemplate.postForEntity(url, entity, KakaoPayResponse.ApproveResponse.class);
+
+        orderGroup.markAsApproved();
 
         return response.getBody();
     }

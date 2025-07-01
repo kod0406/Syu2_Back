@@ -55,7 +55,7 @@ public class ReviewController {
         if (!memberValidUtil.isCustomer(customer)) {
             throw new UnauthorizedException("로그인이 필요합니다.");
         }
-
+        reviewService.deleteReview(customer);
         List<UnreviewedStatisticsDto> reviewList = reviewService.getUnreviewedStatisticsByCustomer(customer);
         return ResponseEntity.ok(reviewList);
 

@@ -55,7 +55,9 @@ public class WebBroadCast {
     private final CustomerCouponRepository customerCouponRepository;
 
     public OrderGroupBatchMessage createInactiveOrderGroupMessage(Long storeId) {
-        List<OrderGroup> inactiveGroups = orderGroupRepository.findAllByStoreIdAndActiveFalse(storeId);
+        //List<OrderGroup> inactiveGroups = orderGroupRepository.findAllByStoreIdAndActiveFalse(storeId);
+        List<OrderGroup> inactiveGroups = orderGroupRepository.findAllByStoreIdAndActiveFalseAndApprovedTrue(storeId);
+
 
         List<OrderGroupBatchMessage.OrderGroupEntry> groupEntries = inactiveGroups.stream()
                 .map(group -> {

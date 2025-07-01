@@ -1,5 +1,6 @@
 package com.example.demo.customer.service;
 
+import com.example.demo.order.repository.OrderGroupRepository;
 import com.example.demo.setting.util.S3UploadService;
 import com.example.demo.customer.dto.CustomerReviewDto;
 import com.example.demo.customer.dto.ReviewWriteDTO;
@@ -13,6 +14,8 @@ import com.example.demo.customer.repository.CustomerReviewCollectRepository;
 import com.example.demo.customer.repository.CustomerStatisticsRepository;
 import com.example.demo.store.repository.StoreMenuRepository;
 import com.example.demo.store.repository.StoreRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -28,6 +31,11 @@ public class ReviewService {
     private final CustomerReviewCollectRepository customerReviewCollectRepository;
     private final StoreRepository storeRepository;
     private final StoreMenuRepository storeMenuRepository;
+    private final OrderGroupRepository orderGroupRepository;
+
+    @PersistenceContext
+    private EntityManager em;
+
 
     public List<UnreviewedStatisticsDto> getUnreviewedStatisticsByCustomer(Customer customer) {
         List<CustomerStatistics> unreviewedList = customerStatisticsRepository.findByCustomerAndReviewedFalse(customer);
@@ -63,6 +71,12 @@ public class ReviewService {
         return reviews.stream()
                 .map(CustomerReviewDto::fromEntity)
                 .toList();
+    }
+
+    @Transactional
+    public void deleteReview(Customer customer) {
+        orderGroupRepository.deleteAllByCustomerAndApproved(customer, false);
+        em.clear();
     }
 
 }
