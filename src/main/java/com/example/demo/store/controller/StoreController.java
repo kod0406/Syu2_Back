@@ -317,8 +317,10 @@ public class StoreController {
         try {
             // 1. 인증 처리 (이메일 인증 상태 포함)
             Store store = storeService.authenticateStore(loginDTO.getOwnerEmail(), loginDTO.getPassword());
+
             String ownerEmail = store.getOwnerEmail();
             log.info("[로그인 인증 성공] 매장: {}, 이메일: {}", store.getStoreName(), ownerEmail);
+
 
             // 2. 기기 정보 추출
             String userAgent = request.getHeader("User-Agent");
@@ -340,6 +342,7 @@ public class StoreController {
             } else {
                 log.info("[세션 정보] 신규 로그인 - 이메일: {}", ownerEmail);
             }
+
 
             // 5. 리프레시 토큰 저장 (Redis) - 기존 세션 자동 무효화
             long refreshTokenExpirationMillis = jwtTokenProvider.getRefreshTokenExpirationMillis();
