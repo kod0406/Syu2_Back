@@ -414,7 +414,7 @@ public class EmailService {
     private String createPasswordResetContent(String storeName, String resetToken) {
         String resetUrl = frontendUrl + "/reset-password?token=" + resetToken;
 
-        return """
+        return String.format("""
                 <!DOCTYPE html>
                 <html>
                 <head>
@@ -444,8 +444,12 @@ public class EmailService {
                 <a href="%s" class="button">🔄 비밀번호 재설정하기</a>
                 </div>
                 
-                <p>이 링크는 <strong>10분</strong> 동안 유효합니다.</p>
                 <p>링크가 작동하지 않으면 URL을 복사하여 브라우저에 직접 붙여넣어 주세요.</p>
+                
+                <p><strong>인증 링크:</strong></p>
+                <p style="word-break: break-all; background: #f4f4f4; padding: 10px; border-radius: 4px;">
+                %s
+                </p>
                 
                 <div style="background: #e8f5e9; padding: 15px; border-left: 4px solid #4CAF50; margin: 20px 0;">
                 <h4>✅ 비밀번호 재설정 완료 후</h4>
@@ -463,7 +467,7 @@ public class EmailService {
                 </div>
                 </body>
                 </html>
-                """.formatted(storeName, resetUrl);
+                """, storeName, resetUrl, resetUrl);
     }
 
     /**
