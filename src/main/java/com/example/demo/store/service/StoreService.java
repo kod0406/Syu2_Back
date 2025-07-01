@@ -291,7 +291,10 @@ public class StoreService {
                 });
 
         if (store.isPasswordResetTokenExpired()) {
-            log.warn("[비밀번호 재설정 실패] ��료된 토큰. 이메일: {}", store.getOwnerEmail());
+            log.warn("[비밀번호 재설정 실패] 만료된 토큰. 이메일: {}", store.getOwnerEmail());
+            // 만료된 토큰 정리
+            store.clearPasswordResetToken();
+            storeRepository.save(store);
             throw new BusinessException(ErrorCode.EXPIRED_VERIFICATION_TOKEN);
         }
 
