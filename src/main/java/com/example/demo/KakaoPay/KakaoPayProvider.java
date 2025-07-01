@@ -178,9 +178,9 @@ public class KakaoPayProvider {
             customerPointRepository.save(customerPoint); // 최종 저장
         }
 
-//        Long storeId = orderGroup.getStoreId();
-//        OrderGroupBatchMessage message = webBroadCast.createInactiveOrderGroupMessage(storeId);
-//        messagingTemplate.convertAndSend("/topic/orders/" + storeId, message);
+        Long storeId = orderGroup.getStoreId();
+        OrderGroupBatchMessage message = webBroadCast.createInactiveOrderGroupMessage(storeId);
+        messagingTemplate.convertAndSend("/topic/orders/" + storeId, message);
 
         //웹 소켓 추가 끝
         Map<String, String> parameters = new HashMap<>();

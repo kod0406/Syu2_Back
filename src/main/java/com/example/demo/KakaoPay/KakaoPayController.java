@@ -55,14 +55,14 @@ public class KakaoPayController {
     @Operation(summary = "카카오페이 결제 승인", description = "사용자가 카카오페이 결제를 성공적으로 완료한 후, 카카오로부터 리다이렉트되는 엔드포인트입니다. 결제 승인 처리를 진행하고, 성공 시 지정된 페이지로 리다이렉트됩니다.")
     @GetMapping("/approve")
     public ResponseEntity<Void> approve(@RequestParam("pg_token") String pgToken,
-                                        @RequestParam("orderGroupId") Long orderGroupId, @AuthenticationPrincipal Store store) {
+                                        @RequestParam("orderGroupId") Long orderGroupId) {
         //DB 저장 로직 추가
         kakaoPayProvider.approve(pgToken, orderGroupId);
         //KakaoPayRequest.OrderRequest request = customerOrderService.order(orders, customer, storeId);;
-        long storeId = store.getStoreId();
+        //long storeId = store.getId();
 
-        OrderGroupBatchMessage message = webBroadCast.createInactiveOrderGroupMessage(storeId);
-        messagingTemplate.convertAndSend("/topic/orders/" + storeId, message);
+//        OrderGroupBatchMessage message = webBroadCast.createInactiveOrderGroupMessage(storeId);
+//        messagingTemplate.convertAndSend("/topic/orders/" + storeId, message);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setLocation(URI.create(frontendUrl + "/")); // ✅ 결제 완료 후 이동할 URL (React 메인 페이지 등)
