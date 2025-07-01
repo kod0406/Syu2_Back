@@ -335,20 +335,18 @@ public class StoreController {
             boolean hadPreviousSession = tokenRedisService.hasActiveSession(ownerEmail);
             String previousSessionInfo = tokenRedisService.getSessionInfo(ownerEmail);
 
-            if (hadPreviousSession) {
-                log.info("[세션 정보] 기존 활성 세션 존재 - 이메일: {}", ownerEmail);
-            } else {
-                log.info("[세션 정보] 신규 로그인 - 이메일: {}", ownerEmail);
-            }
-
             // 5. 리프레시 토큰 저장 (Redis) - 기존 세션 자동 무효화
             long refreshTokenExpirationMillis = jwtTokenProvider.getRefreshTokenExpirationMillis();
-            tokenRedisService.saveRefreshToken(ownerEmail, refreshToken, refreshTokenExpirationMillis, deviceInfo);
+            boolean wasExistingSession = tokenRedisService.saveRefreshToken(ownerEmail, refreshToken, refreshTokenExpirationMillis, deviceInfo, accessToken);
+
+            if (wasExistingSession) {
+                log.warn("🔒 기존 세션 무효화 완료 - 이메일: {}, 새 기기: {}", ownerEmail, deviceInfo);
+            }
             log.info("[Redis 저장] 리프레시 토큰 저장 완료 - 이메일: {}", ownerEmail);
 
             // 6. 로그인 이메일 알림 발송
             if (hadPreviousSession && previousSessionInfo != null && !isSameDevice(previousSessionInfo, deviceInfo)) {
-                log.warn("[보안 알림] 다른 기기에서 로그인 감지 - 이메일: {}, 기기정보: {}", ownerEmail, deviceInfo);
+                log.warn("⚠️ [보안 알림] 다른 기기에서 로그인 감지 - 이메일: {}, 기기정보: {}", ownerEmail, deviceInfo);
                 // 다른 기기에서 로그인 시 보안 경고 이메일
                 emailService.sendSuspiciousLoginAlert(
                         ownerEmail,
@@ -463,7 +461,7 @@ public class StoreController {
         }
     }
 
-    @Operation(summary = "매장 QR코드 다운로드", description = "매장 ID로 저장된 QR 코���를 다운로드합니다.")
+    @Operation(summary = "매장 QR코드 다운로드", description = "매장 ID로 저장된 QR 코드를 다운로드합니다.")
     @GetMapping("/{storeId}/qrcode/download")
     public ResponseEntity<byte[]> downloadStoreQrCode(
             @Parameter(description = "매장 ID") @PathVariable Long storeId,
@@ -484,7 +482,7 @@ public class StoreController {
                                                 @AuthenticationPrincipal Store store) throws IOException, WriterException {
         memberValidUtil.validateIsStore(store);
         QR_Code qrCode = qrCodeRepository.findByStoreStoreId(storeId)
-                .orElseThrow(() -> new IllegalArgumentException("QR 코드가 생성되지 않았습니���."));
+                .orElseThrow(() -> new IllegalArgumentException("QR 코드가 생성되지 않았습니다."));
         String fullUrl = qrCode.getQR_Code();
         String qrCodeBase64 = qrCodeService.generateQrCodeBase64(fullUrl, 250, 250);
         Map<String, String> response = new HashMap<>();
@@ -504,7 +502,7 @@ public class StoreController {
         return ResponseEntity.ok(storeSales);
     }
 
-    @Operation(summary = "현재 로그인된 매장 프로필 조회", description = "현재 로그��된 매장의 기본 정보를 조회합니다.")
+    @Operation(summary = "현재 로그인된 매장 프로필 조회", description = "현재 로그인된 매장의 기본 정보를 조회합니다.")
     @SecurityRequirement(name = "access_token")
     @GetMapping("/profile")
     public ResponseEntity<?> getCurrentStoreProfile(@AuthenticationPrincipal Store store) {
@@ -580,7 +578,7 @@ public class StoreController {
                 }
             }
 
-            // 기기 판별 로���
+            // 기기 판별 로직
             boolean sameIP = previousIp.equals(currentIp);
             boolean similarUA = isSimilarUserAgent(previousUA, currentUA);
 

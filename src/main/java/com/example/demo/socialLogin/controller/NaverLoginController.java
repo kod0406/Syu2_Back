@@ -71,7 +71,11 @@ public class NaverLoginController {
 
         // 리프레시 토큰 저장 (Redis) - 기존 세션 자동 무효화
         long refreshTokenExpirationMillis = jwtTokenProvider.getRefreshTokenExpirationMillis();
-        tokenRedisService.saveRefreshToken(tokenResponse, refreshToken, refreshTokenExpirationMillis, deviceInfo);
+        boolean wasExistingSession = tokenRedisService.saveRefreshToken(tokenResponse, refreshToken, refreshTokenExpirationMillis, deviceInfo, jwt);
+
+        if (wasExistingSession) {
+            log.warn("🔒 네이버 로그인 - 기존 세션 무효화 완료, 네이버ID: {}", tokenResponse);
+        }
 
         // 액세스 토큰 쿠키 설정
         ResponseCookie accessTokenCookie = JwtCookieUtil.createAccessTokenCookie(jwt);

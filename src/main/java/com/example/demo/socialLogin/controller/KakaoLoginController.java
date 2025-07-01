@@ -78,7 +78,11 @@ public class KakaoLoginController {
 
         // 리프레시 토큰 저장 (Redis) - 기존 세션 자동 무효화
         long refreshTokenExpirationMillis = jwtTokenProvider.getRefreshTokenExpirationMillis();
-        tokenRedisService.saveRefreshToken(kakaoId, refreshToken, refreshTokenExpirationMillis, deviceInfo);
+        boolean wasExistingSession = tokenRedisService.saveRefreshToken(kakaoId, refreshToken, refreshTokenExpirationMillis, deviceInfo, jwt);
+
+        if (wasExistingSession) {
+            log.warn("🔒 카카오 로그인 - 기존 세션 무효화 완료, 카카오ID: {}", kakaoId);
+        }
 
         // 액세스 토큰 쿠키 설정
         ResponseCookie accessTokenCookie = JwtCookieUtil.createAccessTokenCookie(jwt);
