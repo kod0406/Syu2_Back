@@ -58,12 +58,6 @@ public class KakaoPayController {
                                         @RequestParam("orderGroupId") Long orderGroupId) {
         //DB 저장 로직 추가
         kakaoPayProvider.approve(pgToken, orderGroupId);
-        //KakaoPayRequest.OrderRequest request = customerOrderService.order(orders, customer, storeId);;
-        //long storeId = store.getId();
-
-//        OrderGroupBatchMessage message = webBroadCast.createInactiveOrderGroupMessage(storeId);
-//        messagingTemplate.convertAndSend("/topic/orders/" + storeId, message);
-
         HttpHeaders headers = new HttpHeaders();
         headers.setLocation(URI.create(frontendUrl + "/")); // ✅ 결제 완료 후 이동할 URL (React 메인 페이지 등)
 
