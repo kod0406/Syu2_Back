@@ -107,6 +107,17 @@ public class Store implements AppUser {
     }
 
     public boolean isPasswordResetTokenExpired() {
-        return passwordResetExpiry != null && LocalDateTime.now().isAfter(passwordResetExpiry);
+        // 토큰이나 만료시간이 없으면 만료된 것으로 간주
+        if (passwordResetToken == null || passwordResetExpiry == null) {
+            return true;
+        }
+        return LocalDateTime.now().isAfter(passwordResetExpiry);
+    }
+
+    // 토큰이 유효한지 확인하는 메서드 추가
+    public boolean isPasswordResetTokenValid() {
+        return passwordResetToken != null &&
+               passwordResetExpiry != null &&
+               !LocalDateTime.now().isAfter(passwordResetExpiry);
     }
 }

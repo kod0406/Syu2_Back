@@ -191,6 +191,10 @@ public class StoreMenuManagementController {
             if (image != null && !image.isEmpty()) {
                 String imageUrl = s3UploadService.uploadFile(image);
                 menuRequestDto.setImageUrl(imageUrl);
+            } else {
+                // 이미지가 없으면 기존 이미지 URL을 세팅
+                String oldImageUrl = storeMenuService.getMenuImageUrl(menuId);
+                menuRequestDto.setImageUrl(oldImageUrl);
             }
 
             MenuResponseDto updatedMenu = storeMenuService.updateMenu(storeId, menuId, menuRequestDto);
@@ -348,4 +352,3 @@ public class StoreMenuManagementController {
         return ResponseEntity.status(status).body(errorResponse);
     }
 }
-
