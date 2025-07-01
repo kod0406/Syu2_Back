@@ -177,9 +177,13 @@ public class KakaoPayProvider {
 
             customerPointRepository.save(customerPoint); // 최종 저장
         }
-
+        orderGroup.markAsApproved();
         Long storeId = orderGroup.getStoreId();
+
+
+
         OrderGroupBatchMessage message = webBroadCast.createInactiveOrderGroupMessage(storeId);
+        log.info(String.valueOf(message));
         messagingTemplate.convertAndSend("/topic/orders/" + storeId, message);
 
         //웹 소켓 추가 끝
@@ -197,7 +201,6 @@ public class KakaoPayProvider {
         ResponseEntity<KakaoPayResponse.ApproveResponse> response =
                 restTemplate.postForEntity(url, entity, KakaoPayResponse.ApproveResponse.class);
 
-        orderGroup.markAsApproved();
 
         return response.getBody();
     }

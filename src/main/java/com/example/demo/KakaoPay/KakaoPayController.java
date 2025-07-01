@@ -33,9 +33,6 @@ public class KakaoPayController {
 
     private final KakaoPayProvider kakaoPayProvider;
     private final CustomerOrderService customerOrderService;
-    private final MemberValidUtil memberValidUtil;
-    private final SimpMessagingTemplate messagingTemplate;
-    private final WebBroadCast webBroadCast;
 
     @Value("${frontend.url}")
     private String frontendUrl;
