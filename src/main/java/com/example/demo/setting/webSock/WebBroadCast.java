@@ -56,7 +56,7 @@ public class WebBroadCast {
 
     public OrderGroupBatchMessage createInactiveOrderGroupMessage(Long storeId) {
         //List<OrderGroup> inactiveGroups = orderGroupRepository.findAllByStoreIdAndActiveFalse(storeId);
-        List<OrderGroup> inactiveGroups = orderGroupRepository.findAllByStoreIdAndActiveFalse(storeId);
+        List<OrderGroup> inactiveGroups = orderGroupRepository.findAllByStoreIdAndActiveFalseAndApprovedTrue(storeId);
 
 
         List<OrderGroupBatchMessage.OrderGroupEntry> groupEntries = inactiveGroups.stream()
