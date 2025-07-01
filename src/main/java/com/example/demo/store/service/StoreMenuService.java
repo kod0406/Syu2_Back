@@ -202,4 +202,12 @@ public class StoreMenuService {
                 storeMenu.getCategory()
         );
     }
+
+    // 메뉴 이미지 URL 반환
+    @Transactional(readOnly = true)
+    public String getMenuImageUrl(Long menuId) {
+        StoreMenu storeMenu = storeMenuRepository.findById(menuId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.STORE_MENU_EXCEPTION));
+        return storeMenu.getImageUrl();
+    }
 }
