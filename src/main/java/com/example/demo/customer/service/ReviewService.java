@@ -1,5 +1,6 @@
 package com.example.demo.customer.service;
 
+import com.example.demo.order.entity.OrderGroup;
 import com.example.demo.order.repository.OrderGroupRepository;
 import com.example.demo.setting.util.S3UploadService;
 import com.example.demo.customer.dto.CustomerReviewDto;
@@ -75,8 +76,15 @@ public class ReviewService {
 
     @Transactional
     public void deleteReview(Customer customer) {
-        orderGroupRepository.deleteAllByCustomerAndApproved(customer, false);
-        em.clear();
+        List<OrderGroup> toDelete = orderGroupRepository.findAllByCustomerAndApproved(customer, false);
+
+        for (OrderGroup orderGroup : toDelete) {
+            // 연관된 CustomerStatistics 먼저 삭제 (연관관계가 orphanRemoval=false라면 필수)
+            customerStatisticsRepository.deleteAll(orderGroup.getCustomerStatisticsList());
+        }
+
+        // 그 다음 OrderGroup 자체 삭제
+        orderGroupRepository.deleteAll(toDelete);
     }
 
 }

@@ -18,4 +18,6 @@ public interface OrderGroupRepository extends JpaRepository<OrderGroup, Long> {
     @Modifying
     @Query("DELETE FROM OrderGroup o WHERE o.customer = :customer AND o.approved = :approved")
     void deleteAllByCustomerAndApproved(@Param("customer") Customer customer, @Param("approved") boolean approved);
+
+    List<OrderGroup> findAllByCustomerAndApproved(Customer customer, boolean b);
 }
