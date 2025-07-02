@@ -34,10 +34,14 @@ public class CouponService {
         //만료됐는지 검사
         validateExpiryPolicy(requestDto);
 
+        LocalDateTime now = LocalDateTime.now();
         LocalDateTime issueStartTime = requestDto.getIssueStartTime();
         log.info("쿠폰 생성 시간" + issueStartTime);
 
         // 미래의 특정 시간으로 발급이 예약된 경우는, 해당 시간이 그대로 유지됩니다.
+        if (issueStartTime == null || !issueStartTime.isAfter(now)) {
+            issueStartTime = now;
+        }
 
         Coupon coupon = Coupon.builder()
                 .couponName(requestDto.getCouponName())

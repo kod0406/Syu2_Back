@@ -4,6 +4,7 @@ import com.example.demo.setting.jwt.JwtAuthenticationFilter;
 import com.example.demo.setting.jwt.JwtTokenProvider;
 import com.example.demo.customer.repository.CustomerRepository;
 import com.example.demo.store.repository.StoreRepository;
+import com.example.demo.setting.util.TokenRedisService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,6 +29,7 @@ public class SecurityConfig {
     private final JwtTokenProvider jwtTokenProvider;
     private final CustomerRepository customerRepository;
     private final StoreRepository storeRepository;
+    private final TokenRedisService tokenRedisService;
 
 
     @Bean
@@ -37,7 +39,7 @@ public class SecurityConfig {
 
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
-        return new JwtAuthenticationFilter(jwtTokenProvider, customerRepository, storeRepository);
+        return new JwtAuthenticationFilter(jwtTokenProvider, customerRepository, storeRepository, tokenRedisService);
     }
 
 

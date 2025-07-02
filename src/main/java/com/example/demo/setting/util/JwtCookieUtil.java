@@ -15,7 +15,7 @@ public class JwtCookieUtil {
 
     public static ResponseCookie createAccessTokenCookie(String jwt) {
         return ResponseCookie.from(COOKIE_NAME, jwt)
-                .httpOnly(true)
+                .httpOnly(false) // JS에서 접근 가능하도록 변경
                 .secure(true) // HTTPS 환경에서 필수
                 .domain("igo.ai.kr") // 도메인 명시적 설정
                 .path("/")
