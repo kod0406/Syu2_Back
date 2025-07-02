@@ -26,8 +26,8 @@ public interface CouponRepository extends JpaRepository<Coupon, Long> {
 
     @Query("SELECT c FROM Coupon c WHERE c.status = 'ACTIVE' " +
             "AND (c.totalQuantity > c.issuedQuantity) " +
-            "AND (c.issueStartTime IS NULL OR c.issueStartTime <= CURRENT_TIMESTAMP)")
-    List<Coupon> findAllAvailableCoupons();
+            "AND (c.issueStartTime IS NULL OR c.issueStartTime <= :now)")
+    List<Coupon> findAllAvailableCoupons(@Param("now") LocalDateTime now);
 
     // ID와 스토어로 쿠폰 찾기
     Optional<Coupon> findByIdAndStore(Long id, Store store);

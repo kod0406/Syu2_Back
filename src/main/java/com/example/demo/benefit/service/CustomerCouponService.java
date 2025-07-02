@@ -96,7 +96,7 @@ public class CustomerCouponService {
 
     @Transactional(readOnly = true)
     public List<CouponDto> getAllAvailableCoupons() {
-        List<Coupon> availableCoupons = couponRepository.findAllAvailableCoupons();
+        List<Coupon> availableCoupons = couponRepository.findAllAvailableCoupons(LocalDateTime.now());
         return availableCoupons.stream()
                 .map(CouponDto::fromEntity)
                 .collect(Collectors.toList());
