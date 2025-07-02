@@ -19,6 +19,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +28,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
+@Slf4j
 @RequestMapping("/api/store/coupons")
 @Tag(name = "매장 쿠폰 관리", description = "매장 관리자용 쿠폰 관리 API")
 public class StoreCouponManagementController {
@@ -111,6 +113,7 @@ public class StoreCouponManagementController {
 
         memberValidUtil.validateIsStore(store);
         CouponDto createdCoupon = couponService.createCoupon(couponCreateRequestDto, store.getId());
+        log.info("return 전 시간" + createdCoupon.getIssueStartTime());
         return ResponseEntity.status(HttpStatus.CREATED).body(createdCoupon);
 
     }
