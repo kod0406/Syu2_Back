@@ -53,7 +53,7 @@ public class CouponService {
                 .applicableCategories(requestDto.getApplicableCategories())
                 .store(store)
                 .build();
-
+        log.info("쿠폰 저장 직전 생성 시간" + coupon.getIssueStartTime());
         Coupon savedCoupon = couponRepository.save(coupon);
         return CouponDto.fromEntity(savedCoupon);
     }
