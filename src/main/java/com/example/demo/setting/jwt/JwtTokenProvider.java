@@ -2,11 +2,13 @@ package com.example.demo.setting.jwt;
 
 import com.example.demo.customer.repository.CustomerRepository;
 import com.example.demo.store.repository.StoreRepository;
+import com.example.demo.setting.util.TokenRedisService;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -15,15 +17,16 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class JwtTokenProvider {
     private final CustomerRepository customerRepository;
     private final StoreRepository storeRepository;
-    // JWT 비밀 키 (base64 인코딩 또는 하드코딩된 키)
+    private final TokenRedisService tokenRedisService;
+    
     @Value("${jwt.secret}")
     private String secretKeyEncoded;
-
 
     @Value("${jwt.expiration-hours}")
     @Getter
@@ -35,7 +38,6 @@ public class JwtTokenProvider {
 
     private Key key;
 
-    // secretKey → Key 객체로 변환 (애플리케이션 시작 시 실행)
     @PostConstruct
     protected void init() {
         this.key = Keys.hmacShaKeyFor(secretKeyEncoded.getBytes());
@@ -43,7 +45,7 @@ public class JwtTokenProvider {
 
     /**
      * JWT 토큰 생성
-     * @param userId 사용자 ID (문자열로 저장됨)
+     * @param userId 사용자 ID
      * @param role 사용자 역할
      * @return 생성된 JWT 토큰
      */
@@ -114,11 +116,38 @@ public class JwtTokenProvider {
     }
 
     /**
-     * 토큰 유효성 검증
+     * 강화된 토큰 유효성 검증 (Redis 무효화 확인 포함)
      * @param token JWT
      * @return 유효하면 true, 그렇지 않으면 false
      */
     public boolean validateToken(String token) {
+        try {
+            // 1. 기본 JWT 토큰 검증
+            Jwts.parserBuilder().setSigningKey(key).build()
+                    .parseClaimsJws(token);
+            
+            // 2. Redis에서 토큰 무효화 상태 확인
+            if (tokenRedisService.isTokenInvalidated(token)) {
+                log.warn("🚫 무효화된 토큰 사용 시도: {}", token.substring(0, Math.min(20, token.length())) + "...");
+                return false;
+            }
+            
+            return true;
+        } catch (ExpiredJwtException e) {
+            log.debug("⏰ 만료된 토큰: {}", e.getMessage());
+            return false;
+        } catch (JwtException | IllegalArgumentException e) {
+            log.debug("❌ 잘못된 토큰: {}", e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * 기존 토큰 유효성 검증 (Redis 확인 없이)
+     * @param token JWT
+     * @return 유효하면 true, 그렇지 않으면 false
+     */
+    public boolean validateTokenWithoutRedisCheck(String token) {
         try {
             Jwts.parserBuilder().setSigningKey(key).build()
                     .parseClaimsJws(token);
@@ -128,12 +157,42 @@ public class JwtTokenProvider {
         }
     }
 
+    /**
+     * 리프레시 토큰 검증 및 액세스 토큰 재발급
+     * @param refreshToken 리프레시 토큰
+     * @return 새로운 액세스 토큰 또는 null
+     */
+    public String refreshAccessToken(String refreshToken) {
+        try {
+            // 리프레시 토큰 유효성 검증
+            if (!validateTokenWithoutRedisCheck(refreshToken)) {
+                log.warn("🚫 유효하지 않은 리프레시 토큰");
+                return null;
+            }
+
+            String userId = getUserId(refreshToken);
+            String role = getRole(refreshToken);
+
+            // Redis에서 저장된 리프레시 토큰과 비교
+            String storedRefreshToken = tokenRedisService.getRefreshToken(userId);
+            if (!refreshToken.equals(storedRefreshToken)) {
+                log.warn("🚫 저장된 리프레시 토큰과 불일치 - 사용자: {}", userId);
+                return null;
+            }
+
+            // 새로운 액세스 토큰 생성
+            return createToken(userId, role);
+        } catch (Exception e) {
+            log.error("❌ 액세스 토큰 재발급 실패: {}", e.getMessage());
+            return null;
+        }
+    }
+
     public long getAccessTokenExpirationHours() {
-        return accessTokenExpirationMillis / (60 * 60 * 1000); // 밀리���를 시간  return accessTokenExpirationMillis / (60 * 60 * 1000); // 밀리초를 시간 단위로 변환단위로 변환
+        return accessTokenExpirationMillis / (60 * 60 * 1000);
     }
 
     public long getAccessTokenExpirationSeconds() {
         return accessTokenExpirationMillis / 1000;
     }
-
 }
