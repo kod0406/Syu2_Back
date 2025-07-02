@@ -59,6 +59,15 @@ public class CouponService {
                 .build();
         log.info("쿠폰 저장 직전 생성 시간" + coupon.getIssueStartTime());
         Coupon savedCoupon = couponRepository.save(coupon);
+
+        // DB에서 즉시 재조회 및 로그 출력
+        Coupon reloadedCoupon = couponRepository.findById(savedCoupon.getId())
+                .orElse(null);
+        log.info("쿠폰 DB 저장 후 즉시 재조회: {}", reloadedCoupon);
+        log.info("현재 서버 시간 (LocalDateTime): {}", LocalDateTime.now());
+        log.info("현재 서버 시간 (Instant): {}", java.time.Instant.now());
+        log.info("설정한 쿠폰 시간: {}", coupon.getIssueStartTime());
+
         return CouponDto.fromEntity(savedCoupon);
     }
 
