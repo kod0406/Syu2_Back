@@ -1,5 +1,6 @@
 package com.example.demo.setting.util;
 
+import com.example.demo.setting.webSock.SessionNotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -15,6 +16,7 @@ import java.util.concurrent.TimeUnit;
 public class TokenRedisService {
 
     private final RedisTemplate<String, String> redisTemplate;
+    private final SessionNotificationService sessionNotificationService;
 
     private static final String REFRESH_TOKEN_PREFIX = "RT:";
     private static final String SESSION_INFO_PREFIX = "SI:";
@@ -59,12 +61,25 @@ public class TokenRedisService {
             if (existingSessionInfo != null) {
                 log.info("📱 기존 세션 정보: {}", existingSessionInfo);
             }
+
+            // ★ WebSocket을 통한 실시간 알림 전송
+            try {
+                sessionNotificationService.notifySessionInvalidated(
+                    userId,
+                    "다른 기기에서 로그인",
+                    deviceInfo
+                );
+                log.info("🔔 세션 무효화 WebSocket 알림 전송 완료 - 사용자: {}", userId);
+            } catch (Exception e) {
+                log.error("🚨 WebSocket 알림 전송 실패 - 사용자: {}, 오류: {}", userId, e.getMessage());
+                // WebSocket 알림 실패해도 로그인 프로세스는 계속 진행
+            }
         }
 
         // 새 토큰들 저장
         redisTemplate.opsForValue().set(refreshKey, refreshToken, expirationMillis, TimeUnit.MILLISECONDS);
 
-        // 새 액세스 토큰도 Redis에 저장 ★ 핵심!
+        // 새 액세스 토큰도 Redis에 저장
         if (accessToken != null) {
             redisTemplate.opsForValue().set(accessKey, accessToken, expirationMillis, TimeUnit.MILLISECONDS);
         }
@@ -128,16 +143,32 @@ public class TokenRedisService {
     public void forceInvalidateAllSessions(String userId, String reason) {
         String key = REFRESH_TOKEN_PREFIX + userId;
         String sessionInfoKey = SESSION_INFO_PREFIX + userId;
+        String accessKey = ACCESS_TOKEN_PREFIX + userId;
 
-        // 기존 토큰 무효화
-        String existingToken = redisTemplate.opsForValue().get(key);
-        if (existingToken != null) {
-            invalidateToken(existingToken, 24 * 60 * 60 * 1000L); // 24시간 보관
+        // 기존 토큰들 무효화
+        String existingRefreshToken = redisTemplate.opsForValue().get(key);
+        String existingAccessToken = redisTemplate.opsForValue().get(accessKey);
+
+        if (existingRefreshToken != null) {
+            invalidateToken(existingRefreshToken, 24 * 60 * 60 * 1000L); // 24시간 보관
+        }
+
+        if (existingAccessToken != null) {
+            invalidateToken(existingAccessToken, 24 * 60 * 60 * 1000L); // 24시간 보관
         }
 
         // 세션 정보 삭제
         redisTemplate.delete(key);
         redisTemplate.delete(sessionInfoKey);
+        redisTemplate.delete(accessKey);
+
+        // ★ WebSocket을 통한 강제 로그아웃 알림 전송
+        try {
+            sessionNotificationService.notifyForceLogout(userId, reason);
+            log.info("🔔 강제 로그아웃 WebSocket 알림 전송 완료 - 사용자: {}", userId);
+        } catch (Exception e) {
+            log.error("🚨 강제 로그아웃 WebSocket 알림 전송 실패 - 사용자: {}, 오류: {}", userId, e.getMessage());
+        }
 
         log.warn("⚠️ 강제 세션 무효화 - 사용자: {}, 사유: {}", userId, reason);
     }
