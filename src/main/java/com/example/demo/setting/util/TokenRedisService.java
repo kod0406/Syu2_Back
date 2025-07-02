@@ -200,9 +200,11 @@ public class TokenRedisService {
     public void deleteRefreshToken(String userId) {
         String key = REFRESH_TOKEN_PREFIX + userId;
         String sessionInfoKey = SESSION_INFO_PREFIX + userId;
+        String accessKey = ACCESS_TOKEN_PREFIX + userId;
 
         redisTemplate.delete(key);
         redisTemplate.delete(sessionInfoKey);
+        redisTemplate.delete(accessKey);
         log.info("🚪 로그아웃 - 사용자: {} 세션 삭제 완료", userId);
     }
 
