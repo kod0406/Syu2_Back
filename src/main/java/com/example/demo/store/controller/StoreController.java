@@ -1,5 +1,6 @@
 package com.example.demo.store.controller;
 
+import com.example.demo.setting.util.JwtCookieUtil;
 import com.example.demo.store.service.QrCodeService;
 import com.example.demo.store.dto.StoreSalesResponseDto;
 import com.example.demo.store.entity.QR_Code;
@@ -252,23 +253,12 @@ public class StoreController {
             storeService.deleteStore(store.getId());
 
             // 1. 액세스 토큰 쿠키 삭제
-            ResponseCookie deleteAccessTokenCookie = ResponseCookie.from("access_token", "")
-                    .httpOnly(false)
-                    .secure(true)
-                    .path("/")
-                    .maxAge(0)
-                    .sameSite("Lax")
-                    .build();
+            ResponseCookie deleteAccessTokenCookie = JwtCookieUtil.deleteAccessTokenCookie();
+
             response.addHeader(HttpHeaders.SET_COOKIE, deleteAccessTokenCookie.toString());
 
             // 2. 리프레시 토큰 쿠키 삭제
-            ResponseCookie deleteRefreshTokenCookie = ResponseCookie.from("refresh_token", "")
-                    .httpOnly(true)
-                    .secure(true)
-                    .path("/")
-                    .maxAge(0)
-                    .sameSite("Lax")
-                    .build();
+            ResponseCookie deleteRefreshTokenCookie = JwtCookieUtil.deleteRefreshTokenCookie();
             response.addHeader(HttpHeaders.SET_COOKIE, deleteRefreshTokenCookie.toString());
 
             // 회원탈퇴 완료 이메일 발송
@@ -371,25 +361,12 @@ public class StoreController {
             }
 
             // 7. 액세스 토큰 쿠키 설정
-            ResponseCookie accessTokenCookie = ResponseCookie.from("access_token", accessToken)
-                    .httpOnly(false) // 액세스 토큰은 JavaScript에서 접근 가능해야 함
-                    .secure(true) // HTTPS 환경에서 필수
-                    .domain("igo.ai.kr") // 도메인 명시적 설정 (운영)
-                    .path("/")
-                    .maxAge(jwtTokenProvider.getAccessTokenExpirationMillis() / 1000) // 밀리초를 초로 변환
-                    .sameSite("Lax")
-                    .build();
+            ResponseCookie accessTokenCookie = JwtCookieUtil.createAccessTokenCookie(accessToken);
             response.addHeader(HttpHeaders.SET_COOKIE, accessTokenCookie.toString());
 
             // 8. 리프레시 토큰 쿠키 설정 (HttpOnly)
-            ResponseCookie refreshTokenCookie = ResponseCookie.from("refresh_token", refreshToken)
-                    .httpOnly(true)
-                    .secure(true) // HTTPS 환경에서 필수
-                    .domain("igo.ai.kr") // 도메인 명시적 설정 (운영)
-                    .path("/")
-                    .maxAge(refreshTokenExpirationMillis / 1000) //밀리초를 초로 변환
-                    .sameSite("Lax")
-                    .build();
+
+            ResponseCookie refreshTokenCookie = JwtCookieUtil.createRefreshTokenCookie(refreshToken, refreshTokenExpirationMillis);
             response.addHeader(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString());
 
             log.info("[로그인 완료] 매장: {}, 이메일: {}", store.getStoreName(), ownerEmail);
@@ -432,23 +409,13 @@ public class StoreController {
             }
 
             // 2. 액세스 토큰 쿠키 삭제
-            ResponseCookie deleteAccessTokenCookie = ResponseCookie.from("access_token", "")
-                    .httpOnly(false)
-                    .secure(true)
-                    .path("/")
-                    .maxAge(0)
-                    .sameSite("Lax")
-                    .build();
+
+            ResponseCookie deleteAccessTokenCookie = JwtCookieUtil.deleteAccessTokenCookie();
             response.addHeader(HttpHeaders.SET_COOKIE, deleteAccessTokenCookie.toString());
 
             // 3. 리프레시 토큰 쿠키 삭제
-            ResponseCookie deleteRefreshTokenCookie = ResponseCookie.from("refresh_token", "")
-                    .httpOnly(true)
-                    .secure(true)
-                    .path("/")
-                    .maxAge(0)
-                    .sameSite("Lax")
-                    .build();
+
+            ResponseCookie deleteRefreshTokenCookie = JwtCookieUtil.deleteRefreshTokenCookie();
             response.addHeader(HttpHeaders.SET_COOKIE, deleteRefreshTokenCookie.toString());
 
             log.info("[로그아웃 완료] 매장: {}", store != null ? store.getStoreName() : "알 수 없음");
