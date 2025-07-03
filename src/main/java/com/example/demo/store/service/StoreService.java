@@ -362,4 +362,12 @@ public class StoreService {
             log.error("[파일 삭제 실패] 이미지 URL: {}, 에러: {}", imageUrl, e.getMessage());
         }
     }
+    /**
+     storeId로 Store 엔티티를 조회
+     */
+    @Transactional(readOnly = true)
+    public Store findById(Long storeId) {
+        return storeRepository.findById(storeId)
+        .orElseThrow(() -> new BusinessException(ErrorCode.STORE_NOT_FOUND));
+    }
 }
