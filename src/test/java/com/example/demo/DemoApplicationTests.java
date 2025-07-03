@@ -1,5 +1,8 @@
 package com.example.demo;
 
+import com.example.demo.geolocation.GeoRequestDto;
+import com.example.demo.geolocation.GeoResponseDto;
+import com.example.demo.geolocation.GeoService;
 import com.example.demo.store.entity.Store;
 import com.example.demo.store.entity.StoreMenu;
 import com.example.demo.store.repository.MenuRepository;
@@ -22,6 +25,9 @@ class DemoApplicationTests {
 
     @Autowired
     private StoreRepository storeRepository;
+
+    @Autowired
+    private GeoService geoService;
 
     @Test
     @Rollback(false)
@@ -60,4 +66,6 @@ class DemoApplicationTests {
         List<StoreMenu> result = menuRepository.findAllByStore_StoreId(store.getStoreId());
 
     }
+
+
 }
