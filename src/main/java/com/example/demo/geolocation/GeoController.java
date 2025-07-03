@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -20,9 +21,9 @@ import java.util.Map;
 public class GeoController {
     private final GeoService geoService;
     @GetMapping("/location")
-    public ResponseEntity<String> geolocation(GeoRequestDto geoRequestDto) {
-        String geoResponseDto = geoService.requestGeolocation(geoRequestDto);
-        return ResponseEntity.ok(geoResponseDto);
+    public ResponseEntity<SimpleAddressDto> geolocation(@ModelAttribute GeoRequestDto geoRequestDto) {
+        SimpleAddressDto result = geoService.requestGeolocation(geoRequestDto);
+        return ResponseEntity.ok(result);
     }
 
 
