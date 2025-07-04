@@ -25,7 +25,7 @@ public class CouponCleanupService {
      * 2. 사용된 CustomerCoupon 삭제 (USED 상태)
      * 3. 만료된 Coupon 엔티티 및 관련 CustomerCoupon 모두 삭제 (expiryDate 기준)
      */
-    @Scheduled(cron = "0 0 0,12 * * ?")
+    @Scheduled(cron = "${coupon.cleanup.cron}")
     @Transactional
     public void cleanupExpiredCoupons() {
         log.info("만료된 쿠폰 정리 작업을 시작합니다.");

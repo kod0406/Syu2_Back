@@ -30,7 +30,7 @@ class DemoApplicationTests {
     private GeoService geoService;
 
     @Test
-    @Rollback(false)
+    @Rollback(true)  // 테스트 후 롤백하도록 변경
     @Transactional
     @DisplayName("storeId로 메뉴 리스트 조회")
     void testFindAllByStoreId() {

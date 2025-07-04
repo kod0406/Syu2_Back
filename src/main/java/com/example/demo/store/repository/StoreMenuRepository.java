@@ -2,10 +2,12 @@ package com.example.demo.store.repository;
 
 import com.example.demo.store.entity.Store;
 import com.example.demo.store.entity.StoreMenu;
+import com.example.demo.store.entity.StoreMenuReview;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface StoreMenuRepository extends JpaRepository<StoreMenu, Long> {
@@ -19,6 +21,14 @@ public interface StoreMenuRepository extends JpaRepository<StoreMenu, Long> {
     StoreMenu findByStoreIdAndMenuName(Long storeId, String menuName);
 
     List<StoreMenu> findByStore(Store store);
+
+    // 매장별 리뷰 조회 (ReviewAnalyzer에서 사용)
+    @Query("SELECT r FROM StoreMenuReview r " +
+           "WHERE r.storeMenu.store.storeId = :storeId " +
+           "AND r.reviewDate >= :since " +
+           "ORDER BY r.reviewDate DESC")
+    List<StoreMenuReview> findReviewsByStoreIdAndDate(@Param("storeId") Long storeId,
+                                                     @Param("since") LocalDateTime since);
 
     List<StoreMenu> findByStoreAndCategory(Store store, String category);
 

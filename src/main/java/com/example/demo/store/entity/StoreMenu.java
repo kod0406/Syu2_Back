@@ -1,6 +1,8 @@
 package com.example.demo.store.entity;
 
 import com.example.demo.customer.entity.CustomerReviewCollect;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -52,9 +54,11 @@ public class StoreMenu {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "store_id") // 외래키 이름
+    @JsonBackReference("store-menu")
     private Store store;
 
     @OneToMany(mappedBy = "storeMenu", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @JsonManagedReference("menu-reviews")
     private List<CustomerReviewCollect> reviews = new ArrayList<>();
 
 

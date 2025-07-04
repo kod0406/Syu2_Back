@@ -1,5 +1,6 @@
 package com.example.demo.store.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -17,6 +18,7 @@ public class QR_Code {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "store_id") // 외래키 이름
+    @JsonBackReference("store-qr")
     private Store store;
 
     public void updateUrl(String url){
