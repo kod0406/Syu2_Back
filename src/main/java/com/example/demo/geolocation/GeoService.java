@@ -103,6 +103,8 @@ public class GeoService {
     }
 
     public List<GeoResponseStoreDto> findStore(SimpleAddressDto simpleAddressDto) {
+        log.info("getCity" + simpleAddressDto.getCity());
+        log.info("getDistrict" + simpleAddressDto.getDistrict());
         List<StoreLocation> locations = storeLocationRepository.findByCityAndDistrict(
                 simpleAddressDto.getCity(),
                 simpleAddressDto.getDistrict()
