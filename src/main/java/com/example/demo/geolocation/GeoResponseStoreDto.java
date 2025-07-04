@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class GeoResponseStoreDto {
     String storeName;
+    long storeId;
     public GeoResponseStoreDto(Store store) {
         this.storeName = store.getStoreName();
     }
