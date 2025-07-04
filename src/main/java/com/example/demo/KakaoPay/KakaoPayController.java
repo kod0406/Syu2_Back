@@ -56,7 +56,7 @@ public class KakaoPayController {
         //DB 저장 로직 추가
         kakaoPayProvider.approve(pgToken, orderGroupId);
         HttpHeaders headers = new HttpHeaders();
-        headers.setLocation(URI.create(frontendUrl + "/index")); // ✅ 결제 완료 후 이동할 URL (React 메인 페이지 등)
+        headers.setLocation(URI.create(frontendUrl + "/home")); // ✅ 결제 완료 후 이동할 URL (React 메인 페이지 등)
 
         return new ResponseEntity<>(headers, HttpStatus.FOUND); // 302 Redirect
 
