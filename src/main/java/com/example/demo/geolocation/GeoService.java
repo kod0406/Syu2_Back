@@ -1,5 +1,12 @@
 package com.example.demo.geolocation;
 
+import com.example.demo.benefit.dto.CouponDto;
+import com.example.demo.benefit.entity.Coupon;
+import com.example.demo.benefit.repository.CouponRepository;
+import com.example.demo.store.entity.Store;
+import com.example.demo.store.entity.StoreLocation;
+import com.example.demo.store.repository.StoreLocationRepository;
+import com.example.demo.store.repository.StoreRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -8,18 +15,25 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
 @Slf4j
 public class GeoService {
+    private final StoreRepository storeRepository;
+    private final CouponRepository couponRepository;
+    private final StoreLocationRepository storeLocationRepository;
+
     @Value("${naver.cloud.AccessKey}")
     private String geoAccessKey;
 
@@ -87,4 +101,25 @@ public class GeoService {
             throw new RuntimeException(e);
         }
     }
+
+    public List<GeoResponseStoreDto> findStore(SimpleAddressDto simpleAddressDto) {
+        List<StoreLocation> locations = storeLocationRepository.findByCityAndDistrict(
+                simpleAddressDto.getCity(),
+                simpleAddressDto.getDistrict()
+        );
+        return locations.stream()
+                .map(StoreLocation::getStore)              // StoreLocation → Store
+                .map(GeoResponseStoreDto::new)             // Store → DTO
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<CouponDto> getAllAvailableCoupons(SimpleAddressDto simpleAddressDto) {
+        List<Coupon> availableCoupons = couponRepository.findAllAroundStoreCoupons(LocalDateTime.now().plusHours(9), simpleAddressDto.getCity(), simpleAddressDto.getDistrict());
+        return availableCoupons.stream()
+                .map(CouponDto::fromEntity)
+                .collect(Collectors.toList());
+    }
+
+
 }

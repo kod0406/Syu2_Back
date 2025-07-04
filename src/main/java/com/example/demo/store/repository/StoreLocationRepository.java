@@ -25,5 +25,12 @@ public interface StoreLocationRepository extends JpaRepository<StoreLocation, Lo
            "WHERE sl.city LIKE %:city% " +
            "AND sl.latitude IS NOT NULL")
     List<StoreLocation> findByCity(@Param("city") String city);
+
+    @Query("""
+    SELECT sl FROM StoreLocation sl
+    WHERE sl.city = :city
+      AND sl.district = :district
+    """)
+    List<StoreLocation> findByCityAndDistrict(@Param("city") String city, @Param("district") String district);
 }
 

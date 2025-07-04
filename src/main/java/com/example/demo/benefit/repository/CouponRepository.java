@@ -38,4 +38,20 @@ public interface CouponRepository extends JpaRepository<Coupon, Long> {
     @Modifying
     @Query("DELETE FROM Coupon c WHERE c.expiryDate < :now AND c.expiryDate IS NOT NULL")
     int deleteByExpiryDateBefore(@Param("now") LocalDateTime now);
+
+    @Query("""
+    SELECT c FROM Coupon c
+    JOIN c.store s
+    JOIN StoreLocation sl ON sl.store = s
+    WHERE sl.city = :city
+      AND sl.district = :district
+      AND c.status = 'ACTIVE'
+      AND (c.totalQuantity > c.issuedQuantity)
+      AND (c.issueStartTime IS NULL OR c.issueStartTime <= :now)
+""")
+    List<Coupon> findAllAroundStoreCoupons(
+            @Param("now") LocalDateTime now,
+            @Param("city") String city,
+            @Param("district") String district
+    );
 }

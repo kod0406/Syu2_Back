@@ -95,7 +95,7 @@ public class NaverLoginController {
         return ResponseEntity.status(HttpStatus.FOUND)
                 .header(HttpHeaders.SET_COOKIE, accessTokenCookie.toString())
                 .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
-                .header("Location", frontendUrl + "/")
+                .header("Location", frontendUrl + "/index")
                 .build();
     }
 

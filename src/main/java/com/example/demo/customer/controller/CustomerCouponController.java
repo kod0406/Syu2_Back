@@ -120,6 +120,13 @@ public class CustomerCouponController {
         return ResponseEntity.ok(availableCoupons);
     }
 
+
+
+
+
+
+
+
     @Operation(summary = "쿠폰 발급받기", description = "고객이 쿠폰을 발급받습니다. 로그인이 필요하며, 고객(Customer) 권한이 있어야 합니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "쿠폰 발급 성공", content = @Content(examples = @ExampleObject(value = "쿠폰이 성공적으로 발급되었습니다."))),
