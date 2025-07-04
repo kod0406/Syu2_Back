@@ -105,10 +105,12 @@ public class GeoService {
     public List<GeoResponseStoreDto> findStore(SimpleAddressDto simpleAddressDto) {
         log.info("getCity" + simpleAddressDto.getCity());
         log.info("getDistrict" + simpleAddressDto.getDistrict());
-        List<StoreLocation> locations = storeLocationRepository.findByCityAndDistrict(
-                simpleAddressDto.getCity(),
+        List<StoreLocation> locations = storeLocationRepository.findByDistrict(
                 simpleAddressDto.getDistrict()
         );
+        for (StoreLocation storeLocation : locations) {
+            log.info(storeLocation.getCity());
+        }
         return locations.stream()
                 .map(StoreLocation::getStore)              // StoreLocation → Store
                 .map(GeoResponseStoreDto::new)             // Store → DTO

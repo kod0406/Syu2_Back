@@ -1,11 +1,11 @@
 package com.example.demo;
 
-import com.example.demo.geolocation.GeoRequestDto;
-import com.example.demo.geolocation.GeoResponseDto;
-import com.example.demo.geolocation.GeoService;
+import com.example.demo.geolocation.*;
 import com.example.demo.store.entity.Store;
+import com.example.demo.store.entity.StoreLocation;
 import com.example.demo.store.entity.StoreMenu;
 import com.example.demo.store.repository.MenuRepository;
+import com.example.demo.store.repository.StoreLocationRepository;
 import com.example.demo.store.repository.StoreRepository;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.DisplayName;
@@ -25,6 +25,9 @@ class DemoApplicationTests {
 
     @Autowired
     private StoreRepository storeRepository;
+
+    @Autowired
+    private StoreLocationRepository storeLocationRepository;
 
     @Autowired
     private GeoService geoService;
@@ -64,6 +67,27 @@ class DemoApplicationTests {
         menuRepository.save(menu1);
         menuRepository.save(menu2);
         List<StoreMenu> result = menuRepository.findAllByStore_StoreId(store.getStoreId());
+
+    }
+
+    @Test
+
+    void check(){
+
+            SimpleAddressDto simpleAddressDto = new SimpleAddressDto("서울특별시","남양주", "공릉동");
+            System.out.println("getCity + " + simpleAddressDto.getCity());
+            System.out.println("getDistrict + " + simpleAddressDto.getDistrict());
+            System.out.println("getTown + "  + simpleAddressDto.getTown());
+            List<StoreLocation> locations = storeLocationRepository.findByCityAndDistrict(
+                    simpleAddressDto.getTown()
+            );
+            for (StoreLocation storeLocation : locations) {
+                System.out.println(storeLocation.getStore());
+            }
+            System.out.println( locations.stream()
+                    .map(StoreLocation::getStore)              // StoreLocation → Store
+                    .map(GeoResponseStoreDto::new)             // Store → DTO
+                    .toList());
 
     }
 

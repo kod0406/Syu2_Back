@@ -28,9 +28,8 @@ public interface StoreLocationRepository extends JpaRepository<StoreLocation, Lo
 
     @Query("""
     SELECT sl FROM StoreLocation sl
-    WHERE sl.city = :city
-      AND sl.district = :district
+    WHERE sl.district = :district
     """)
-    List<StoreLocation> findByCityAndDistrict(@Param("city") String city, @Param("district") String district);
+    List<StoreLocation> findByDistrict(@Param("district") String district);
 }
 
