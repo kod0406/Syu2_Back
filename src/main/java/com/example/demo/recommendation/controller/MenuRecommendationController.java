@@ -2,13 +2,15 @@ package com.example.demo.recommendation.controller;
 
 import com.example.demo.recommendation.dto.MenuRecommendationResponse;
 import com.example.demo.recommendation.dto.StoreWeatherInfo;
+import com.example.demo.recommendation.dto.RecommendationHistoryResponse;
 import com.example.demo.recommendation.service.LocationWeatherService;
 import com.example.demo.recommendation.service.MenuRecommendationService;
-import com.example.demo.store.entity.MenuRecommendationCache;
+import com.example.demo.store.entity.Store;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -22,13 +24,25 @@ public class MenuRecommendationController {
     private final MenuRecommendationService recommendationService;
     private final LocationWeatherService locationWeatherService;
 
-    // 현재 추천 조회 (위치 정보 포함)
     @GetMapping
     public ResponseEntity<MenuRecommendationResponse> getCurrentRecommendation(
-            @PathVariable Long storeId) {
+            @PathVariable Long storeId,
+            @AuthenticationPrincipal Store store) {
+
+        if (store == null || store.getStoreId() != storeId) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(createErrorResponse(storeId, "접근 권한이 없습니다."));
+        }
+
         try {
             MenuRecommendationResponse recommendation = recommendationService.generateRecommendation(storeId);
-            return ResponseEntity.ok(recommendation);
+
+            if (recommendation != null) {
+                return ResponseEntity.ok(recommendation);
+            } else {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(createErrorResponse(storeId, "추천 생성에 실패했습니다."));
+            }
         } catch (Exception e) {
             log.error("Error getting recommendation for store: {}", storeId, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -36,14 +50,25 @@ public class MenuRecommendationController {
         }
     }
 
-    // 수동 추천 갱신
     @PostMapping("/refresh")
     public ResponseEntity<MenuRecommendationResponse> refreshRecommendation(
-            @PathVariable Long storeId) {
+            @PathVariable Long storeId,
+            @AuthenticationPrincipal Store store) {
+
+        if (store == null || store.getStoreId() != storeId) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(createErrorResponse(storeId, "접근 권한이 없습니다."));
+        }
+
         try {
-            // 캐시 무시하고 새로 생성
-            MenuRecommendationResponse recommendation = recommendationService.generateNewRecommendation(storeId);
-            return ResponseEntity.ok(recommendation);
+            MenuRecommendationResponse recommendation = recommendationService.forceGenerateNewRecommendation(storeId);
+
+            if (recommendation != null) {
+                return ResponseEntity.ok(recommendation);
+            } else {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(createErrorResponse(storeId, "추천 갱신에 실패했습니다."));
+            }
         } catch (Exception e) {
             log.error("Error refreshing recommendation for store: {}", storeId, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -51,9 +76,15 @@ public class MenuRecommendationController {
         }
     }
 
-    // 매장 위치 및 날씨 정보만 조회
     @GetMapping("/weather")
-    public ResponseEntity<StoreWeatherInfo> getStoreWeather(@PathVariable Long storeId) {
+    public ResponseEntity<StoreWeatherInfo> getStoreWeather(
+            @PathVariable Long storeId,
+            @AuthenticationPrincipal Store store) {
+
+        if (store == null || store.getStoreId() != storeId) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
         try {
             StoreWeatherInfo weatherInfo = locationWeatherService.getStoreWeatherInfo(storeId);
             return ResponseEntity.ok(weatherInfo);
@@ -63,16 +94,27 @@ public class MenuRecommendationController {
         }
     }
 
-    // 추천 히스토리 조회
+    // 추천 히스토리 조회 (정규식 처리된 aiAdvice 포함)
     @GetMapping("/history")
-    public ResponseEntity<List<MenuRecommendationCache>> getRecommendationHistory(
+    public ResponseEntity<List<RecommendationHistoryResponse>> getRecommendationHistory(
             @PathVariable Long storeId,
-            @RequestParam(defaultValue = "7") int days) {
+            @RequestParam(defaultValue = "7") int days,
+            @AuthenticationPrincipal Store store) {
+
+        if (store == null || store.getStoreId() != storeId) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        if (days < 1 || days > 365) {
+            log.warn("Invalid days parameter: {} for store: {}", days, storeId);
+            return ResponseEntity.badRequest().build();
+        }
+
         try {
-            // days일 전부터의 히스토리 조회
             LocalDateTime since = LocalDateTime.now().minusDays(days);
-            List<MenuRecommendationCache> history =
+            List<RecommendationHistoryResponse> history =
                 recommendationService.getRecommendationHistory(storeId, since);
+
             return ResponseEntity.ok(history);
         } catch (Exception e) {
             log.error("Error getting recommendation history for store: {}", storeId, e);
@@ -85,6 +127,7 @@ public class MenuRecommendationController {
             .storeId(storeId)
             .aiAdvice(message)
             .generatedAt(LocalDateTime.now())
+            .fromCache(false)
             .build();
     }
 }

@@ -6,14 +6,12 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(uniqueConstraints = {
-    @UniqueConstraint(columnNames = {"store_id", "weather_condition", "season"})
-})
+@Table(name = "menu_recommendation_history")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
 @Getter
-public class MenuRecommendationCache {
+public class MenuRecommendationHistory {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -30,30 +28,6 @@ public class MenuRecommendationCache {
 
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
-    private LocalDateTime expiredAt;     // 캐시 만료 시간 (3-6시간 후)
-
-    @Builder.Default
-    private boolean isActive = true;     // 활성 상태
-
-    // 캐시 만료 확인
-    public boolean isExpired() {
-        return LocalDateTime.now().isAfter(expiredAt);
-    }
-
-    // 캐시 비활성화
-    public void deactivate() {
-        this.isActive = false;
-    }
-
-    // 현재 계절 반환
-    public static String getCurrentSeason() {
-        int month = LocalDateTime.now().getMonthValue();
-
-        if (month >= 3 && month <= 5) return "SPRING";
-        if (month >= 6 && month <= 8) return "SUMMER";
-        if (month >= 9 && month <= 11) return "FALL";
-        return "WINTER";
-    }
 
     @PrePersist
     protected void onCreate() {

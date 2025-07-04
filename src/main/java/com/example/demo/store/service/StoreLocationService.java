@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 public class StoreLocationService {
@@ -19,5 +21,16 @@ public class StoreLocationService {
         location.updateLocation(fullAddress, city, district, latitude, longitude);
         return storeLocationRepository.save(location);
     }
-}
 
+    // 매장별 위치 정보 조회 (추가)
+    public Optional<StoreLocation> findByStore(Store store) {
+        return storeLocationRepository.findByStore(store);
+    }
+
+    // 매장 삭제 시 위치 정보도 함께 삭제
+    @Transactional
+    public void deleteByStore(Store store) {
+        storeLocationRepository.findByStore(store)
+            .ifPresent(storeLocationRepository::delete);
+    }
+}

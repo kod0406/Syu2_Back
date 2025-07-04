@@ -40,6 +40,7 @@ public class StoreService {
     private final CustomerStatisticsRepository customerStatisticsRepository;
     private final TokenRedisService tokenRedisService;
     private final com.example.demo.setting.service.EmailService emailService;
+    private final StoreLocationService storeLocationService; // 추가
 
     @Value("${frontend.url}")
     private String frontendUrl;
@@ -87,6 +88,14 @@ public class StoreService {
 
         log.info("[매장 탈퇴 시작] 매장 ID: {}, 매장명: {}", storeId, store.getStoreName());
 
+        // 0. 매장 주소 정보 삭제 (추가)
+        try {
+            storeLocationService.deleteByStore(store);
+            log.info("[매장 주소 삭제] 매장 ID: {}", storeId);
+        } catch (Exception e) {
+            log.warn("[매장 주소 삭제 실패] 매장 ID: {}, 에러: {}", storeId, e.getMessage());
+        }
+
         // 1. 해당 상점의 쿠폰을 발급받은 모든 고객 쿠폰 삭제
         List<Coupon> storeCoupons = store.getCoupons();
         for (Coupon coupon : storeCoupons) {
@@ -104,7 +113,7 @@ public class StoreService {
                     deleteMenuImageFile(menu.getImageUrl());
                     log.info("[메뉴 이미지 삭제] 메뉴: {}, 이미지: {}", menu.getMenuName(), menu.getImageUrl());
                 } catch (Exception e) {
-                    log.warn("[메뉴 이미지 삭��� 실패] 메뉴: {}, 이미지: {}, 에러: {}",
+                    log.warn("[메뉴 이미지 삭제 실패] 메뉴: {}, 이미지: {}, 에러: {}",
                         menu.getMenuName(), menu.getImageUrl(), e.getMessage());
                 }
             }

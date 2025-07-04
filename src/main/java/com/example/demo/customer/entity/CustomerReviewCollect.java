@@ -2,6 +2,7 @@ package com.example.demo.customer.entity;
 
 import com.example.demo.store.entity.Store;
 import com.example.demo.store.entity.StoreMenu;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -26,13 +27,16 @@ public class CustomerReviewCollect {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id") // 외래키 이름
+    @JsonBackReference
     private Customer customer;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "store_id") // 외래키 이름
+    @JsonBackReference
     private Store store;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "menu_id") // 외래키 이름
+    @JsonBackReference
     private StoreMenu storeMenu;
 }

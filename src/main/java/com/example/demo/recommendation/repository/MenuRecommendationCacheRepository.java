@@ -14,11 +14,12 @@ import java.util.Optional;
 
 @Repository
 public interface MenuRecommendationCacheRepository extends JpaRepository<MenuRecommendationCache, Long> {
-    // 유효한 캐시 조회
-    @Query("SELECT m FROM MenuRecommendationCache m " +
-           "WHERE m.store.storeId = :storeId " +
-           "AND m.expiredAt > :now " +
-           "ORDER BY m.createdAt DESC")
+    // 유효한 캐시 조회 (가장 최신 것 하나만)
+    @Query(value = "SELECT * FROM menu_recommendation_cache m " +
+           "WHERE m.store_id = :storeId " +
+           "AND m.expired_at > :now " +
+           "ORDER BY m.created_at DESC " +
+           "LIMIT 1", nativeQuery = true)
     Optional<MenuRecommendationCache> findValidCacheByStoreId(
         @Param("storeId") Long storeId,
         @Param("now") LocalDateTime now
@@ -35,5 +36,26 @@ public interface MenuRecommendationCacheRepository extends JpaRepository<MenuRec
     // 매장별 추천 히스토리 조회
     List<MenuRecommendationCache> findByStoreAndCreatedAtAfterOrderByCreatedAtDesc(
         Store store, LocalDateTime since
+    );
+
+    // 특정 조건의 캐시 조회 (중복 방지용)
+    Optional<MenuRecommendationCache> findByStoreAndWeatherConditionAndSeason(
+        Store store, String weatherCondition, String season
+    );
+
+    // 캐시 내용 업데이트 (UPSERT용)
+    @Modifying
+    @Query("UPDATE MenuRecommendationCache m SET m.gptRecommendation = :content, m.expiredAt = :expiredAt WHERE m.id = :id")
+    void updateCacheContent(@Param("id") Long id, @Param("content") String content, @Param("expiredAt") LocalDateTime expiredAt);
+
+    // 최근 캐시 조회 (새로고침 방지용)
+    @Query(value = "SELECT * FROM menu_recommendation_cache m " +
+           "WHERE m.store_id = :storeId " +
+           "AND m.created_at > :since " +
+           "ORDER BY m.created_at DESC " +
+           "LIMIT 1", nativeQuery = true)
+    Optional<MenuRecommendationCache> findRecentCacheByStoreId(
+        @Param("storeId") Long storeId,
+        @Param("since") LocalDateTime since
     );
 }

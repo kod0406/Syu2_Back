@@ -3,12 +3,15 @@ package com.example.demo.recommendation.service;
 import com.example.demo.external.weather.service.WeatherApiService;
 import com.example.demo.external.weather.dto.WeatherResponse;
 import com.example.demo.recommendation.dto.StoreWeatherInfo;
+import com.example.demo.recommendation.enums.SeasonType;
 import com.example.demo.store.entity.Store;
 import com.example.demo.store.entity.StoreLocation;
 import com.example.demo.store.repository.StoreLocationRepository;
+import com.example.demo.store.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
 
 @Service
 @Slf4j
@@ -16,6 +19,7 @@ import org.springframework.stereotype.Service;
 public class LocationWeatherService {
     private final WeatherApiService weatherApiService;
     private final StoreLocationRepository storeLocationRepository;
+    private final StoreRepository storeRepository;
 
     // StoreLocation을 이용한 날씨 조회
     public StoreWeatherInfo getStoreWeatherInfo(Long storeId) {
@@ -29,8 +33,11 @@ public class LocationWeatherService {
         ).block();
 
         return StoreWeatherInfo.builder()
-            .store(store)
-            .location(location)
+            .storeId(store.getStoreId())
+            .storeName(store.getStoreName())
+            .fullAddress(location.getFullAddress())  // 전체 주소 추가
+            .city(location.getCity())
+            .district(location.getDistrict())
             .weather(weather)
             .weatherType(weatherApiService.determineWeatherType(weather))
             .season(getCurrentSeason())
@@ -55,15 +62,14 @@ public class LocationWeatherService {
             .build();
     }
 
-    // Store 엔티티 조회 (구현 필요)
+    // Store 엔티티 조회
     private Store findStore(Long storeId) {
-        // TODO: StoreRepository에서 storeId로 Store 조회 구현
-        throw new UnsupportedOperationException("Store 조회 로직을 구현하세요.");
+        return storeRepository.findById(storeId)
+            .orElseThrow(() -> new IllegalArgumentException("해당 storeId의 Store가 존재하지 않습니다: " + storeId));
     }
 
-    // 현재 계절 반환 (구현 필요)
-    private String getCurrentSeason() {
-        // TODO: 현재 날짜 기준 계절 반환 로직 구현
-        return "SUMMER";
+    // 현재 계절 반환 (SeasonType enum 사용)
+    private SeasonType getCurrentSeason() {
+        return SeasonType.getCurrentSeason();
     }
 }

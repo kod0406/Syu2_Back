@@ -1,15 +1,11 @@
 package com.example.demo.recommendation.event;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
 
 import java.time.LocalDateTime;
 
-@Data
-@EqualsAndHashCode(callSuper=false)
+@Getter
 public class ManualRefreshEvent extends ApplicationEvent {
     private final String triggerBy;
     private final LocalDateTime triggeredAt;

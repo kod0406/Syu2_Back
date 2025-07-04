@@ -22,14 +22,13 @@ public class WeatherApiService {
     @Value("${weather.api.key}")
     private String apiKey;
 
-    @Value("${weather.api.url}")
-    private String baseUrl;
-
     // 위도/경도로 현재 날씨 조회
     public Mono<WeatherResponse> getCurrentWeather(double lat, double lon) {
         return webClient.get()
             .uri(uriBuilder -> uriBuilder
-                .path("/weather")
+                .scheme("https")
+                .host("api.openweathermap.org")
+                .path("/data/2.5/weather")
                 .queryParam("lat", lat)
                 .queryParam("lon", lon)
                 .queryParam("appid", apiKey)
@@ -50,7 +49,9 @@ public class WeatherApiService {
     public Mono<WeatherForecastResponse> getForecast(double lat, double lon) {
         return webClient.get()
             .uri(uriBuilder -> uriBuilder
-                .path("/forecast")
+                .scheme("https")
+                .host("api.openweathermap.org")
+                .path("/data/2.5/forecast")
                 .queryParam("lat", lat)
                 .queryParam("lon", lon)
                 .queryParam("appid", apiKey)

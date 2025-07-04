@@ -6,10 +6,15 @@ import com.example.demo.external.gemini.dto.Content;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
+import reactor.netty.http.client.HttpClient;
+import reactor.netty.resources.ConnectionProvider;
+import reactor.util.retry.Retry;
 
+import java.time.Duration;
 import java.util.List;
 
 @Service
@@ -24,6 +29,17 @@ public class GeminiApiService {
     @Value("${gemini.api.url}")
     private String apiUrl;
 
+    // WebClient 커스텀 생성 (DNS 타임아웃 및 재시도 적용)
+    public static WebClient createCustomWebClient() {
+        HttpClient httpClient = HttpClient.create(ConnectionProvider.newConnection())
+            .resolver(spec -> spec.queryTimeout(Duration.ofSeconds(3))) // DNS 해석 타임아웃 3초
+            .responseTimeout(Duration.ofSeconds(10)); // 전체 응답 타임아웃 10초
+
+        return WebClient.builder()
+            .clientConnector(new ReactorClientHttpConnector(httpClient))
+            .build();
+    }
+
     // AI 추천 생성 서비스
 
     // 메뉴 추천 생성 (MenuRecommendationService에서 사용)
@@ -37,8 +53,13 @@ public class GeminiApiService {
                 ))
                 .build();
 
+            String fullUrl = apiUrl + "?key=" + apiKey;
+            log.info("Gemini API 요청 URL: {}", fullUrl);
+            log.info("Gemini API 요청 파라미터: prompt={}", prompt);
+
+            // 재시도 및 타임아웃 적용
             return webClient.post()
-                .uri(apiUrl + "/generateContent?key=" + apiKey)
+                .uri(fullUrl)
                 .bodyValue(request)
                 .retrieve()
                 .bodyToMono(GeminiResponse.class)

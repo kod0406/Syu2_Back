@@ -7,6 +7,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import com.example.demo.customer.entity.CustomerCoupon;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -56,9 +58,12 @@ public class Coupon {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "store_id", nullable = false)
+    @JsonBackReference("store-coupons")
     private Store store; // 상점ID
 
-
+    @OneToMany(mappedBy = "coupon", fetch = FetchType.LAZY)
+    @JsonManagedReference("coupon-customer-coupons")
+    private List<CustomerCoupon> customerCoupons; // 고객별 발급 쿠폰 리스트
 
     @Getter
     @Enumerated(EnumType.STRING)
@@ -69,8 +74,6 @@ public class Coupon {
     @Getter
     private Long version;
 
-    @OneToMany(mappedBy = "coupon", fetch = FetchType.LAZY)
-    private List<CustomerCoupon> customerCoupons; // 고객별 발급 쿠폰 리스트
 
     @Builder
     public Coupon(String couponName, DiscountType discountType, int discountValue, Integer discountLimit,

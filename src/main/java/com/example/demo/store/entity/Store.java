@@ -4,6 +4,8 @@ import com.example.demo.customer.entity.CustomerStatistics;
 import com.example.demo.order.entity.OrderStatus;
 import com.example.demo.benefit.entity.Coupon;
 import com.example.demo.user.entity.AppUser;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -16,6 +18,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 @Getter
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Store implements AppUser {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long storeId;
@@ -37,18 +40,23 @@ public class Store implements AppUser {
     private LocalDateTime emailVerificationExpiry;
 
     @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference("store-qr")
     private List<QR_Code> qr_Code = new ArrayList<>();
 
     @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference("store-menu")
     private List<StoreMenu> storeMenu = new ArrayList<>();
 
     @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference("store-order-status")
     private List<OrderStatus> orderStatus = new ArrayList<>();
 
     @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference("store-customer-statistics")
     private List<CustomerStatistics> customerStatistics = new ArrayList<>();
 
     @OneToMany(mappedBy = "store", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference("store-coupons")
     private List<Coupon> coupons = new ArrayList<>();
 
     @Override
