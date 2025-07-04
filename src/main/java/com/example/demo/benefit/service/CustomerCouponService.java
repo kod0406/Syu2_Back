@@ -52,7 +52,7 @@ public class CustomerCouponService {
             throw new BusinessException(ErrorCode.COUPON_EXHAUSTED);
         }
 
-        if (coupon.getIssueStartTime() != null && coupon.getIssueStartTime().isAfter(LocalDateTime.now())) {
+        if (coupon.getIssueStartTime() != null && coupon.getIssueStartTime().isAfter(LocalDateTime.now().plusHours(9))) {
             throw new BusinessException(ErrorCode.COUPON_NOT_YET_AVAILABLE);
         }
 
