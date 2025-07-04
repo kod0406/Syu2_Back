@@ -119,7 +119,7 @@ public class GeoService {
 
     @Transactional(readOnly = true)
     public List<CouponDto> getAllAvailableCoupons(SimpleAddressDto simpleAddressDto) {
-        List<Coupon> availableCoupons = couponRepository.findAllAroundStoreCoupons(LocalDateTime.now().plusHours(9), simpleAddressDto.getCity(), simpleAddressDto.getDistrict());
+        List<Coupon> availableCoupons = couponRepository.findAllAroundStoreCoupons(LocalDateTime.now().plusHours(9),simpleAddressDto.getDistrict());
         return availableCoupons.stream()
                 .map(CouponDto::fromEntity)
                 .collect(Collectors.toList());

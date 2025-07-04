@@ -43,15 +43,13 @@ public interface CouponRepository extends JpaRepository<Coupon, Long> {
     SELECT c FROM Coupon c
     JOIN c.store s
     JOIN StoreLocation sl ON sl.store = s
-    WHERE sl.city = :city
-      AND sl.district = :district
+    WHERE sl.district = :district
       AND c.status = 'ACTIVE'
       AND (c.totalQuantity > c.issuedQuantity)
       AND (c.issueStartTime IS NULL OR c.issueStartTime <= :now)
 """)
     List<Coupon> findAllAroundStoreCoupons(
             @Param("now") LocalDateTime now,
-            @Param("city") String city,
             @Param("district") String district
     );
 }
