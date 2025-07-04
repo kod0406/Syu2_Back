@@ -13,5 +13,6 @@ public class GeoResponseStoreDto {
     long storeId;
     public GeoResponseStoreDto(Store store) {
         this.storeName = store.getStoreName();
+        this.storeId = store.getStoreId();
     }
 }
