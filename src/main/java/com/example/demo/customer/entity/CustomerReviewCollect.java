@@ -21,6 +21,9 @@ public class CustomerReviewCollect {
 
     private String reviewDetails;
 
+    // DB의 VARCHAR 타입과 매핑하기 위한 컨버터 사용
+    @Column(name = "review_date")
+    @Convert(converter = LocalDateStringConverter.class)
     private LocalDate reviewDate;
 
     private String imageUrl;
