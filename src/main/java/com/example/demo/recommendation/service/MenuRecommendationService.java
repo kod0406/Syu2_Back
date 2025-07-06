@@ -7,9 +7,12 @@ import com.example.demo.recommendation.dto.StoreWeatherInfo;
 import com.example.demo.recommendation.dto.MenuAnalysisResult;
 import com.example.demo.recommendation.enums.MenuCategory;
 import com.example.demo.store.entity.MenuRecommendationCache;
-import com.example.demo.store.entity.MenuRecommendationHistory;
 import com.example.demo.store.entity.Store;
+import com.example.demo.store.entity.StoreMenu;
+import com.example.demo.customer.entity.CustomerReviewCollect; // 추가
+import com.example.demo.customer.repository.CustomerReviewCollectRepository; // 추가
 import com.example.demo.store.repository.StoreRepository;
+import com.example.demo.store.repository.StoreMenuRepository;
 import com.example.demo.recommendation.repository.MenuRecommendationCacheRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -36,9 +39,11 @@ public class MenuRecommendationService {
     private final GeminiApiService geminiApiService;
     private final RecommendationCacheService cacheService;
     private final StoreRepository storeRepository;
+    private final StoreMenuRepository storeMenuRepository;
     private final RedisTemplate<String, String> redisTemplate;
     private final ObjectMapper objectMapper;
     private final MenuRecommendationCacheRepository cacheRepository;
+    private final CustomerReviewCollectRepository customerReviewRepository; // 추가
 
     // 메인 추천 생성 (StoreLocation 기반)
     public MenuRecommendationResponse generateRecommendation(Long storeId) {
@@ -103,15 +108,55 @@ public class MenuRecommendationService {
 
         // 2. StoreLocation 기반 날씨 정보 수집
         StoreWeatherInfo weatherInfo = locationWeatherService.getStoreWeatherInfo(storeId);
+
         // 3. 리뷰 분석
         List<MenuAnalysisResult> menuAnalysis = reviewAnalyzer.analyzeRecentReviews(storeId);
-        // 4. 날씨 기반 메뉴 추천
+
+        // 4. 메뉴 분석 결과 상세 로그 출력
+        log.info("=== [인기 메뉴 분석] Store ID: {} ===", storeId);
+        log.info("[인기 메뉴 분석] menuAnalysis 배열 길이: {}", menuAnalysis != null ? menuAnalysis.size() : 0);
+
+        if (menuAnalysis != null && !menuAnalysis.isEmpty()) {
+            // 평점 순으로 정렬해서 출력
+            List<MenuAnalysisResult> sortedMenus = menuAnalysis.stream()
+                .filter(menu -> menu.getReviewCount() > 0) // 리뷰가 있는 메뉴만
+                .sorted((a, b) -> Double.compare(b.getAverageRating(), a.getAverageRating())) // 평점 높은 순
+                .collect(Collectors.toList());
+
+            for (int i = 0; i < sortedMenus.size(); i++) {
+                MenuAnalysisResult menu = sortedMenus.get(i);
+                log.info("[인기 메뉴 분석] 메뉴 {}: {{menuName: '{}', averageRating: {}, reviewCount: {}, sentiment: '{}'}}",
+                    i + 1,
+                    menu.getMenuName(),
+                    String.format("%.1f", menu.getAverageRating()),
+                    menu.getReviewCount(),
+                    menu.getSentiment()
+                );
+            }
+
+            // 리뷰가 없는 메뉴들도 출력
+            List<MenuAnalysisResult> noReviewMenus = menuAnalysis.stream()
+                .filter(menu -> menu.getReviewCount() == 0)
+                .collect(Collectors.toList());
+
+            if (!noReviewMenus.isEmpty()) {
+                log.info("[인기 메뉴 분석] 리뷰 없는 메뉴: {} 개", noReviewMenus.size());
+                noReviewMenus.forEach(menu -> {
+                    log.info("[인기 메뉴 분석] - {}: 리뷰 없음", menu.getMenuName());
+                });
+            }
+        } else {
+            log.info("[인기 메뉴 분석] 분석 가능한 메뉴 데이터가 없습니다.");
+        }
+        log.info("=== [인기 메뉴 분석] 끝 ===");
+
+        // 5. 날씨 기반 메뉴 추천
         List<MenuCategory> suggestedCategories = weatherMenuAnalyzer.suggestMenuCategories(
                 weatherInfo.getWeatherType(), weatherInfo.getSeason()
         );
-        // 5. AI 조언 생성
+        // 6. AI 조언 생성
         String aiAdvice = generateAIAdvice(weatherInfo, menuAnalysis, suggestedCategories);
-        // 6. 응답 생성
+        // 7. 응답 생성
         MenuRecommendationResponse response = MenuRecommendationResponse.builder()
                 .storeId(storeId)
                 .weatherInfo(weatherInfo)
@@ -121,7 +166,7 @@ public class MenuRecommendationService {
                 .generatedAt(LocalDateTime.now())
                 .fromCache(false)
                 .build();
-        // 7. 캐시 저장
+        // 8. 캐시 저장
         cacheService.saveRecommendation(response);
         return response;
     }
@@ -208,7 +253,7 @@ public class MenuRecommendationService {
                                  List<MenuCategory> suggestedCategories) {
         StringBuilder prompt = new StringBuilder();
 
-        // 더 구체적인 프롬프트 헤더 - 불필요한 인사말 방지
+        // 불필요한 인사말 방지
         prompt.append("당신은 전문 음식점 경영 컨설턴트입니다.\n");
         prompt.append("아래 매장 정보를 분석하여 즉시 실행 가능한 경영 조언 3가지를 제시하세요.\n\n");
 
@@ -224,6 +269,30 @@ public class MenuRecommendationService {
         prompt.append("- 날씨: ").append(weatherInfo.getWeatherSummary()).append("\n");
         prompt.append("- 계절: ").append(weatherInfo.getSeason().getKorean()).append("\n\n");
 
+        // 실제 매장 메뉴 데이터 추가
+        try {
+            Store store = storeRepository.findById(weatherInfo.getStoreId()).orElse(null);
+            if (store != null) {
+                List<StoreMenu> storeMenus = storeMenuRepository.findByStore(store);
+                if (!storeMenus.isEmpty()) {
+                    prompt.append("**매장 보유 메뉴 목록:**\n");
+                    storeMenus.forEach(menu -> {
+                        prompt.append("- ").append(menu.getMenuName());
+                        if (menu.getPrice() != null) {
+                            prompt.append(" (").append(menu.getPrice()).append("원)");
+                        }
+                        if (menu.getCategory() != null) {
+                            prompt.append(" [").append(menu.getCategory()).append("]");
+                        }
+                        prompt.append("\n");
+                    });
+                    prompt.append("\n");
+                }
+            }
+        } catch (Exception e) {
+            log.error("Error fetching store menus for AI prompt: {}", weatherInfo.getStoreId(), e);
+        }
+
         // 메뉴 분석 결과에 따른 차별화된 프롬프트
         if (menuAnalysis == null || menuAnalysis.isEmpty()) {
             prompt.append("**매장 상황:** 메뉴 데이터 없음 (신규 매장 또는 데이터 부족)\n\n");
@@ -236,6 +305,8 @@ public class MenuRecommendationService {
 
         } else if (menuAnalysis.size() < 3) {
             prompt.append("**매장 상황:** 제한적 메뉴 데이터 (").append(menuAnalysis.size()).append("개 메뉴)\n");
+
+            // 메뉴별 상세 정보와 실제 리뷰 내용 추가
             menuAnalysis.forEach(menu -> {
                 prompt.append("- ").append(menu.getMenuName());
                 if (menu.getReviewCount() == 0) {
@@ -243,8 +314,17 @@ public class MenuRecommendationService {
                 } else {
                     prompt.append(": ").append(menu.getAverageRating()).append("★ (")
                           .append(menu.getReviewCount()).append("리뷰)\n");
+
+                    // 실제 리뷰 내용 추가
+                    if (menu.getKeyReviewPoints() != null && !menu.getKeyReviewPoints().isEmpty()
+                        && !"데이터 없음".equals(menu.getKeyReviewPoints())) {
+                        prompt.append("  주요 리뷰 키워드: ").append(menu.getKeyReviewPoints()).append("\n");
+                    }
                 }
             });
+
+            // 실제 리뷰 내용 샘플 추가
+            addRecentReviewSamples(prompt, weatherInfo.getStoreId(), 3);
             prompt.append("\n");
 
             prompt.append("**요청사항:** 다음 3가지 조언을 구체적으로 제시하세요:\n");
@@ -255,11 +335,22 @@ public class MenuRecommendationService {
 
         } else {
             prompt.append("**매장 상황:** 충분한 메뉴 데이터 (").append(menuAnalysis.size()).append("개 메뉴)\n");
+
+            // 메뉴별 상세 정보와 실제 리뷰 내용 추가
             menuAnalysis.forEach(menu -> {
                 prompt.append("- ").append(menu.getMenuName())
                       .append(": ").append(menu.getAverageRating()).append("★ (")
                       .append(menu.getReviewCount()).append("리뷰)\n");
+
+                // 실제 리뷰 내용 추가
+                if (menu.getKeyReviewPoints() != null && !menu.getKeyReviewPoints().isEmpty()
+                    && !"데이터 없음".equals(menu.getKeyReviewPoints())) {
+                    prompt.append("  주요 리뷰 키워드: ").append(menu.getKeyReviewPoints()).append("\n");
+                }
             });
+
+            // 실제 리뷰 내용 샘플 추가 (더 많은 샘플)
+            addRecentReviewSamples(prompt, weatherInfo.getStoreId(), 5);
             prompt.append("\n");
 
             // 인기/비인기 메뉴 분석
@@ -303,6 +394,39 @@ public class MenuRecommendationService {
         prompt.append("즉시 실행 가능한 구체적인 방법만 제시하세요. 추상적이거나 일반적인 조언은 금지합니다.");
 
         return prompt.toString();
+    }
+
+    // 최근 리뷰 샘플을 프롬프트에 추가하는 메서드
+    private void addRecentReviewSamples(StringBuilder prompt, Long storeId, int maxSamples) {
+        try {
+            List<CustomerReviewCollect> recentReviews = customerReviewRepository
+                .findByStore_StoreIdOrderByReviewDateDesc(storeId)
+                .stream()
+                .filter(review -> review.getReviewDetails() != null && !review.getReviewDetails().trim().isEmpty())
+                .limit(maxSamples)
+                .collect(Collectors.toList());
+
+            if (!recentReviews.isEmpty()) {
+                prompt.append("\n**실제 고객 리뷰 샘플:**\n");
+                for (int i = 0; i < recentReviews.size(); i++) {
+                    CustomerReviewCollect review = recentReviews.get(i);
+                    String menuName = review.getStoreMenu() != null ? review.getStoreMenu().getMenuName() : "메뉴명 불명";
+                    String reviewText = review.getReviewDetails().length() > 50 ?
+                        review.getReviewDetails().substring(0, 50) + "..." :
+                        review.getReviewDetails();
+
+                    prompt.append(String.format("%d. [%s] %.1f★ \"%s\" (%s)\n",
+                        i + 1,
+                        menuName,
+                        review.getScore(),
+                        reviewText,
+                        review.getReviewDate()
+                    ));
+                }
+            }
+        } catch (Exception e) {
+            log.error("Error adding review samples to prompt for store: {}", storeId, e);
+        }
     }
 
     // 추천 히스토리 조회
