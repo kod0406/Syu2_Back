@@ -7,7 +7,6 @@ import com.example.demo.recommendation.dto.StoreWeatherInfo;
 import com.example.demo.recommendation.dto.MenuAnalysisResult;
 import com.example.demo.recommendation.enums.MenuCategory;
 import com.example.demo.recommendation.enums.SeasonType;
-import com.example.demo.store.entity.MenuRecommendationCache;
 import com.example.demo.store.entity.Store;
 import com.example.demo.store.entity.StoreMenu;
 import com.example.demo.customer.entity.CustomerReviewCollect;
@@ -18,7 +17,6 @@ import com.example.demo.recommendation.repository.MenuRecommendationCacheReposit
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,9 +25,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -46,8 +42,6 @@ public class MenuRecommendationService {
     private final StoreRepository storeRepository;
     private final StoreMenuRepository storeMenuRepository;
     private final RedisTemplate redisTemplate;
-    private final ObjectMapper objectMapper;
-    private final MenuRecommendationCacheRepository cacheRepository;
     private final CustomerReviewCollectRepository customerReviewRepository;
 
     // 메인 추천 생성 (StoreLocation 기반)
@@ -159,9 +153,16 @@ public class MenuRecommendationService {
         log.info("=== [인기 메뉴 분석] 끝 ===");
 
         // 5. 날씨 기반 메뉴 추천
-        List<MenuCategory> suggestedCategories = weatherMenuAnalyzer.suggestMenuCategories(
-            weatherInfo.getWeatherType(), weatherInfo.getSeason()
-        );
+        List<MenuCategory> suggestedCategories = weatherMenuAnalyzer.suggestBestMenuCategories(
+        weatherInfo.getWeatherType(),
+        weatherInfo.getSeason(),
+        weatherInfo.getTemperature(),
+        weatherInfo.getHumidity(),
+        LocalTime.now(),
+        weatherInfo.getWeatherSummary(),
+        null, // businessType - 필요시 Store 엔티티에서 추출 가능
+        null  // ageGroup - 필요시 리뷰 분석에서 추출 가능
+);
 
         // 6. AI 조언 생성
         String aiAdvice = generateAIAdvice(weatherInfo, menuAnalysis, suggestedCategories);
@@ -285,72 +286,72 @@ public class MenuRecommendationService {
     private String buildAdvancedFewShotExamples() {
         return """
             ## 분석 예시 (메뉴 데이터 충분한 경우)
-            
+
             ### 사례 1: 여름 폭염 + 치킨집 (리뷰 많음)
             **입력 조건**:
             - 날씨: 34°C 폭염, 습도 80%
             - 인기메뉴: 양념치킨 4.5★ (120리뷰), 후라이드 4.2★ (89리뷰)
             - 저조메뉴: 핫윙 3.8★ (15리뷰)
-            
+
             **분석 사고과정**:
             폭염 → 시원한 것 선호 → 차가운 음료 수요 ↑ → 매장 내 시원함 강조 → 아이스크림 디저트 추가 기회
-            
+
             **결과**:
             1. **시원한 매장 어필 즉시 실행**: 에어컨 풀가동 + "시원한 매장" SNS 홍보, 아이스크림 디저트 메뉴 당일 추가
             2. **인기메뉴 여름 버전 개발**: 양념치킨에 시원한 피클 무료 제공, "여름 특별 세트" 즉시 런칭
             3. **저조메뉴 개선**: 핫윙을 "쿨링 윙"으로 리뉴얼, 차가운 소스 개발로 여름용 변신
-            
+
             ### 사례 2: 비오는 날 + 카페 (리뷰 적음)
             **입력 조건**:
             - 날씨: 비 15mm, 쌀쌀함
             - 메뉴: 아메리카노, 라떼, 샌드위치 (리뷰 부족)
-            
+
             **분석 사고과정**:
             비 → 실내 체류시간 ↑ → 따뜻한 음료 선호 → 편안한 분위기 → 할인으로 신규고객 유치
-            
+
             **결과**:
             1. **비오는 날 특가 즉시 실행**: "우산 가져오면 10% 할인" 당일 이벤트
             2. **체류시간 활용**: 무료 WiFi + 콘센트 어필, 학습/업무 공간으로 포지셔닝
             3. **리뷰 수집 집중**: 첫 방문 고객 음료 업그레이드 무료 + 리뷰 작성 유도
-            
+
             """;
     }
 
     private String buildBasicFewShotExamples() {
         return """
             ## 분석 예시 (신규 매장 또는 데이터 부족한 경우)
-            
+
             ### 사례: 신규 식당 + 여름날씨
             **입력 조건**:
             - 날씨: 30°C 더위
             - 상황: 신규 개업, 메뉴 데이터 없음
             - 지역: 주거지역
-            
+
             **분석 사고과정**:
             신규매장 → 인지도 부족 → 첫인상이 중요 → 날씨 활용한 차별화 → 입소문 중요
-            
+
             **결과**:
             1. **첫인상 강화**: 시원한 매장 환경 + 여름 메뉴 특화로 "더위 피하기 좋은 곳" 포지셔닝
             2. **지역 밀착 마케팅**: 주변 아파트 단지 전단지 배포, 첫 방문 할인 쿠폰
             3. **리뷰 확보 전략**: 첫 100명 고객 특별 이벤트, SNS 인증 시 디저트 무료
-            
+
             """;
     }
 
     private String buildChainOfThoughtInstructions() {
         return """
             ## 분석 사고 과정 (단계별 수행)
-            
+
             ### 1단계: 환경 분석
             - 현재 날씨 → 고객 심리 변화 예측
             - 시간대 + 계절 → 방문 패턴 분석
             - 지역 특성 → 고객층 특성 파악
-            
+
             ### 2단계: 매장 현황 파악
             - 메뉴 성과 → 강점/약점 식별
             - 리뷰 감정 → 고객 만족도 분석
             - 운영 상황 → 개선 기회 발견
-            
+
             ### 3단계: 기회 발견
             - 환경 + 매장상황 → 즉시 활용 가능한 기회
             - 경쟁사 대비 → 차별화 포인트
@@ -490,33 +491,33 @@ public class MenuRecommendationService {
     private String buildOutputFormatAndConstraints() {
         return """
             ## 출력 형식 및 제약사항
-            
+
             ### 필수 출력 형식:
             ```
             1. **[구체적 액션 제목]**
             [2-3문장의 구체적 실행방안. 비용, 시간, 방법 명시]
-            
+
             2. **[구체적 액션 제목]**
             [2-3문장의 구체적 실행방안. 예상 효과 포함]
-            
+
             3. **[구체적 액션 제목]**
             [2-3문장의 구체적 실행방안. 측정 방법 포함]
             ```
-            
+
             ### 품질 기준:
             ✅ **즉시 실행**: 오늘 당장 실행 가능해야 함
             ✅ **구체성**: "마케팅 강화" ❌ → "SNS에 메뉴 사진 3장 + 할인 정보 게시" ⭐
             ✅ **측정 가능**: 성과를 숫자로 확인할 수 있어야 함
             ✅ **비용 명시**: 투자 비용이 구체적이어야 함
             ✅ **지역/날씨 반영**: 현재 상황을 반드시 고려
-            
+
             ### 금지사항:
             ❌ 추상적 조언 ("고객 만족도 향상" 등)
             ❌ 장기적 브랜딩 전략
             ❌ 배달 관련 조언 (매장 내 식사 전용)
             ❌ 인사말, 격려 멘트
             ❌ 이모지 사용 (💡, 🔥 등)
-            
+
             ### 검증 체크리스트:
             각 조언이 다음 질문에 YES로 답할 수 있는지 확인:
             - [ ] 오늘 당장 실행할 수 있나?
@@ -524,7 +525,7 @@ public class MenuRecommendationService {
             - [ ] 비용과 시간이 명시되었나?
             - [ ] 성과를 측정할 수 있나?
             - [ ] 현재 날씨/위치와 관련있나?
-            
+
             위 조건을 모두 만족하는 3개의 조언만 제시하세요.
             """;
     }
