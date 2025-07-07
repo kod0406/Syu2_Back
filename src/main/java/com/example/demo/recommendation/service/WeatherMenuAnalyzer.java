@@ -10,93 +10,54 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.time.LocalTime;
-import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class WeatherMenuAnalyzer {
 
-    // 날씨와 계절에 따른 메뉴 카테고리 추천
-    public List<MenuCategory> suggestMenuCategories(WeatherType weatherType, SeasonType season) {
+    // 모든 조건을 종합하여 최적의 메뉴 카테고리를 추천하는 통합 메서드
+    public List<MenuCategory> suggestBestMenuCategories(
+        WeatherType weatherType, SeasonType season, Double temperature, Integer humidity,
+        LocalTime time, String weatherDescription, String businessType, String ageGroup) {
+
         List<MenuCategory> suggestions = new ArrayList<>();
 
-        // 날씨별 기본 추천
-        suggestions.addAll(getWeatherBasedCategories(weatherType));
-
-        // 계절별 추천 추가
-        suggestions.addAll(getSeasonBasedCategories(season));
-
-        // 중복 제거 및 우선순위 정렬
-        return suggestions.stream()
-            .distinct()
-            .sorted(this::compareMenuCategoryPriority)
-            .limit(5)
-            .toList();
-    }
-
-    // 온도와 습도를 고려한 고급 카테고리 추천
-    public List<MenuCategory> suggestAdvancedMenuCategories(WeatherType weatherType, SeasonType season,
-                                                           Double temperature, Integer humidity) {
-        List<MenuCategory> suggestions = new ArrayList<>();
-
-        // 기본 날씨/계절 추천
+        // 1. 기본 날씨 및 계절 기반 추천
         suggestions.addAll(getWeatherBasedCategories(weatherType));
         suggestions.addAll(getSeasonBasedCategories(season));
 
-        // 온도별 세밀한 추천
+        // 2. 온도 및 습도 기반 추천
         if (temperature != null) {
             suggestions.addAll(getTemperatureBasedCategories(temperature));
         }
-
-        // 습도별 추천
         if (humidity != null) {
             suggestions.addAll(getHumidityBasedCategories(humidity));
         }
 
-        // 복합 날씨 조건 추천
-        suggestions.addAll(getComplexWeatherCategories(weatherType, temperature, humidity));
-
-        // 시간대별 추천 추가
-        suggestions.addAll(getTimeBasedCategories());
-
-        return suggestions.stream()
-            .distinct()
-            .sorted(this::compareMenuCategoryPriority)
-            .limit(8)
-            .toList();
-    }
-
-    // 시간대별 메뉴 카테고리 추천
-    public List<MenuCategory> suggestCategoriesByTime(LocalTime currentTime) {
-        return getTimeBasedCategories(currentTime);
-    }
-
-    // 복합 조건 추천 (날씨 + 온도 + 습도 + 시간)
-    public List<MenuCategory> suggestComprehensiveCategories(WeatherType weatherType, SeasonType season,
-                                                           Double temperature, Integer humidity, LocalTime time) {
-        List<MenuCategory> suggestions = new ArrayList<>();
-
-        // 모든 조건별 추천 수집
-        suggestions.addAll(getWeatherBasedCategories(weatherType));
-        suggestions.addAll(getSeasonBasedCategories(season));
-
-        if (temperature != null) {
-            suggestions.addAll(getTemperatureBasedCategories(temperature));
-        }
-
-        if (humidity != null) {
-            suggestions.addAll(getHumidityBasedCategories(humidity));
-        }
-
+        // 3. 시간대 기반 추천
         if (time != null) {
             suggestions.addAll(getTimeBasedCategories(time));
         }
 
-        // 복합 조건 추천
+        // 4. 복합 날씨 조건 기반 추천
         suggestions.addAll(getComplexWeatherCategories(weatherType, temperature, humidity));
+
+        // 5. 계절 및 시간 조합 기반 추천
         suggestions.addAll(getSeasonTimeCategories(season, time));
 
+        // 6. 특별 날씨 상황 기반 추천
+        suggestions.addAll(getSpecialWeatherCategories(weatherType, temperature, humidity, weatherDescription));
+
+        // 7. 업종 및 연령대 기반 추천
+        if (businessType != null) {
+            suggestions.addAll(getBusinessTypeCategories(businessType));
+        }
+        if (ageGroup != null) {
+            suggestions.addAll(getAgeGroupCategories(ageGroup));
+        }
+
+        // 최종적으로 중복 제거, 우선순위 정렬 후 상위 10개 추천
         return suggestions.stream()
             .distinct()
             .sorted(this::compareMenuCategoryPriority)
@@ -104,10 +65,11 @@ public class WeatherMenuAnalyzer {
             .toList();
     }
 
-    // 상세한 날씨 메뉴 제안 생성
+    // 상세한 날씨 메뉴 제안 생성 (외부 API용)
     public WeatherMenuSuggestion generateDetailedSuggestion(WeatherType weatherType, SeasonType season,
                                                            Double temperature, Integer humidity) {
-        List<MenuCategory> categories = suggestMenuCategories(weatherType, season);
+        List<MenuCategory> categories = suggestBestMenuCategories(weatherType, season, temperature, humidity,
+                                                                  LocalTime.now(), null, null, null);
         String reason = generateSuggestionReason(weatherType, season, temperature, humidity);
         String suggestion = generateSuggestionText(weatherType, season, temperature);
         List<String> keywords = generateKeywords(weatherType, season, temperature);
@@ -125,7 +87,7 @@ public class WeatherMenuAnalyzer {
             .build();
     }
 
-    // 날씨별 메뉴 카테고리 매핑 - 확장된 버전
+    // 날씨별 메뉴 카테고리 매핑
     private List<MenuCategory> getWeatherBasedCategories(WeatherType weatherType) {
         return switch (weatherType) {
             case RAIN, DRIZZLE -> Arrays.asList(
