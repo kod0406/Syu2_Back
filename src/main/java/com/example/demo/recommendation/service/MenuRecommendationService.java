@@ -122,25 +122,25 @@ public class MenuRecommendationService {
         if (menuAnalysis != null && !menuAnalysis.isEmpty()) {
             // 평점 순으로 정렬해서 출력
             List<MenuAnalysisResult> sortedMenus = menuAnalysis.stream()
-                .filter(menu -> menu.getReviewCount() > 0) // 리뷰가 있는 메뉴만
-                .sorted((a, b) -> Double.compare(b.getAverageRating(), a.getAverageRating())) // 평점 높은 순
-                .collect(Collectors.toList());
+                    .filter(menu -> menu.getReviewCount() > 0) // 리뷰가 있는 메뉴만
+                    .sorted((a, b) -> Double.compare(b.getAverageRating(), a.getAverageRating())) // 평점 높은 순
+                    .collect(Collectors.toList());
 
             for (int i = 0; i < sortedMenus.size(); i++) {
                 MenuAnalysisResult menu = sortedMenus.get(i);
                 log.info("[인기 메뉴 분석] 메뉴 {}: {menuName: '{}', averageRating: {}, reviewCount: {}, sentiment: '{}'}",
-                    i + 1,
-                    menu.getMenuName(),
-                    String.format("%.1f", menu.getAverageRating()),
-                    menu.getReviewCount(),
-                    menu.getSentiment()
+                        i + 1,
+                        menu.getMenuName(),
+                        String.format("%.1f", menu.getAverageRating()),
+                        menu.getReviewCount(),
+                        menu.getSentiment()
                 );
             }
 
             // 리뷰가 없는 메뉴들도 출력
             List<MenuAnalysisResult> noReviewMenus = menuAnalysis.stream()
-                .filter(menu -> menu.getReviewCount() == 0)
-                .collect(Collectors.toList());
+                    .filter(menu -> menu.getReviewCount() == 0)
+                    .collect(Collectors.toList());
             if (!noReviewMenus.isEmpty()) {
                 log.info("[인기 메뉴 분석] 리뷰 없는 메뉴: {} 개", noReviewMenus.size());
                 noReviewMenus.forEach(menu -> {
@@ -154,29 +154,29 @@ public class MenuRecommendationService {
 
         // 5. 날씨 기반 메뉴 추천
         List<MenuCategory> suggestedCategories = weatherMenuAnalyzer.suggestBestMenuCategories(
-        weatherInfo.getWeatherType(),
-        weatherInfo.getSeason(),
-        weatherInfo.getTemperature(),
-        weatherInfo.getHumidity(),
-        LocalTime.now(),
-        weatherInfo.getWeatherSummary(),
-        null, // businessType - 필요시 Store 엔티티에서 추출 가능
-        null  // ageGroup - 필요시 리뷰 분석에서 추출 가능
-);
+                weatherInfo.getWeatherType(),
+                weatherInfo.getSeason(),
+                weatherInfo.getTemperature(),
+                weatherInfo.getHumidity(),
+                LocalTime.now(),
+                weatherInfo.getWeatherSummary(),
+                null, // businessType - 필요시 Store 엔티티에서 추출 가능
+                null  // ageGroup - 필요시 리뷰 분석에서 추출 가능
+        );
 
         // 6. AI 조언 생성
         String aiAdvice = generateAIAdvice(weatherInfo, menuAnalysis, suggestedCategories);
 
         // 7. 응답 생성
         MenuRecommendationResponse response = MenuRecommendationResponse.builder()
-            .storeId(storeId)
-            .weatherInfo(weatherInfo)
-            .menuAnalysis(menuAnalysis)
-            .suggestedCategories(suggestedCategories)
-            .aiAdvice(aiAdvice)
-            .generatedAt(LocalDateTime.now())
-            .fromCache(false)
-            .build();
+                .storeId(storeId)
+                .weatherInfo(weatherInfo)
+                .menuAnalysis(menuAnalysis)
+                .suggestedCategories(suggestedCategories)
+                .aiAdvice(aiAdvice)
+                .generatedAt(LocalDateTime.now())
+                .fromCache(false)
+                .build();
 
         // 8. 캐시 저장
         cacheService.saveRecommendation(response);
@@ -185,22 +185,22 @@ public class MenuRecommendationService {
     }
 
     private String generateAIAdvice(StoreWeatherInfo weatherInfo,
-                                   List<MenuAnalysisResult> menuAnalysis,
-                                   List<MenuCategory> suggestedCategories) {
+                                    List<MenuAnalysisResult> menuAnalysis,
+                                    List<MenuCategory> suggestedCategories) {
 
         String prompt = buildOptimizedGeminiPrompt(weatherInfo, menuAnalysis, suggestedCategories);
 
         // 프롬프트 로깅 - 어떤 프롬프트를 제미나이에게 보내는지 출력
         log.info("=== AI 프롬프트 로그 (Store ID: {}) ===", weatherInfo.getStoreId());
         log.info("데이터 상황: 메뉴분석={}, 추천카테고리={}",
-            menuAnalysis != null ? menuAnalysis.size() + "개" : "없음",
-            suggestedCategories != null ? suggestedCategories.size() + "개" : "없음");
+                menuAnalysis != null ? menuAnalysis.size() + "개" : "없음",
+                suggestedCategories != null ? suggestedCategories.size() + "개" : "없음");
         log.info("프롬프트 내용:\n{}", prompt);
         log.info("=== 프롬프트 로그 끝 ===");
 
         try {
             String rawResponse = geminiApiService.generateMenuRecommendation(prompt)
-                .block();
+                    .block();
 
             // AI 응답 로깅
             log.info("=== AI 응답 로그 (Store ID: {}) ===", weatherInfo.getStoreId());
@@ -226,13 +226,13 @@ public class MenuRecommendationService {
      * - 실시간 트렌드 반영으로 실용성 증대
      */
     private String buildOptimizedGeminiPrompt(StoreWeatherInfo weatherInfo,
-                                             List<MenuAnalysisResult> menuAnalysis,
-                                             List<MenuCategory> suggestedCategories) {
+                                              List<MenuAnalysisResult> menuAnalysis,
+                                              List<MenuCategory> suggestedCategories) {
 
         // 토큰 효율성을 위한 조건부 로딩
         boolean hasMenuData = menuAnalysis != null && !menuAnalysis.isEmpty();
         boolean hasReviewData = hasMenuData && menuAnalysis.stream()
-            .anyMatch(menu -> menu.getReviewCount() > 0);
+                .anyMatch(menu -> menu.getReviewCount() > 0);
 
         StringBuilder prompt = new StringBuilder();
 
@@ -266,108 +266,108 @@ public class MenuRecommendationService {
 
     private String buildSystemContext() {
         return """
-            # 음식점 경영 전문 컨설턴트 AI
-            
-            ## 전문 영역
-            - 날씨 기반 고객 행동 패턴 분석
-            - 매장 운영 최적화 전략
-            - 즉시 실행 가능한 매출 증대 방안
-            - 지역별 외식업 트렌드 분석
-            
-            ## 분석 원칙
-            1. 데이터 기반 현실적 판단
-            2. 즉시 실행 가능한 구체적 방안
-            3. 비용 대비 효과 최우선
-            4. 지역 특성 및 날씨 반영 필수
-            
-            """;
+                # 음식점 경영 전문 컨설턴트 AI
+                
+                ## 전문 영역
+                - 날씨 기반 고객 행동 패턴 분석
+                - 매장 운영 최적화 전략
+                - 즉시 실행 가능한 매출 증대 방안
+                - 지역별 외식업 트렌드 분석
+                
+                ## 분석 원칙
+                1. 데이터 기반 현실적 판단
+                2. 즉시 실행 가능한 구체적 방안
+                3. 비용 대비 효과 최우선
+                4. 지역 특성 및 날씨 반영 필수
+                
+                """;
     }
 
     private String buildAdvancedFewShotExamples() {
         return """
-            ## 분석 예시 (메뉴 데이터 충분한 경우)
-
-            ### 사례 1: 여름 폭염 + 치킨집 (리뷰 많음)
-            **입력 조건**:
-            - 날씨: 34°C 폭염, 습도 80%
-            - 인기메뉴: 양념치킨 4.5★ (120리뷰), 후라이드 4.2★ (89리뷰)
-            - 저조메뉴: 핫윙 3.8★ (15리뷰)
-
-            **분석 사고과정**:
-            폭염 → 시원한 것 선호 → 차가운 음료 수요 ↑ → 매장 내 시원함 강조 → 아이스크림 디저트 추가 기회
-
-            **결과**:
-            1. **시원한 매장 어필 즉시 실행**: 에어컨 풀가동 + "시원한 매장" SNS 홍보, 아이스크림 디저트 메뉴 당일 추가
-            2. **인기메뉴 여름 버전 개발**: 양념치킨에 시원한 피클 무료 제공, "여름 특별 세트" 즉시 런칭
-            3. **저조메뉴 개선**: 핫윙을 "쿨링 윙"으로 리뉴얼, 차가운 소스 개발로 여름용 변신
-
-            ### 사례 2: 비오는 날 + 카페 (리뷰 적음)
-            **입력 조건**:
-            - 날씨: 비 15mm, 쌀쌀함
-            - 메뉴: 아메리카노, 라떼, 샌드위치 (리뷰 부족)
-
-            **분석 사고과정**:
-            비 → 실내 체류시간 ↑ → 따뜻한 음료 선호 → 편안한 분위기 → 할인으로 신규고객 유치
-
-            **결과**:
-            1. **비오는 날 특가 즉시 실행**: "우산 가져오면 10% 할인" 당일 이벤트
-            2. **체류시간 활용**: 무료 WiFi + 콘센트 어필, 학습/업무 공간으로 포지셔닝
-            3. **리뷰 수집 집중**: 첫 방문 고객 음료 업그레이드 무료 + 리뷰 작성 유도
-
-            """;
+                ## 분석 예시 (메뉴 데이터 충분한 경우)
+                
+                ### 사례 1: 여름 폭염 + 치킨집 (리뷰 많음)
+                **입력 조건**:
+                - 날씨: 34°C 폭염, 습도 80%
+                - 인기메뉴: 양념치킨 4.5★ (120리뷰), 후라이드 4.2★ (89리뷰)
+                - 저조메뉴: 핫윙 3.8★ (15리뷰)
+                
+                **분석 사고과정**:
+                폭염 → 시원한 것 선호 → 차가운 음료 수요 ↑ → 매장 내 시원함 강조 → 아이스크림 디저트 추가 기회
+                
+                **결과**:
+                1. **시원한 매장 어필 즉시 실행**: 에어컨 풀가동 + "시원한 매장" SNS 홍보, 아이스크림 디저트 메뉴 당일 추가
+                2. **인기메뉴 여름 버전 개발**: 양념치킨에 시원한 피클 무료 제공, "여름 특별 세트" 즉시 런칭
+                3. **저조메뉴 개선**: 핫윙을 "쿨링 윙"으로 리뉴얼, 차가운 소스 개발로 여름용 변신
+                
+                ### 사례 2: 비오는 날 + 카페 (리뷰 적음)
+                **입력 조건**:
+                - 날씨: 비 15mm, 쌀쌀함
+                - 메뉴: 아메리카노, 라떼, 샌드위치 (리뷰 부족)
+                
+                **분석 사고과정**:
+                비 → 실내 체류시간 ↑ → 따뜻한 음료 선호 → 편안한 분위기 → 할인으로 신규고객 유치
+                
+                **결과**:
+                1. **비오는 날 특가 즉시 실행**: "우산 가져오면 10% 할인" 당일 이벤트
+                2. **체류시간 활용**: 무료 WiFi + 콘센트 어필, 학습/업무 공간으로 포지셔닝
+                3. **리뷰 수집 집중**: 첫 방문 고객 음료 업그레이드 무료 + 리뷰 작성 유도
+                
+                """;
     }
 
     private String buildBasicFewShotExamples() {
         return """
-            ## 분석 예시 (신규 매장 또는 데이터 부족한 경우)
-
-            ### 사례: 신규 식당 + 여름날씨
-            **입력 조건**:
-            - 날씨: 30°C 더위
-            - 상황: 신규 개업, 메뉴 데이터 없음
-            - 지역: 주거지역
-
-            **분석 사고과정**:
-            신규매장 → 인지도 부족 → 첫인상이 중요 → 날씨 활용한 차별화 → 입소문 중요
-
-            **결과**:
-            1. **첫인상 강화**: 시원한 매장 환경 + 여름 메뉴 특화로 "더위 피하기 좋은 곳" 포지셔닝
-            2. **지역 밀착 마케팅**: 주변 아파트 단지 전단지 배포, 첫 방문 할인 쿠폰
-            3. **리뷰 확보 전략**: 첫 100명 고객 특별 이벤트, SNS 인증 시 디저트 무료
-
-            """;
+                ## 분석 예시 (신규 매장 또는 데이터 부족한 경우)
+                
+                ### 사례: 신규 식당 + 여름날씨
+                **입력 조건**:
+                - 날씨: 30°C 더위
+                - 상황: 신규 개업, 메뉴 데이터 없음
+                - 지역: 주거지역
+                
+                **분석 사고과정**:
+                신규매장 → 인지도 부족 → 첫인상이 중요 → 날씨 활용한 차별화 → 입소문 중요
+                
+                **결과**:
+                1. **첫인상 강화**: 시원한 매장 환경 + 여름 메뉴 특화로 "더위 피하기 좋은 곳" 포지셔닝
+                2. **지역 밀착 마케팅**: 주변 아파트 단지 전단지 배포, 첫 방문 할인 쿠폰
+                3. **리뷰 확보 전략**: 첫 100명 고객 특별 이벤트, SNS 인증 시 디저트 무료
+                
+                """;
     }
 
     private String buildChainOfThoughtInstructions() {
         return """
-            ## 분석 사고 과정 (단계별 수행)
-
-            ### 1단계: 환경 분석
-            - 현재 날씨 → 고객 심리 변화 예측
-            - 시간대 + 계절 → 방문 패턴 분석
-            - 지역 특성 → 고객층 특성 파악
-
-            ### 2단계: 매장 현황 파악
-            - 메뉴 성과 → 강점/약점 식별
-            - 리뷰 감정 → 고객 만족도 분석
-            - 운영 상황 → 개선 기회 발견
-
-            ### 3단계: 기회 발견
-            - 환경 + 매장상황 → 즉시 활용 가능한 기회
-            - 경쟁사 대비 → 차별화 포인트
-            - 단기 수익 → 오늘 당장 매출 기회
-            
-            ### 4단계: 실행 방안 도출
-            - 기회 → 구체적 액션 플랜
-            - 비용 → 투자 대비 효과 계산
-            - 측정 → 성과 확인 방법
-            
-            ### 5단계: 우선순위 설정
-            - 긴급도 + 중요도 → 실행 순서
-            - 리소스 → 현실적 실행 가능성
-            - 임팩트 → 예상 효과 크기
-            
-            """;
+                ## 분석 사고 과정 (단계별 수행)
+                
+                ### 1단계: 환경 분석
+                - 현재 날씨 → 고객 심리 변화 예측
+                - 시간대 + 계절 → 방문 패턴 분석
+                - 지역 특성 → 고객층 특성 파악
+                
+                ### 2단계: 매장 현황 파악
+                - 메뉴 성과 → 강점/약점 식별
+                - 리뷰 감정 → 고객 만족도 분석
+                - 운영 상황 → 개선 기회 발견
+                
+                ### 3단계: 기회 발견
+                - 환경 + 매장상황 → 즉시 활용 가능한 기회
+                - 경쟁사 대비 → 차별화 포인트
+                - 단기 수익 → 오늘 당장 매출 기회
+                
+                ### 4단계: 실행 방안 도출
+                - 기회 → 구체적 액션 플랜
+                - 비용 → 투자 대비 효과 계산
+                - 측정 → 성과 확인 방법
+                
+                ### 5단계: 우선순위 설정
+                - 긴급도 + 중요도 → 실행 순서
+                - 리소스 → 현실적 실행 가능성
+                - 임팩트 → 예상 효과 크기
+                
+                """;
     }
 
     private String buildRealtimeTrendContext(StoreWeatherInfo weatherInfo) {
@@ -453,8 +453,8 @@ public class MenuRecommendationService {
     }
 
     private String buildStructuredAnalysisRequest(StoreWeatherInfo weatherInfo,
-                                                boolean hasMenuData,
-                                                boolean hasReviewData) {
+                                                  boolean hasMenuData,
+                                                  boolean hasReviewData) {
         StringBuilder request = new StringBuilder();
 
         request.append("## 분석 요청사항\n\n");
@@ -464,7 +464,7 @@ public class MenuRecommendationService {
             // 신규 매장 또는 데이터 부족
             request.append("### 상황: 신규 매장 또는 메뉴 데이터 부족\n");
             request.append("1. **즉시 실행 날씨 대응** - ").append(weatherInfo.getWeatherSummary())
-                   .append(" 날씨에 맞는 오늘 당장 실행할 수 있는 메뉴/서비스 준비\n");
+                    .append(" 날씨에 맞는 오늘 당장 실행할 수 있는 메뉴/서비스 준비\n");
             request.append("2. **초기 고객 유치 전략** - 신규 매장 인지도 확보를 위한 구체적 마케팅 방안\n");
             request.append("3. **리뷰 확보 시스템** - 빠른 시간 내 고객 피드백을 모으는 실용적 방법\n\n");
 
@@ -472,7 +472,7 @@ public class MenuRecommendationService {
             // 메뉴는 있지만 리뷰 부족
             request.append("### 상황: 메뉴 데이터 있음, 리뷰 데이터 부족\n");
             request.append("1. **날씨 맞춤 메뉴 홍보** - ").append(weatherInfo.getWeatherSummary())
-                   .append(" 날씨에 기존 메뉴를 어떻게 어필할지\n");
+                    .append(" 날씨에 기존 메뉴를 어떻게 어필할지\n");
             request.append("2. **메뉴 차별화 전략** - 기존 메뉴의 독특함을 부각시키는 방법\n");
             request.append("3. **고객 참여 유도** - 리뷰 작성과 재방문을 늘리는 구체적 이벤트\n\n");
 
@@ -480,7 +480,7 @@ public class MenuRecommendationService {
             // 충분한 데이터 보유
             request.append("### 상황: 충분한 메뉴 및 리뷰 데이터 보유\n");
             request.append("1. **날씨 기반 메뉴 최적화** - ").append(weatherInfo.getWeatherSummary())
-                   .append(" 날씨에 어떤 메뉴를 중점 마케팅할지\n");
+                    .append(" 날씨에 어떤 메뉴를 중점 마케팅할지\n");
             request.append("2. **데이터 기반 운영 개선** - 리뷰 분석 결과를 활용한 구체적 개선 방안\n");
             request.append("3. **매출 극대화 전략** - 기존 강점을 활용한 수익 증대 방법\n\n");
         }
@@ -490,49 +490,49 @@ public class MenuRecommendationService {
 
     private String buildOutputFormatAndConstraints() {
         return """
-            ## 출력 형식 및 제약사항
-
-            ### 필수 출력 형식:
-            ```
-            1. **[구체적 액션 제목]**
-            [2-3문장의 구체적 실행방안. 비용, 시간, 방법 명시]
-
-            2. **[구체적 액션 제목]**
-            [2-3문장의 구체적 실행방안. 예상 효과 포함]
-
-            3. **[구체적 액션 제목]**
-            [2-3문장의 구체적 실행방안. 측정 방법 포함]
-            ```
-
-            ### 품질 기준:
-            ✅ **즉시 실행**: 오늘 당장 실행 가능해야 함
-            ✅ **구체성**: "마케팅 강화" ❌ → "SNS에 메뉴 사진 3장 + 할인 정보 게시" ⭐
-            ✅ **측정 가능**: 성과를 숫자로 확인할 수 있어야 함
-            ✅ **비용 명시**: 투자 비용이 구체적이어야 함
-            ✅ **지역/날씨 반영**: 현재 상황을 반드시 고려
-
-            ### 금지사항:
-            ❌ 추상적 조언 ("고객 만족도 향상" 등)
-            ❌ 장기적 브랜딩 전략
-            ❌ 배달 관련 조언 (매장 내 식사 전용)
-            ❌ 인사말, 격려 멘트
-            ❌ 이모지 사용 (💡, 🔥 등)
-
-            ### 검증 체크리스트:
-            각 조언이 다음 질문에 YES로 답할 수 있는지 확인:
-            - [ ] 오늘 당장 실행할 수 있나?
-            - [ ] 구체적인 행동 방안인가?
-            - [ ] 비용과 시간이 명시되었나?
-            - [ ] 성과를 측정할 수 있나?
-            - [ ] 현재 날씨/위치와 관련있나?
-
-            위 조건을 모두 만족하는 3개의 조언만 제시하세요.
-            """;
+                ## 출력 형식 및 제약사항
+                
+                ### 필수 출력 형식:
+                ```
+                1. **[구체적 액션 제목]**
+                [2-3문장의 구체적 실행방안. 비용, 시간, 방법 명시]
+                
+                2. **[구체적 액션 제목]**
+                [2-3문장의 구체적 실행방안. 예상 효과 포함]
+                
+                3. **[구체적 액션 제목]**
+                [2-3문장의 구체적 실행방안. 측정 방법 포함]
+                ```
+                
+                ### 품질 기준:
+                ✅ **즉시 실행**: 오늘 당장 실행 가능해야 함
+                ✅ **구체성**: "마케팅 강화" ❌ → "SNS에 메뉴 사진 3장 + 할인 정보 게시" ⭐
+                ✅ **측정 가능**: 성과를 숫자로 확인할 수 있어야 함
+                ✅ **비용 명시**: 투자 비용이 구체적이어야 함
+                ✅ **지역/날씨 반영**: 현재 상황을 반드시 고려
+                
+                ### 금지사항:
+                ❌ 추상적 조언 ("고객 만족도 향상" 등)
+                ❌ 장기적 브랜딩 전략
+                ❌ 배달 관련 조언 (매장 내 식사 전용)
+                ❌ 인사말, 격려 멘트
+                ❌ 이모지 사용 (💡, 🔥 등)
+                
+                ### 검증 체크리스트:
+                각 조언이 다음 질문에 YES로 답할 수 있는지 확인:
+                - [ ] 오늘 당장 실행할 수 있나?
+                - [ ] 구체적인 행동 방안인가?
+                - [ ] 비용과 시간이 명시되었나?
+                - [ ] 성과를 측정할 수 있나?
+                - [ ] 현재 날씨/위치와 관련있나?
+                
+                위 조건을 모두 만족하는 3개의 조언만 제시하세요.
+                """;
     }
 
     private String buildCurrentBusinessContext(StoreWeatherInfo weatherInfo,
-                                             List<MenuAnalysisResult> menuAnalysis,
-                                             List<MenuCategory> suggestedCategories) {
+                                               List<MenuAnalysisResult> menuAnalysis,
+                                               List<MenuCategory> suggestedCategories) {
         StringBuilder context = new StringBuilder();
 
         context.append("## 현재 매장 상황 분석\n\n");
@@ -577,31 +577,31 @@ public class MenuRecommendationService {
 
             // 상위 성과 메뉴
             menuAnalysis.stream()
-                .filter(menu -> menu.getReviewCount() > 0)
-                .sorted((a, b) -> Double.compare(b.getAverageRating(), a.getAverageRating()))
-                .limit(3)
-                .forEach(menu -> {
-                    context.append("- 우수: ").append(menu.getMenuName())
-                          .append(" (").append(String.format("%.1f★", menu.getAverageRating()))
-                          .append(", ").append(menu.getReviewCount()).append("리뷰)");
+                    .filter(menu -> menu.getReviewCount() > 0)
+                    .sorted((a, b) -> Double.compare(b.getAverageRating(), a.getAverageRating()))
+                    .limit(3)
+                    .forEach(menu -> {
+                        context.append("- 우수: ").append(menu.getMenuName())
+                                .append(" (").append(String.format("%.1f★", menu.getAverageRating()))
+                                .append(", ").append(menu.getReviewCount()).append("리뷰)");
 
-                    if (menu.getKeyReviewPoints() != null && !menu.getKeyReviewPoints().isEmpty()
-                        && !"데이터 없음".equals(menu.getKeyReviewPoints())) {
-                        context.append(" - 키워드: ").append(menu.getKeyReviewPoints());
-                    }
-                    context.append("\n");
-                });
+                        if (menu.getKeyReviewPoints() != null && !menu.getKeyReviewPoints().isEmpty()
+                                && !"데이터 없음".equals(menu.getKeyReviewPoints())) {
+                            context.append(" - 키워드: ").append(menu.getKeyReviewPoints());
+                        }
+                        context.append("\n");
+                    });
 
             // 개선 필요 메뉴
             menuAnalysis.stream()
-                .filter(menu -> menu.getReviewCount() > 0 && menu.getAverageRating() < 4.0)
-                .sorted((a, b) -> Double.compare(a.getAverageRating(), b.getAverageRating()))
-                .limit(2)
-                .forEach(menu -> {
-                    context.append("- 개선필요: ").append(menu.getMenuName())
-                          .append(" (").append(String.format("%.1f★", menu.getAverageRating()))
-                          .append(", ").append(menu.getReviewCount()).append("리뷰)\n");
-                });
+                    .filter(menu -> menu.getReviewCount() > 0 && menu.getAverageRating() < 4.0)
+                    .sorted((a, b) -> Double.compare(a.getAverageRating(), b.getAverageRating()))
+                    .limit(2)
+                    .forEach(menu -> {
+                        context.append("- 개선필요: ").append(menu.getMenuName())
+                                .append(" (").append(String.format("%.1f★", menu.getAverageRating()))
+                                .append(", ").append(menu.getReviewCount()).append("리뷰)\n");
+                    });
 
             context.append("\n");
 
@@ -632,11 +632,13 @@ public class MenuRecommendationService {
         try {
             // 기본 정리
             String cleanedResponse = rawResponse
-                .replaceAll("(?i)사장님,?\\s*안녕하세요[!.]?[\\s\\n]*", "")
-                .replaceAll("(?i)안녕하세요,?\\s*사장님[!.]?[\\s\\n]*", "")
-                .replaceAll("(?i)화이팅[!]*[\\s\\n]*$", "")
-                .replaceAll("(?i)응원하겠습니다[!]*[\\s\\n]*$", "")
-                .trim();
+                    .replaceAll("(?i)사장님,?\\s*안녕하세요[!.]?[\\s\\n]*", "")
+                    .replaceAll("(?i)안녕하세요,?\\s*사장님[!.]?[\\s\\n]*", "")
+                    .replaceAll("(?i)화이팅[!]*[\\s\\n]*$", "")
+                    .replaceAll("(?i)응원하겠습니다[!]*[\\s\\n]*$", "")
+                    .replaceAll("```[a-zA-Z]*\\n?", "")
+                    .replaceAll("```", "")
+                    .trim();
 
             // HTML 포맷팅 적용
             return formatAiAdviceWithRegex(cleanedResponse);
@@ -653,29 +655,29 @@ public class MenuRecommendationService {
         }
 
         return aiAdvice
-            // 1. **텍스트** -> <strong>텍스트</strong>
-            .replaceAll("\\*\\*(.*?)\\*\\*", "<strong>$1</strong>")
-            // 2. *텍스트* -> 텍스트
-            .replaceAll("\\*(.*?)\\*", "$1")
-            // 3. 줄바꿈을 <br> 태그로 변환
-            .replaceAll("\\n", "<br>")
-            // 4. 번호 목록 처리 (1. 2. 3. ...)
-            .replaceAll("(\\d+\\.)\\s", "<br><strong>$1</strong> ")
-            // 5. 불필요한 연속된 <br> 정리
-            .replaceAll("(<br>){3,}", "<br><br>")
-            // 6. 시작 부분의 <br> 제거
-            .replaceAll("^<br>+", "");
+                // 1. **텍스트** -> <strong>텍스트</strong>
+                .replaceAll("\\*\\*(.*?)\\*\\*", "<strong>$1</strong>")
+                // 2. *텍스트* -> 텍스트
+                .replaceAll("\\*(.*?)\\*", "$1")
+                // 3. 줄바꿈을 <br> 태그로 변환
+                .replaceAll("\\n", "<br>")
+                // 4. 번호 목록 처리 (1. 2. 3. ...)
+                .replaceAll("(\\d+\\.)\\s", "<br><strong>$1</strong> ")
+                // 5. 불필요한 연속된 <br> 정리
+                .replaceAll("(<br>){3,}", "<br><br>")
+                // 6. 시작 부분의 <br> 제거
+                .replaceAll("^<br>+", "");
     }
 
     // 최근 리뷰 샘플을 프롬프트에 추가하는 메서드
     private void addRecentReviewSamples(StringBuilder prompt, Long storeId, int maxSamples) {
         try {
             List<CustomerReviewCollect> recentReviews = customerReviewRepository
-                .findByStore_StoreIdOrderByReviewDateDesc(storeId)
-                .stream()
-                .filter(review -> review.getReviewDetails() != null && !review.getReviewDetails().trim().isEmpty())
-                .limit(maxSamples)
-                .collect(Collectors.toList());
+                    .findByStore_StoreIdOrderByReviewDateDesc(storeId)
+                    .stream()
+                    .filter(review -> review.getReviewDetails() != null && !review.getReviewDetails().trim().isEmpty())
+                    .limit(maxSamples)
+                    .collect(Collectors.toList());
 
             if (!recentReviews.isEmpty()) {
                 prompt.append("\n**실제 고객 리뷰 샘플**:\n");
@@ -683,15 +685,15 @@ public class MenuRecommendationService {
                     CustomerReviewCollect review = recentReviews.get(i);
                     String menuName = review.getStoreMenu() != null ? review.getStoreMenu().getMenuName() : "메뉴명 불명";
                     String reviewText = review.getReviewDetails().length() > 50 ?
-                        review.getReviewDetails().substring(0, 50) + "..." :
-                        review.getReviewDetails();
+                            review.getReviewDetails().substring(0, 50) + "..." :
+                            review.getReviewDetails();
 
                     prompt.append(String.format("%d. [%s] %.1f★ \"%s\" (%s)\n",
-                        i + 1,
-                        menuName,
-                        review.getScore(),
-                        reviewText,
-                        review.getReviewDate()
+                            i + 1,
+                            menuName,
+                            review.getScore(),
+                            reviewText,
+                            review.getReviewDate()
                     ));
                 }
             }
@@ -704,7 +706,7 @@ public class MenuRecommendationService {
     public List<RecommendationHistoryResponse> getRecommendationHistory(Long storeId, LocalDateTime since) {
         try {
             Store store = storeRepository.findById(storeId)
-                .orElseThrow(() -> new IllegalArgumentException("Store not found: " + storeId));
+                    .orElseThrow(() -> new IllegalArgumentException("Store not found: " + storeId));
 
             return cacheService.getRecommendationHistory(store, since);
         } catch (Exception e) {
