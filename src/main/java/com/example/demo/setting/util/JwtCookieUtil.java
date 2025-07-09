@@ -10,7 +10,6 @@ public class JwtCookieUtil {
 
     private static final String COOKIE_NAME = "access_token";
     private static final Duration MAX_AGE = Duration.ofHours(1);
-    private static final Duration ACCESS_TOKEN_MAX_AGE = Duration.ofHours(1);
     private static final String REFRESH_TOKEN_NAME = "refresh_token";
 
     public static ResponseCookie createAccessTokenCookie(String jwt) {

@@ -70,20 +70,6 @@ public class StoreMenu {
         this.available = available;
         this.category = category;
     }
-
-    //일일 판매량 증가 매서드(주문 쪽에서 호출할걸로 예상)
-    public void increaseDailySales(int quantity) {
-        this.dailySales += quantity;
-        this.totalSales += quantity;
-        this.dailyRevenue += (long) this.price * quantity;
-        this.revenue += (long) this.price * quantity;
-    }
-
-    //일일 판매량 초기화
-    public void resetDailySales() {
-        this.dailySales = 0;
-        this.dailyRevenue = 0L;
-    }
     // 별점 추가 메서드
     public void updateRating(Double newScore) {
         if (this.rating == null) this.rating = 0.0;
