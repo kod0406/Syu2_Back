@@ -1,6 +1,5 @@
 package com.example.demo.recommendation.service;
 
-import com.example.demo.recommendation.dto.WeatherMenuSuggestion;
 import com.example.demo.recommendation.enums.MenuCategory;
 import com.example.demo.recommendation.enums.WeatherType;
 import com.example.demo.recommendation.enums.SeasonType;
@@ -65,100 +64,132 @@ public class WeatherMenuAnalyzer {
             .toList();
     }
 
-    // 상세한 날씨 메뉴 제안 생성 (외부 API용)
-    public WeatherMenuSuggestion generateDetailedSuggestion(WeatherType weatherType, SeasonType season,
-                                                           Double temperature, Integer humidity) {
-        List<MenuCategory> categories = suggestBestMenuCategories(weatherType, season, temperature, humidity,
-                                                                  LocalTime.now(), null, null, null);
-        String reason = generateSuggestionReason(weatherType, season, temperature, humidity);
-        String suggestion = generateSuggestionText(weatherType, season, temperature);
-        List<String> keywords = generateKeywords(weatherType, season, temperature);
 
-        return WeatherMenuSuggestion.builder()
-            .weatherType(weatherType)
-            .season(season)
-            .recommendedCategories(categories)
-            .reason(reason)
-            .temperature(temperature)
-            .humidity(humidity)
-            .suggestion(suggestion)
-            .priority(calculatePriority(weatherType, season))
-            .keywords(keywords)
-            .build();
-    }
-
-    // 날씨별 메뉴 카테고리 매핑
+    // 날씨별 메뉴 카테고리 매핑 - 더 다양한 카테고리 포함
     private List<MenuCategory> getWeatherBasedCategories(WeatherType weatherType) {
         return switch (weatherType) {
             case RAIN, DRIZZLE -> Arrays.asList(
-                MenuCategory.HOT, MenuCategory.SOUP, MenuCategory.KOREAN, MenuCategory.NOODLE,
-                MenuCategory.SPICY, MenuCategory.COFFEE, MenuCategory.CHINESE
+                MenuCategory.RAINY_DAY, MenuCategory.HOT, MenuCategory.SOUP, MenuCategory.KOREAN,
+                MenuCategory.NOODLE, MenuCategory.SPICY, MenuCategory.COFFEE, MenuCategory.CHINESE,
+                MenuCategory.COMFORT_FOOD, MenuCategory.WARMING, MenuCategory.STEAMED, MenuCategory.BOILED,
+                MenuCategory.TRADITIONAL, MenuCategory.DELIVERY, MenuCategory.ENERGY, MenuCategory.SLOW,
+                MenuCategory.NOSTALGIC, MenuCategory.FERMENTED, MenuCategory.MILD, MenuCategory.HALAL,
+                MenuCategory.VITAMIN_RICH, MenuCategory.IMMUNITY
             );
             case SNOW, COLD -> Arrays.asList(
-                MenuCategory.HOT, MenuCategory.SOUP, MenuCategory.SPICY, MenuCategory.MEAT,
-                MenuCategory.KOREAN, MenuCategory.NOODLE, MenuCategory.COFFEE
+                MenuCategory.SNOWY_DAY, MenuCategory.COLD_WAVE, MenuCategory.HOT, MenuCategory.SOUP,
+                MenuCategory.SPICY, MenuCategory.MEAT, MenuCategory.KOREAN, MenuCategory.NOODLE,
+                MenuCategory.COFFEE, MenuCategory.WINTER_WARM, MenuCategory.WARMING, MenuCategory.GRILLED,
+                MenuCategory.CHINESE, MenuCategory.COMFORT_FOOD, MenuCategory.ENERGY, MenuCategory.IMMUNITY,
+                MenuCategory.PROTEIN, MenuCategory.HIGH_FIBER, MenuCategory.TRADITIONAL, MenuCategory.CHEESE,
+                MenuCategory.CLASSIC, MenuCategory.ANDONG, MenuCategory.JEONJU
             );
             case HOT -> Arrays.asList(
-                MenuCategory.COLD, MenuCategory.LIGHT, MenuCategory.DESSERT, MenuCategory.COFFEE,
-                MenuCategory.SEAFOOD, MenuCategory.VEGETARIAN, MenuCategory.JAPANESE
+                MenuCategory.HEAT_WAVE, MenuCategory.COLD, MenuCategory.LIGHT, MenuCategory.DESSERT,
+                MenuCategory.COFFEE, MenuCategory.SEAFOOD, MenuCategory.VEGETARIAN, MenuCategory.JAPANESE,
+                MenuCategory.SUMMER_COOL, MenuCategory.COOLING, MenuCategory.REFRESHING, MenuCategory.RAW,
+                MenuCategory.VEGAN, MenuCategory.DIET, MenuCategory.BAKERY, MenuCategory.BRUNCH,
+                MenuCategory.SUGAR_FREE, MenuCategory.GLUTEN_FREE, MenuCategory.LOW_SODIUM, MenuCategory.KETO,
+                MenuCategory.TRENDY, MenuCategory.BUSAN, MenuCategory.JEJU
             );
             case CLEAR -> Arrays.asList(
-                MenuCategory.LIGHT, MenuCategory.KOREAN, MenuCategory.RICE, MenuCategory.VEGETARIAN,
-                MenuCategory.JAPANESE, MenuCategory.WESTERN, MenuCategory.COFFEE
+                MenuCategory.SUNNY_DAY, MenuCategory.LIGHT, MenuCategory.KOREAN, MenuCategory.RICE,
+                MenuCategory.VEGETARIAN, MenuCategory.JAPANESE, MenuCategory.WESTERN, MenuCategory.COFFEE,
+                MenuCategory.HEALTHY, MenuCategory.CASUAL, MenuCategory.OUTDOOR, MenuCategory.MILD_WEATHER,
+                MenuCategory.FUSION, MenuCategory.GOURMET, MenuCategory.PREMIUM, MenuCategory.ROMANTIC,
+                MenuCategory.INNOVATIVE, MenuCategory.VALUE, MenuCategory.ECONOMICAL, MenuCategory.SEOUL,
+                MenuCategory.GYEONGGI, MenuCategory.WINE
             );
             case THUNDERSTORM -> Arrays.asList(
-                MenuCategory.HOT, MenuCategory.SOUP, MenuCategory.KOREAN, MenuCategory.SPICY,
-                MenuCategory.MEAT, MenuCategory.NOODLE, MenuCategory.COFFEE
+                MenuCategory.STORM, MenuCategory.HOT, MenuCategory.SOUP, MenuCategory.KOREAN,
+                MenuCategory.SPICY, MenuCategory.MEAT, MenuCategory.NOODLE, MenuCategory.COFFEE,
+                MenuCategory.COMFORT_FOOD, MenuCategory.WARMING, MenuCategory.DELIVERY, MenuCategory.CHINESE,
+                MenuCategory.COMFORT, MenuCategory.ENERGY, MenuCategory.TAKEOUT, MenuCategory.MIDNIGHT,
+                MenuCategory.TYPHOON, MenuCategory.STRESS_RELIEF, MenuCategory.ALONE, MenuCategory.SIMPLE
             );
             case CLOUDS -> Arrays.asList(
-                MenuCategory.COFFEE, MenuCategory.HOT, MenuCategory.LIGHT, MenuCategory.DESSERT,
-                MenuCategory.KOREAN, MenuCategory.WESTERN, MenuCategory.RICE
+                MenuCategory.CLOUDY_DAY, MenuCategory.COFFEE, MenuCategory.HOT, MenuCategory.LIGHT,
+                MenuCategory.DESSERT, MenuCategory.KOREAN, MenuCategory.WESTERN, MenuCategory.RICE,
+                MenuCategory.MILD_WEATHER, MenuCategory.CASUAL, MenuCategory.BAKERY, MenuCategory.BRUNCH,
+                MenuCategory.ITALIAN, MenuCategory.FUSION, MenuCategory.COMFORT, MenuCategory.FAMILY,
+                MenuCategory.MOOD_BOOST, MenuCategory.RELAXATION, MenuCategory.SWEET, MenuCategory.RETRO
             );
             case MIST, FOG -> Arrays.asList(
                 MenuCategory.COFFEE, MenuCategory.HOT, MenuCategory.SOUP, MenuCategory.KOREAN,
-                MenuCategory.LIGHT, MenuCategory.DESSERT, MenuCategory.WESTERN
+                MenuCategory.LIGHT, MenuCategory.DESSERT, MenuCategory.WESTERN, MenuCategory.WARMING,
+                MenuCategory.COMFORT, MenuCategory.STEAMED, MenuCategory.BAKERY, MenuCategory.BRUNCH,
+                MenuCategory.MOOD_BOOST, MenuCategory.RELAXATION, MenuCategory.NOSTALGIC, MenuCategory.SLOW,
+                MenuCategory.CLASSIC, MenuCategory.TRADITIONAL, MenuCategory.CHUNCHEON, MenuCategory.DAEGU
             );
             case HUMID -> Arrays.asList(
-                MenuCategory.COLD, MenuCategory.LIGHT, MenuCategory.SEAFOOD, MenuCategory.VEGETARIAN,
-                MenuCategory.JAPANESE, MenuCategory.DESSERT, MenuCategory.COFFEE
+                MenuCategory.HUMID_DAY, MenuCategory.VERY_HUMID, MenuCategory.COLD, MenuCategory.LIGHT,
+                MenuCategory.SEAFOOD, MenuCategory.VEGETARIAN, MenuCategory.JAPANESE, MenuCategory.DESSERT,
+                MenuCategory.COFFEE, MenuCategory.COOLING, MenuCategory.REFRESHING, MenuCategory.VEGAN,
+                MenuCategory.DIET, MenuCategory.DIGESTIVE, MenuCategory.DETOX, MenuCategory.VITAMIN_RICH,
+                MenuCategory.LACTOSE_FREE, MenuCategory.GLUTEN_FREE, MenuCategory.INCHEON, MenuCategory.ULSAN
             );
             case HAZE, DUST -> Arrays.asList(
-                MenuCategory.LIGHT, MenuCategory.VEGETARIAN, MenuCategory.SOUP, MenuCategory.COFFEE,
-                MenuCategory.COLD, MenuCategory.SEAFOOD, MenuCategory.JAPANESE
+                MenuCategory.FINE_DUST, MenuCategory.YELLOW_DUST, MenuCategory.LIGHT, MenuCategory.VEGETARIAN,
+                MenuCategory.SOUP, MenuCategory.COFFEE, MenuCategory.COLD, MenuCategory.SEAFOOD,
+                MenuCategory.JAPANESE, MenuCategory.HEALTHY, MenuCategory.DETOX, MenuCategory.IMMUNITY,
+                MenuCategory.ANTI_INFLAMMATORY, MenuCategory.VITAMIN_RICH, MenuCategory.DIGESTIVE, MenuCategory.VEGAN,
+                MenuCategory.HIGH_FIBER, MenuCategory.LOW_SODIUM, MenuCategory.GWANGJU, MenuCategory.DAEJEON
             );
             case SMOKE -> Arrays.asList(
                 MenuCategory.LIGHT, MenuCategory.COLD, MenuCategory.VEGETARIAN, MenuCategory.SEAFOOD,
-                MenuCategory.COFFEE, MenuCategory.DESSERT, MenuCategory.JAPANESE
+                MenuCategory.COFFEE, MenuCategory.DESSERT, MenuCategory.JAPANESE, MenuCategory.HEALTHY,
+                MenuCategory.DETOX, MenuCategory.IMMUNITY, MenuCategory.ANTI_INFLAMMATORY, MenuCategory.VEGAN,
+                MenuCategory.DIET, MenuCategory.DIGESTIVE, MenuCategory.VITAMIN_RICH, MenuCategory.REFRESHING,
+                MenuCategory.SUGAR_FREE, MenuCategory.GLUTEN_FREE, MenuCategory.KETO, MenuCategory.HIGH_FIBER
             );
             case DRY -> Arrays.asList(
-                MenuCategory.SOUP, MenuCategory.HOT, MenuCategory.KOREAN, MenuCategory.COFFEE,
-                MenuCategory.LIGHT, MenuCategory.SEAFOOD, MenuCategory.RICE
-            );
-            default -> Arrays.asList(
-                MenuCategory.KOREAN, MenuCategory.RICE, MenuCategory.SOUP, MenuCategory.LIGHT,
-                MenuCategory.COFFEE, MenuCategory.WESTERN, MenuCategory.JAPANESE
+                MenuCategory.DRY_DAY, MenuCategory.VERY_DRY, MenuCategory.SOUP, MenuCategory.HOT,
+                MenuCategory.KOREAN, MenuCategory.COFFEE, MenuCategory.LIGHT, MenuCategory.SEAFOOD,
+                MenuCategory.RICE, MenuCategory.STEAMED, MenuCategory.BOILED, MenuCategory.NOODLE,
+                MenuCategory.WARMING, MenuCategory.COMFORT, MenuCategory.TRADITIONAL, MenuCategory.HEALTHY,
+                MenuCategory.MILD, MenuCategory.DIGESTIVE, MenuCategory.HIGH_CALCIUM, MenuCategory.CALCIUM
             );
         };
     }
 
-    // 계절별 메뉴 카테고리 매핑 - 확장된 버전
+    // 계절별 메뉴 카테고리 매핑 - 더 다양한 카테고리 포함
     private List<MenuCategory> getSeasonBasedCategories(SeasonType season) {
         return switch (season) {
             case SPRING -> Arrays.asList(
-                MenuCategory.LIGHT, MenuCategory.VEGETARIAN, MenuCategory.KOREAN, MenuCategory.SEAFOOD,
-                MenuCategory.JAPANESE, MenuCategory.RICE, MenuCategory.COFFEE, MenuCategory.WESTERN
+                MenuCategory.SPRING_FRESH, MenuCategory.LIGHT, MenuCategory.VEGETARIAN, MenuCategory.KOREAN,
+                MenuCategory.SEAFOOD, MenuCategory.JAPANESE, MenuCategory.RICE, MenuCategory.COFFEE,
+                MenuCategory.WESTERN, MenuCategory.HEALTHY, MenuCategory.VITAMIN_RICH, MenuCategory.DETOX,
+                MenuCategory.BRUNCH, MenuCategory.OUTDOOR, MenuCategory.CASUAL, MenuCategory.REFRESHING,
+                MenuCategory.FUSION, MenuCategory.DIGESTIVE, MenuCategory.MOOD_BOOST, MenuCategory.TRENDY,
+                MenuCategory.GLUTEN_FREE, MenuCategory.VEGAN, MenuCategory.RAW, MenuCategory.WINE,
+                MenuCategory.INNOVATIVE, MenuCategory.SEOUL, MenuCategory.GYEONGGI, MenuCategory.CHUNCHEON
             );
             case SUMMER -> Arrays.asList(
-                MenuCategory.COLD, MenuCategory.LIGHT, MenuCategory.DESSERT, MenuCategory.SEAFOOD,
-                MenuCategory.COFFEE, MenuCategory.JAPANESE, MenuCategory.VEGETARIAN, MenuCategory.WESTERN
+                MenuCategory.SUMMER_COOL, MenuCategory.COLD, MenuCategory.LIGHT, MenuCategory.DESSERT,
+                MenuCategory.SEAFOOD, MenuCategory.COFFEE, MenuCategory.JAPANESE, MenuCategory.VEGETARIAN,
+                MenuCategory.WESTERN, MenuCategory.COOLING, MenuCategory.REFRESHING, MenuCategory.RAW,
+                MenuCategory.VEGAN, MenuCategory.DIET, MenuCategory.BAKERY, MenuCategory.BRUNCH,
+                MenuCategory.OUTDOOR, MenuCategory.CASUAL, MenuCategory.ITALIAN, MenuCategory.ROMANTIC,
+                MenuCategory.SUGAR_FREE, MenuCategory.LOW_SODIUM, MenuCategory.KETO, MenuCategory.LACTOSE_FREE,
+                MenuCategory.BUSAN, MenuCategory.JEJU, MenuCategory.INCHEON, MenuCategory.ULSAN
             );
             case AUTUMN -> Arrays.asList(
-                MenuCategory.MEAT, MenuCategory.KOREAN, MenuCategory.HOT, MenuCategory.SOUP,
-                MenuCategory.SPICY, MenuCategory.RICE, MenuCategory.CHINESE, MenuCategory.WESTERN
+                MenuCategory.AUTUMN_HEARTY, MenuCategory.MEAT, MenuCategory.KOREAN, MenuCategory.HOT,
+                MenuCategory.SOUP, MenuCategory.SPICY, MenuCategory.RICE, MenuCategory.CHINESE,
+                MenuCategory.WESTERN, MenuCategory.COMFORT, MenuCategory.ENERGY, MenuCategory.GRILLED,
+                MenuCategory.TRADITIONAL, MenuCategory.PREMIUM, MenuCategory.GOURMET, MenuCategory.FERMENTED,
+                MenuCategory.NOSTALGIC, MenuCategory.FAMILY, MenuCategory.BUSINESS, MenuCategory.CLASSIC,
+                MenuCategory.PROTEIN, MenuCategory.HIGH_FIBER, MenuCategory.IMMUNITY, MenuCategory.CHEESE,
+                MenuCategory.ANDONG, MenuCategory.JEONJU, MenuCategory.DAEGU, MenuCategory.GWANGJU
             );
             case WINTER -> Arrays.asList(
-                MenuCategory.HOT, MenuCategory.SPICY, MenuCategory.SOUP, MenuCategory.MEAT,
-                MenuCategory.KOREAN, MenuCategory.NOODLE, MenuCategory.COFFEE, MenuCategory.CHINESE
+                MenuCategory.WINTER_WARM, MenuCategory.HOT, MenuCategory.SPICY, MenuCategory.SOUP,
+                MenuCategory.MEAT, MenuCategory.KOREAN, MenuCategory.NOODLE, MenuCategory.COFFEE,
+                MenuCategory.CHINESE, MenuCategory.WARMING, MenuCategory.COMFORT_FOOD, MenuCategory.IMMUNITY,
+                MenuCategory.STEAMED, MenuCategory.BOILED, MenuCategory.TRADITIONAL, MenuCategory.ENERGY,
+                MenuCategory.SLOW, MenuCategory.FAMILY, MenuCategory.LUXURY, MenuCategory.CELEBRATION,
+                MenuCategory.HIGH_CALCIUM, MenuCategory.VITAMIN_RICH, MenuCategory.DIGESTIVE, MenuCategory.CALCIUM,
+                MenuCategory.HALAL, MenuCategory.ANTI_INFLAMMATORY, MenuCategory.DAEJEON, MenuCategory.RETRO
             );
         };
     }
@@ -181,94 +212,6 @@ public class WeatherMenuAnalyzer {
             priority.getOrDefault(b, 10)
         );
     }
-
-    // 추천 이유 생성
-    private String generateSuggestionReason(WeatherType weatherType, SeasonType season,
-                                          Double temperature, Integer humidity) {
-        StringBuilder reason = new StringBuilder();
-
-        // 날씨 기반 이유
-        switch (weatherType) {
-            case RAIN, DRIZZLE -> reason.append("비가 내리는 날씨에는 따뜻한 국물 요리가 좋습니다. ");
-            case SNOW, COLD -> reason.append("추운 날씨에는 몸을 따뜻하게 해주는 음식이 인기입니다. ");
-            case HOT -> reason.append("더운 날씨에는 시원하고 가벼운 음식이 선호됩니다. ");
-            case HUMID -> reason.append("습한 날씨에는 담백하고 가벼운 음식이 좋습니다. ");
-            default -> reason.append("현재 날씨에 적합한 메뉴를 추천합니다. ");
-        }
-
-        // 계절 기반 이유 추가
-        switch (season) {
-            case SPRING -> reason.append("봄철에는 신선한 재료의 음식이 인기입니다.");
-            case SUMMER -> reason.append("여름철에는 시원한 음식과 디저트가 인기입니다.");
-            case AUTUMN -> reason.append("가을철에는 든든한 음식이 선호됩니다.");
-            case WINTER -> reason.append("겨울철에는 따뜻하고 매운 음식이 인기입니다.");
-        }
-
-        return reason.toString();
-    }
-
-    // 구체적인 제안 텍스트 생성
-    private String generateSuggestionText(WeatherType weatherType, SeasonType season, Double temperature) {
-        if (temperature != null) {
-            if (temperature < 0) {
-                return "영하의 추위에는 뜨거운 국물 요리나 매운 음식으로 몸을 따뜻하게 해보세요.";
-            } else if (temperature > 30) {
-                return "무더운 날씨에는 시원한 음료나 가벼운 디저트로 더위를 식혀보세요.";
-            } else if (temperature > 25) {
-                return "따뜻한 날씨에는 시원한 음식이나 가벼운 메뉴가 좋습니다.";
-            } else if (temperature < 10) {
-                return "쌀쌀한 날씨에는 따뜻한 음식으로 몸을 데워보세요.";
-            }
-        }
-
-        return switch (weatherType) {
-            case RAIN -> "비 오는 날에는 따뜻한 국물 요리로 기분을 따뜻하게 해보세요.";
-            case SNOW -> "눈 내리는 날에는 매운 음식으로 몸을 따뜻하게 해보세요.";
-            case HOT -> "더운 날씨에는 시원한 음료와 가벼운 음식이 최고입니다.";
-            default -> "현재 날씨에 딱 맞는 메뉴로 고객을 맞이해보세요.";
-        };
-    }
-
-    // 키워드 생성
-    private List<String> generateKeywords(WeatherType weatherType, SeasonType season, Double temperature) {
-        List<String> keywords = new ArrayList<>();
-
-        // 날씨 키워드
-        switch (weatherType) {
-            case RAIN, DRIZZLE -> keywords.addAll(Arrays.asList("따뜻한", "국물", "우산", "실내"));
-            case SNOW, COLD -> keywords.addAll(Arrays.asList("뜨거운", "매운", "겨울", "따뜻함"));
-            case HOT -> keywords.addAll(Arrays.asList("시원한", "차가운", "여름", "더위"));
-            case HUMID -> keywords.addAll(Arrays.asList("담백한", "가벼운", "습도", "상쾌한"));
-            default -> keywords.addAll(Arrays.asList("맛있는", "신선한", "건강한"));
-        }
-
-        // 계절 키워드
-        switch (season) {
-            case SPRING -> keywords.addAll(Arrays.asList("봄", "신선한", "가벼운"));
-            case SUMMER -> keywords.addAll(Arrays.asList("여름", "시원한", "상쾌한"));
-            case AUTUMN -> keywords.addAll(Arrays.asList("가을", "든든한", "영양"));
-            case WINTER -> keywords.addAll(Arrays.asList("겨울", "따뜻한", "매운"));
-        }
-
-        return keywords.stream().distinct().limit(8).toList();
-    }
-
-    // 우선순위 계산
-    private Integer calculatePriority(WeatherType weatherType, SeasonType season) {
-        int priority = 5; // 기본 우선순위
-
-        // 극한 날씨일수록 높은 우선순위
-        switch (weatherType) {
-            case SNOW, THUNDERSTORM, HOT -> priority = 1;
-            case RAIN, COLD -> priority = 2;
-            case HUMID, DRIZZLE -> priority = 3;
-            case CLOUDS, MIST -> priority = 4;
-            default -> priority = 5;
-        }
-
-        return priority;
-    }
-
     // 온도별 세밀한 카테고리 추천
     private List<MenuCategory> getTemperatureBasedCategories(Double temperature) {
         if (temperature == null) return List.of();
@@ -276,54 +219,66 @@ public class WeatherMenuAnalyzer {
         if (temperature <= -10) {
             // 극한 추위 (-10도 이하)
             return Arrays.asList(
-                MenuCategory.HOT, MenuCategory.SPICY, MenuCategory.SOUP, MenuCategory.MEAT,
-                MenuCategory.KOREAN, MenuCategory.CHINESE, MenuCategory.COFFEE, MenuCategory.WARMING
+                MenuCategory.FREEZING, MenuCategory.HOT, MenuCategory.SPICY, MenuCategory.SOUP, MenuCategory.MEAT,
+                MenuCategory.KOREAN, MenuCategory.CHINESE, MenuCategory.COFFEE, MenuCategory.WARMING,
+                MenuCategory.STEAMED, MenuCategory.GRILLED, MenuCategory.COMFORT_FOOD, MenuCategory.ENERGY,
+                MenuCategory.IMMUNITY, MenuCategory.TRADITIONAL, MenuCategory.SLOW, MenuCategory.DELIVERY
             );
         } else if (temperature <= 0) {
             // 영하 (0도 ~ -10도)
             return Arrays.asList(
-                MenuCategory.HOT, MenuCategory.SOUP, MenuCategory.SPICY, MenuCategory.MEAT,
-                MenuCategory.KOREAN, MenuCategory.NOODLE, MenuCategory.COFFEE, MenuCategory.WARMING
+                MenuCategory.VERY_COLD, MenuCategory.HOT, MenuCategory.SOUP, MenuCategory.SPICY, MenuCategory.MEAT,
+                MenuCategory.KOREAN, MenuCategory.NOODLE, MenuCategory.COFFEE, MenuCategory.WARMING,
+                MenuCategory.CHINESE, MenuCategory.COMFORT_FOOD, MenuCategory.ENERGY, MenuCategory.IMMUNITY,
+                MenuCategory.GRILLED, MenuCategory.STEAMED, MenuCategory.TRADITIONAL, MenuCategory.FAMILY
             );
         } else if (temperature <= 10) {
             // 쌀쌀함 (1도 ~ 10도)
             return Arrays.asList(
-                MenuCategory.HOT, MenuCategory.SOUP, MenuCategory.KOREAN, MenuCategory.RICE,
-                MenuCategory.MEAT, MenuCategory.COFFEE, MenuCategory.WESTERN, MenuCategory.COMFORT
+                MenuCategory.COLD_WEATHER, MenuCategory.HOT, MenuCategory.SOUP, MenuCategory.KOREAN, MenuCategory.RICE,
+                MenuCategory.MEAT, MenuCategory.COFFEE, MenuCategory.WESTERN, MenuCategory.COMFORT,
+                MenuCategory.NOODLE, MenuCategory.CHINESE, MenuCategory.WARMING, MenuCategory.ENERGY,
+                MenuCategory.GRILLED, MenuCategory.BOILED, MenuCategory.TRADITIONAL, MenuCategory.CASUAL
             );
         } else if (temperature <= 20) {
             // 서늘함 (11도 ~ 20도)
             return Arrays.asList(
-                MenuCategory.KOREAN, MenuCategory.RICE, MenuCategory.SOUP, MenuCategory.WESTERN,
-                MenuCategory.JAPANESE, MenuCategory.COFFEE, MenuCategory.LIGHT, MenuCategory.CASUAL
+                MenuCategory.COOL_WEATHER, MenuCategory.KOREAN, MenuCategory.RICE, MenuCategory.SOUP, MenuCategory.WESTERN,
+                MenuCategory.JAPANESE, MenuCategory.COFFEE, MenuCategory.LIGHT, MenuCategory.CASUAL,
+                MenuCategory.MEAT, MenuCategory.VEGETARIAN, MenuCategory.COMFORT, MenuCategory.FUSION,
+                MenuCategory.ITALIAN, MenuCategory.BRUNCH, MenuCategory.BAKERY, MenuCategory.HEALTHY
             );
         } else if (temperature <= 25) {
             // 적당함 (21도 ~ 25도)
             return Arrays.asList(
-                MenuCategory.LIGHT, MenuCategory.KOREAN, MenuCategory.JAPANESE, MenuCategory.WESTERN,
+                MenuCategory.MILD_WEATHER, MenuCategory.LIGHT, MenuCategory.KOREAN, MenuCategory.JAPANESE, MenuCategory.WESTERN,
                 MenuCategory.RICE, MenuCategory.VEGETARIAN, MenuCategory.COFFEE, MenuCategory.SEAFOOD,
-                MenuCategory.HEALTHY, MenuCategory.REFRESHING
+                MenuCategory.HEALTHY, MenuCategory.REFRESHING, MenuCategory.CASUAL, MenuCategory.FUSION,
+                MenuCategory.GOURMET, MenuCategory.PREMIUM, MenuCategory.OUTDOOR, MenuCategory.ROMANTIC
             );
         } else if (temperature <= 30) {
             // 따뜻함 (26도 ~ 30도)
             return Arrays.asList(
-                MenuCategory.LIGHT, MenuCategory.COLD, MenuCategory.SEAFOOD, MenuCategory.VEGETARIAN,
+                MenuCategory.WARM_WEATHER, MenuCategory.LIGHT, MenuCategory.COLD, MenuCategory.SEAFOOD, MenuCategory.VEGETARIAN,
                 MenuCategory.JAPANESE, MenuCategory.WESTERN, MenuCategory.COFFEE, MenuCategory.DESSERT,
-                MenuCategory.REFRESHING, MenuCategory.COOLING
+                MenuCategory.REFRESHING, MenuCategory.COOLING, MenuCategory.DIET, MenuCategory.VEGAN,
+                MenuCategory.RAW, MenuCategory.HEALTHY, MenuCategory.OUTDOOR, MenuCategory.CASUAL
             );
         } else if (temperature <= 35) {
             // 더움 (31도 ~ 35도)
             return Arrays.asList(
-                MenuCategory.COLD, MenuCategory.LIGHT, MenuCategory.DESSERT, MenuCategory.COFFEE,
+                MenuCategory.VERY_HOT, MenuCategory.COLD, MenuCategory.LIGHT, MenuCategory.DESSERT, MenuCategory.COFFEE,
                 MenuCategory.SEAFOOD, MenuCategory.VEGETARIAN, MenuCategory.JAPANESE,
-                MenuCategory.COOLING, MenuCategory.REFRESHING
+                MenuCategory.COOLING, MenuCategory.REFRESHING, MenuCategory.VEGAN, MenuCategory.DIET,
+                MenuCategory.RAW, MenuCategory.BAKERY, MenuCategory.BRUNCH, MenuCategory.ITALIAN
             );
         } else {
             // 극한 더위 (36도 이상)
             return Arrays.asList(
-                MenuCategory.COLD, MenuCategory.DESSERT, MenuCategory.COFFEE, MenuCategory.LIGHT,
+                MenuCategory.EXTREME_HOT, MenuCategory.COLD, MenuCategory.DESSERT, MenuCategory.COFFEE, MenuCategory.LIGHT,
                 MenuCategory.VEGETARIAN, MenuCategory.SEAFOOD, MenuCategory.JAPANESE,
-                MenuCategory.COOLING, MenuCategory.VEGAN
+                MenuCategory.COOLING, MenuCategory.VEGAN, MenuCategory.RAW, MenuCategory.DIET,
+                MenuCategory.REFRESHING, MenuCategory.BAKERY, MenuCategory.SUGAR_FREE, MenuCategory.HEALTHY
             );
         }
     }
@@ -335,33 +290,36 @@ public class WeatherMenuAnalyzer {
         if (humidity <= 30) {
             // 건조함 (30% 이하)
             return Arrays.asList(
-                MenuCategory.SOUP, MenuCategory.HOT, MenuCategory.KOREAN, MenuCategory.COFFEE,
-                MenuCategory.SEAFOOD, MenuCategory.RICE, MenuCategory.NOODLE, MenuCategory.HEALTHY
+                MenuCategory.VERY_DRY, MenuCategory.SOUP, MenuCategory.HOT, MenuCategory.KOREAN, MenuCategory.COFFEE,
+                MenuCategory.SEAFOOD, MenuCategory.RICE, MenuCategory.NOODLE, MenuCategory.HEALTHY,
+                MenuCategory.STEAMED, MenuCategory.BOILED, MenuCategory.WARMING, MenuCategory.COMFORT,
+                MenuCategory.TRADITIONAL, MenuCategory.IMMUNITY, MenuCategory.VITAMIN_RICH, MenuCategory.DIGESTIVE
             );
         } else if (humidity <= 50) {
             // 적당함 (31% ~ 50%)
             return Arrays.asList(
-                MenuCategory.KOREAN, MenuCategory.WESTERN, MenuCategory.JAPANESE, MenuCategory.RICE,
-                MenuCategory.MEAT, MenuCategory.SEAFOOD, MenuCategory.COFFEE, MenuCategory.CASUAL
+                MenuCategory.MODERATE_HUMIDITY, MenuCategory.KOREAN, MenuCategory.WESTERN, MenuCategory.JAPANESE, MenuCategory.RICE,
+                MenuCategory.MEAT, MenuCategory.SEAFOOD, MenuCategory.COFFEE, MenuCategory.CASUAL,
+                MenuCategory.FUSION, MenuCategory.GOURMET, MenuCategory.PREMIUM, MenuCategory.HEALTHY,
+                MenuCategory.COMFORT, MenuCategory.TRADITIONAL, MenuCategory.BUSINESS, MenuCategory.FAMILY
             );
         } else if (humidity <= 70) {
             // 습함 (51% ~ 70%)
             return Arrays.asList(
-                MenuCategory.LIGHT, MenuCategory.VEGETARIAN, MenuCategory.SEAFOOD, MenuCategory.JAPANESE,
-                MenuCategory.COFFEE, MenuCategory.COLD, MenuCategory.DESSERT, MenuCategory.REFRESHING
+                MenuCategory.HUMID, MenuCategory.LIGHT, MenuCategory.VEGETARIAN, MenuCategory.SEAFOOD, MenuCategory.JAPANESE,
+                MenuCategory.COFFEE, MenuCategory.COLD, MenuCategory.DESSERT, MenuCategory.REFRESHING,
+                MenuCategory.DIET, MenuCategory.VEGAN, MenuCategory.RAW, MenuCategory.HEALTHY,
+                MenuCategory.DIGESTIVE, MenuCategory.DETOX, MenuCategory.VITAMIN_RICH, MenuCategory.COOLING
             );
         } else {
             // 매우 습함 (71% 이상)
             return Arrays.asList(
-                MenuCategory.LIGHT, MenuCategory.COLD, MenuCategory.VEGETARIAN, MenuCategory.SEAFOOD,
-                MenuCategory.DESSERT, MenuCategory.COFFEE, MenuCategory.JAPANESE, MenuCategory.COOLING
+                MenuCategory.VERY_HUMID, MenuCategory.LIGHT, MenuCategory.COLD, MenuCategory.VEGETARIAN, MenuCategory.SEAFOOD,
+                MenuCategory.DESSERT, MenuCategory.COFFEE, MenuCategory.JAPANESE, MenuCategory.COOLING,
+                MenuCategory.VEGAN, MenuCategory.RAW, MenuCategory.DIET, MenuCategory.REFRESHING,
+                MenuCategory.ANTI_INFLAMMATORY, MenuCategory.DETOX, MenuCategory.DIGESTIVE, MenuCategory.SUGAR_FREE
             );
         }
-    }
-
-    // 시간대별 카테고리 추천 (현재 시간)
-    private List<MenuCategory> getTimeBasedCategories() {
-        return getTimeBasedCategories(LocalTime.now());
     }
 
     // 시간대별 카테고리 추천 (지정 시간)
@@ -670,53 +628,134 @@ public class WeatherMenuAnalyzer {
         return switch (businessType.toLowerCase()) {
             case "카페", "cafe", "coffee" -> Arrays.asList(
                 MenuCategory.COFFEE, MenuCategory.DESSERT, MenuCategory.BAKERY, MenuCategory.LIGHT,
-                MenuCategory.BRUNCH, MenuCategory.CASUAL, MenuCategory.QUICK
+                MenuCategory.BRUNCH, MenuCategory.CASUAL, MenuCategory.QUICK, MenuCategory.MOOD_BOOST,
+                MenuCategory.RELAXATION, MenuCategory.STUDY, MenuCategory.WORK, MenuCategory.FRIENDS,
+                MenuCategory.DATE, MenuCategory.ALONE, MenuCategory.TRENDY, MenuCategory.PREMIUM
             );
             case "패스트푸드", "fastfood" -> Arrays.asList(
                 MenuCategory.FAST_FOOD, MenuCategory.QUICK, MenuCategory.CASUAL, MenuCategory.BUDGET,
-                MenuCategory.DELIVERY, MenuCategory.TAKEOUT
+                MenuCategory.DELIVERY, MenuCategory.TAKEOUT, MenuCategory.FRIED, MenuCategory.MEAT,
+                MenuCategory.KIDS, MenuCategory.TEENS, MenuCategory.FRIENDS, MenuCategory.STREET_FOOD,
+                MenuCategory.ECONOMICAL, MenuCategory.VALUE, MenuCategory.MIDNIGHT, MenuCategory.ENERGY
             );
             case "고급레스토랑", "fine_dining" -> Arrays.asList(
                 MenuCategory.PREMIUM, MenuCategory.GOURMET, MenuCategory.WESTERN, MenuCategory.SLOW,
-                MenuCategory.ROMANTIC, MenuCategory.BUSINESS
+                MenuCategory.ROMANTIC, MenuCategory.BUSINESS, MenuCategory.LUXURY, MenuCategory.CELEBRATION,
+                MenuCategory.DATE, MenuCategory.FAMILY, MenuCategory.INNOVATIVE, MenuCategory.CLASSIC,
+                MenuCategory.SEAFOOD, MenuCategory.MEAT, MenuCategory.FUSION, MenuCategory.ITALIAN
             );
             case "패밀리레스토랑", "family" -> Arrays.asList(
                 MenuCategory.CASUAL, MenuCategory.KIDS, MenuCategory.WESTERN, MenuCategory.KOREAN,
-                MenuCategory.COMFORT, MenuCategory.PARTY
+                MenuCategory.COMFORT, MenuCategory.PARTY, MenuCategory.FAMILY, MenuCategory.CELEBRATION,
+                MenuCategory.RICE, MenuCategory.MEAT, MenuCategory.SOUP, MenuCategory.DESSERT,
+                MenuCategory.BRUNCH, MenuCategory.VALUE, MenuCategory.TRADITIONAL, MenuCategory.HEALTHY
+            );
+            case "한식당", "korean" -> Arrays.asList(
+                MenuCategory.KOREAN, MenuCategory.TRADITIONAL, MenuCategory.SOUP, MenuCategory.RICE,
+                MenuCategory.MEAT, MenuCategory.SEAFOOD, MenuCategory.VEGETARIAN, MenuCategory.SPICY,
+                MenuCategory.FERMENTED, MenuCategory.HEALTHY, MenuCategory.FAMILY, MenuCategory.BUSINESS,
+                MenuCategory.COMFORT, MenuCategory.CLASSIC, MenuCategory.SENIOR, MenuCategory.NOSTALGIC
+            );
+            case "일식당", "japanese" -> Arrays.asList(
+                MenuCategory.JAPANESE, MenuCategory.SEAFOOD, MenuCategory.RAW, MenuCategory.LIGHT,
+                MenuCategory.HEALTHY, MenuCategory.PREMIUM, MenuCategory.GOURMET, MenuCategory.REFRESHING,
+                MenuCategory.DIET, MenuCategory.ROMANTIC, MenuCategory.BUSINESS, MenuCategory.TRENDY,
+                MenuCategory.CLASSIC, MenuCategory.COOLING, MenuCategory.DATE, MenuCategory.FUSION
+            );
+            case "중식당", "chinese" -> Arrays.asList(
+                MenuCategory.CHINESE, MenuCategory.SPICY, MenuCategory.HOT, MenuCategory.MEAT,
+                MenuCategory.NOODLE, MenuCategory.RICE, MenuCategory.SOUP, MenuCategory.COMFORT,
+                MenuCategory.FAMILY, MenuCategory.ENERGY, MenuCategory.TRADITIONAL, MenuCategory.GRILLED,
+                MenuCategory.STEAMED, MenuCategory.FRIED, MenuCategory.PARTY, MenuCategory.WARMING
+            );
+            case "양식당", "western" -> Arrays.asList(
+                MenuCategory.WESTERN, MenuCategory.MEAT, MenuCategory.SEAFOOD, MenuCategory.PREMIUM,
+                MenuCategory.GOURMET, MenuCategory.ROMANTIC, MenuCategory.DATE, MenuCategory.BUSINESS,
+                MenuCategory.CASUAL, MenuCategory.BRUNCH, MenuCategory.DESSERT, MenuCategory.FUSION,
+                MenuCategory.INNOVATIVE, MenuCategory.CLASSIC, MenuCategory.LUXURY, MenuCategory.TRENDY
+            );
+            case "이탈리안", "italian" -> Arrays.asList(
+                MenuCategory.ITALIAN, MenuCategory.WESTERN, MenuCategory.NOODLE, MenuCategory.CHEESE,
+                MenuCategory.ROMANTIC, MenuCategory.DATE, MenuCategory.PREMIUM, MenuCategory.CASUAL,
+                MenuCategory.FAMILY, MenuCategory.FUSION, MenuCategory.CLASSIC, MenuCategory.TRENDY,
+                MenuCategory.DESSERT, MenuCategory.COFFEE, MenuCategory.WINE, MenuCategory.GOURMET
+            );
+            case "분식집", "snack_bar" -> Arrays.asList(
+                MenuCategory.STREET_FOOD, MenuCategory.SPICY, MenuCategory.NOODLE, MenuCategory.RICE,
+                MenuCategory.FRIED, MenuCategory.BUDGET, MenuCategory.CASUAL, MenuCategory.QUICK,
+                MenuCategory.COMFORT_FOOD, MenuCategory.NOSTALGIC, MenuCategory.KIDS, MenuCategory.TEENS,
+                MenuCategory.FRIENDS, MenuCategory.ECONOMICAL, MenuCategory.VALUE, MenuCategory.TAKEOUT
+            );
+            case "치킨집", "chicken" -> Arrays.asList(
+                MenuCategory.FRIED, MenuCategory.MEAT, MenuCategory.SPICY, MenuCategory.DELIVERY,
+                MenuCategory.TAKEOUT, MenuCategory.FRIENDS, MenuCategory.PARTY, MenuCategory.BEER,
+                MenuCategory.MIDNIGHT, MenuCategory.CASUAL, MenuCategory.COMFORT_FOOD, MenuCategory.ENERGY,
+                MenuCategory.STRESS_RELIEF, MenuCategory.CELEBRATION, MenuCategory.ECONOMICAL, MenuCategory.QUICK
+            );
+            case "술집", "bar" -> Arrays.asList(
+                MenuCategory.SPICY, MenuCategory.FRIED, MenuCategory.GRILLED, MenuCategory.SEAFOOD,
+                MenuCategory.MEAT, MenuCategory.FRIENDS, MenuCategory.STRESS_RELIEF, MenuCategory.RELAXATION,
+                MenuCategory.MIDNIGHT, MenuCategory.PARTY, MenuCategory.CELEBRATION, MenuCategory.COMFORT_FOOD,
+                MenuCategory.NOSTALGIC, MenuCategory.TRADITIONAL, MenuCategory.CASUAL, MenuCategory.ALONE
+            );
+            case "베이커리", "bakery" -> Arrays.asList(
+                MenuCategory.BAKERY, MenuCategory.DESSERT, MenuCategory.COFFEE, MenuCategory.LIGHT,
+                MenuCategory.BRUNCH, MenuCategory.SWEET, MenuCategory.CASUAL, MenuCategory.QUICK,
+                MenuCategory.MOOD_BOOST, MenuCategory.CELEBRATION, MenuCategory.KIDS, MenuCategory.FAMILY,
+                MenuCategory.DATE, MenuCategory.TRENDY, MenuCategory.PREMIUM, MenuCategory.HEALTHY
             );
             default -> Arrays.asList(
-                MenuCategory.KOREAN, MenuCategory.CASUAL, MenuCategory.COMFORT, MenuCategory.BUDGET
+                MenuCategory.KOREAN, MenuCategory.CASUAL, MenuCategory.COMFORT, MenuCategory.BUDGET,
+                MenuCategory.FAMILY, MenuCategory.TRADITIONAL, MenuCategory.HEALTHY, MenuCategory.RICE,
+                MenuCategory.SOUP, MenuCategory.MEAT, MenuCategory.VALUE, MenuCategory.BUSINESS
             );
         };
     }
 
-    // 고객 연령대별 추천
+    // 고객 연령대별 추천 - 균형잡힌 분배
     public List<MenuCategory> getAgeGroupCategories(String ageGroup) {
         if (ageGroup == null) return List.of();
 
         return switch (ageGroup.toLowerCase()) {
             case "10대", "teens" -> Arrays.asList(
                 MenuCategory.FAST_FOOD, MenuCategory.SPICY, MenuCategory.DESSERT, MenuCategory.QUICK,
-                MenuCategory.BUDGET, MenuCategory.STREET_FOOD
+                MenuCategory.BUDGET, MenuCategory.STREET_FOOD, MenuCategory.FRIED, MenuCategory.SWEET,
+                MenuCategory.TRENDY, MenuCategory.FRIENDS, MenuCategory.PARTY, MenuCategory.ENERGY,
+                MenuCategory.MOOD_BOOST, MenuCategory.CASUAL, MenuCategory.DELIVERY, MenuCategory.TAKEOUT
             );
             case "20대", "twenties" -> Arrays.asList(
                 MenuCategory.FUSION, MenuCategory.JAPANESE, MenuCategory.WESTERN, MenuCategory.SPICY,
-                MenuCategory.COFFEE, MenuCategory.DELIVERY, MenuCategory.BUDGET
+                MenuCategory.COFFEE, MenuCategory.DELIVERY, MenuCategory.BUDGET, MenuCategory.TRENDY,
+                MenuCategory.FRIENDS, MenuCategory.DATE, MenuCategory.STRESS_RELIEF, MenuCategory.MIDNIGHT,
+                MenuCategory.ECONOMICAL, MenuCategory.INNOVATIVE, MenuCategory.CASUAL, MenuCategory.WORK
             );
             case "30대", "thirties" -> Arrays.asList(
                 MenuCategory.HEALTHY, MenuCategory.PREMIUM, MenuCategory.KOREAN, MenuCategory.BUSINESS,
-                MenuCategory.GOURMET, MenuCategory.PROTEIN
+                MenuCategory.GOURMET, MenuCategory.PROTEIN, MenuCategory.WORK, MenuCategory.FAMILY,
+                MenuCategory.DATE, MenuCategory.ROMANTIC, MenuCategory.FUSION, MenuCategory.ITALIAN,
+                MenuCategory.SEAFOOD, MenuCategory.DIET, MenuCategory.VITAMIN_RICH, MenuCategory.DIGESTIVE
             );
             case "40대", "forties" -> Arrays.asList(
                 MenuCategory.TRADITIONAL, MenuCategory.HEALTHY, MenuCategory.KOREAN, MenuCategory.PREMIUM,
-                MenuCategory.COMFORT, MenuCategory.BUSINESS
+                MenuCategory.COMFORT, MenuCategory.BUSINESS, MenuCategory.FAMILY, MenuCategory.CLASSIC,
+                MenuCategory.GOURMET, MenuCategory.LUXURY, MenuCategory.MEAT, MenuCategory.SEAFOOD,
+                MenuCategory.IMMUNITY, MenuCategory.ANTI_INFLAMMATORY, MenuCategory.CELEBRATION, MenuCategory.SLOW
             );
             case "50대이상", "seniors" -> Arrays.asList(
                 MenuCategory.TRADITIONAL, MenuCategory.HEALTHY, MenuCategory.KOREAN, MenuCategory.SENIOR,
-                MenuCategory.LIGHT, MenuCategory.COMFORT
+                MenuCategory.LIGHT, MenuCategory.COMFORT, MenuCategory.CLASSIC, MenuCategory.NOSTALGIC,
+                MenuCategory.FAMILY, MenuCategory.SOUP, MenuCategory.STEAMED, MenuCategory.BOILED,
+                MenuCategory.DIGESTIVE, MenuCategory.IMMUNITY, MenuCategory.LOW_SODIUM, MenuCategory.VITAMIN_RICH
+            );
+            case "어린이", "kids", "children" -> Arrays.asList(
+                MenuCategory.KIDS, MenuCategory.LIGHT, MenuCategory.SWEET, MenuCategory.MILD,
+                MenuCategory.HEALTHY, MenuCategory.SIMPLE, MenuCategory.FAMILY, MenuCategory.CASUAL,
+                MenuCategory.QUICK, MenuCategory.RICE, MenuCategory.MEAT, MenuCategory.DESSERT,
+                MenuCategory.BAKERY, MenuCategory.VITAMIN_RICH, MenuCategory.CALCIUM, MenuCategory.PROTEIN
             );
             default -> Arrays.asList(
-                MenuCategory.KOREAN, MenuCategory.CASUAL, MenuCategory.COMFORT
+                MenuCategory.KOREAN, MenuCategory.CASUAL, MenuCategory.COMFORT, MenuCategory.FAMILY,
+                MenuCategory.HEALTHY, MenuCategory.TRADITIONAL, MenuCategory.RICE, MenuCategory.SOUP
             );
         };
     }
