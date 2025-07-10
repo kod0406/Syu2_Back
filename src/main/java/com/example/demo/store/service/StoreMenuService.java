@@ -7,7 +7,6 @@ import com.example.demo.store.dto.MenuRequestDto;
 import com.example.demo.store.dto.MenuResponseDto;
 import com.example.demo.store.entity.Store;
 import com.example.demo.store.entity.StoreMenu;
-import com.example.demo.store.repository.QRCodeRepository;
 import com.example.demo.store.repository.StoreMenuRepository;
 import com.example.demo.store.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,8 +21,6 @@ import java.util.stream.Collectors;
 public class StoreMenuService {
     private final StoreRepository storeRepository;
     private final StoreMenuRepository storeMenuRepository;
-    private final QRCodeRepository qrCodeRepository;
-    private final StoreService storeService;
     private final S3UploadService s3UploadService;
 
     // 메뉴 생성

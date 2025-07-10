@@ -19,7 +19,7 @@ public class AIAdviceResult {
     private String improvementSuggestion;
     private List<String> keyPoints;
     private Double confidenceScore;
-    private String aiModel; // "gemini", "gpt" etc
+    private String aiModel; // "gemini", "gpt" 등등. 지금은 "gemini"만 사용
     private LocalDateTime generatedAt;
     private String prompt;
     private boolean isError;

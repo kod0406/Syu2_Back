@@ -71,25 +71,22 @@ class DemoApplicationTests {
     }
 
     @Test
-
     void check(){
+        SimpleAddressDto simpleAddressDto = new SimpleAddressDto("서울특별시","남양주", "공릉동");
+        System.out.println("getCity + " + simpleAddressDto.getCity());
+        System.out.println("getDistrict + " + simpleAddressDto.getDistrict());
+        System.out.println("getTown + "  + simpleAddressDto.getTown());
 
-            SimpleAddressDto simpleAddressDto = new SimpleAddressDto("서울특별시","남양주", "공릉동");
-            System.out.println("getCity + " + simpleAddressDto.getCity());
-            System.out.println("getDistrict + " + simpleAddressDto.getDistrict());
-            System.out.println("getTown + "  + simpleAddressDto.getTown());
-            List<StoreLocation> locations = storeLocationRepository.findByCityAndDistrict(
-                    simpleAddressDto.getTown()
-            );
-            for (StoreLocation storeLocation : locations) {
-                System.out.println(storeLocation.getStore());
-            }
-            System.out.println( locations.stream()
-                    .map(StoreLocation::getStore)              // StoreLocation → Store
-                    .map(GeoResponseStoreDto::new)             // Store → DTO
-                    .toList());
-
+        // district(구)로 검색하도록 수정
+        List<StoreLocation> locations = storeLocationRepository.findByDistrict(
+                simpleAddressDto.getDistrict()
+        );
+        for (StoreLocation storeLocation : locations) {
+            System.out.println(storeLocation.getStore());
+        }
+        System.out.println( locations.stream()
+                .map(StoreLocation::getStore)              // StoreLocation → Store
+                .map(GeoResponseStoreDto::new)             // Store → DTO
+                .toList());
     }
-
-
 }

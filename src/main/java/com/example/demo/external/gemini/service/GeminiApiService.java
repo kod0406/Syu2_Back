@@ -29,16 +29,6 @@ public class GeminiApiService {
     @Value("${gemini.api.url}")
     private String apiUrl;
 
-    // WebClient 커스텀 생성 (DNS 타임아웃 및 재시도 적용)
-    public static WebClient createCustomWebClient() {
-        HttpClient httpClient = HttpClient.create(ConnectionProvider.newConnection())
-            .resolver(spec -> spec.queryTimeout(Duration.ofSeconds(3))) // DNS 해석 타임아웃 3초
-            .responseTimeout(Duration.ofSeconds(10)); // 전체 응답 타임아웃 10초
-
-        return WebClient.builder()
-            .clientConnector(new ReactorClientHttpConnector(httpClient))
-            .build();
-    }
 
     // AI 추천 생성 서비스
 

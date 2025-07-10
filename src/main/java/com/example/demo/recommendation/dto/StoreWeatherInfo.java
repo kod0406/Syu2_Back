@@ -32,6 +32,16 @@ public class StoreWeatherInfo {
             weather.getMain().getFeels_like());
     }
 
+    // 온도 정보 반환
+    public Double getTemperature() {
+        return weather != null && weather.getMain() != null ? weather.getMain().getTemp() : null;
+    }
+
+    // 습도 정보 반환
+    public Integer getHumidity() {
+        return weather != null && weather.getMain() != null ? weather.getMain().getHumidity() : null;
+    }
+
     // 위치 요약 정보 - 전체 주소 반환
     public String getLocationSummary() {
         if (fullAddress != null && !fullAddress.trim().isEmpty()) {

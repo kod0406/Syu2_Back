@@ -121,11 +121,4 @@ public class Store implements AppUser {
         }
         return LocalDateTime.now().isAfter(passwordResetExpiry);
     }
-
-    // 토큰이 유효한지 확인하는 메서드 추가
-    public boolean isPasswordResetTokenValid() {
-        return passwordResetToken != null &&
-               passwordResetExpiry != null &&
-               !LocalDateTime.now().isAfter(passwordResetExpiry);
-    }
 }
