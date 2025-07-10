@@ -43,7 +43,7 @@ public class ReviewService {
 
         return unreviewedList.stream()
                 .filter(stat -> !"UserPointUsedOrNotUsed".equals(stat.getOrderDetails())
-                        && !"CouponUsed".equals(stat.getOrderDetails())) // 이 조건을 추가
+                        && !stat.getOrderDetails().startsWith("CouponUsed")) // 이 조건을 추가
                 .map(stat -> new UnreviewedStatisticsDto(
                         stat.getId(),
                         stat.getStore().getStoreName(),
