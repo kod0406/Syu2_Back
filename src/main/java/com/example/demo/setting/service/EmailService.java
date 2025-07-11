@@ -48,9 +48,9 @@ public class EmailService {
             // fromEmail이 null이거나 빈 문자열인 경우 처리
             String safeFromEmail = (fromEmail != null && !fromEmail.trim().isEmpty()) ? fromEmail.trim() : "no-reply@igo.ai.kr";
 
-            helper.setFrom(safeFromEmail, "IGO 이메일 인증");
+            helper.setFrom(safeFromEmail, "와따잇 (WTE,What To Eat?) 이메일 인증");
             helper.setTo(toEmail.trim());
-            helper.setSubject("📧 IGO 매장 이메일 인증을 완료해주세요");
+            helper.setSubject("📧 와따잇 (WTE,What To Eat?) 매장 이메일 인증을 완료해주세요");
 
             String emailContent = createEmailVerificationContent(storeName, verificationToken);
             helper.setText(emailContent, true);
@@ -79,9 +79,9 @@ public class EmailService {
             MimeMessage message = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
-            helper.setFrom(fromEmail, "IGO 보안 알림");
+            helper.setFrom(fromEmail, "와따잇 (WTE,What To Eat?) 보안 알림");
             helper.setTo(toEmail);
-            helper.setSubject("🔐 IGO 매장 계정 로그인 알림");
+            helper.setSubject("🔐 와따잇 (WTE,What To Eat?) 매장 계정 로그인 알림");
 
             String emailContent = createLoginNotificationContent(storeName, deviceInfo, loginTime);
             helper.setText(emailContent, true);
@@ -108,9 +108,9 @@ public class EmailService {
             MimeMessage message = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
-            helper.setFrom(fromEmail, "IGO 보안 경고");
+            helper.setFrom(fromEmail, "와따잇 (WTE,What To Eat?) 보안 경고");
             helper.setTo(toEmail);
-            helper.setSubject("⚠️ IGO 계정 보안 경고 - 새로운 기기에서 로그인");
+            helper.setSubject("⚠️ 와따잇 (WTE,What To Eat?) 계정 보안 경고 - 새로운 기기에서 로그인");
 
             String emailContent = createSuspiciousLoginAlertContent(storeName, deviceInfo, loginTime);
             helper.setText(emailContent, true); // HTML 형식
@@ -138,9 +138,9 @@ public class EmailService {
             MimeMessage message = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
-            helper.setFrom(fromEmail, "IGO 비밀번호 재설정");
+            helper.setFrom(fromEmail, "와따잇 (WTE,What To Eat?) 비밀번호 재설정");
             helper.setTo(toEmail);
-            helper.setSubject("🔑 IGO 매장 비밀번호 재설정 요청");
+            helper.setSubject("🔑 와따잇 (WTE,What To Eat?) 매장 비밀번호 재설정 요청");
 
             String emailContent = createPasswordResetContent(storeName, resetToken);
             helper.setText(emailContent, true);
@@ -167,9 +167,9 @@ public class EmailService {
             MimeMessage message = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
-            helper.setFrom(fromEmail, "IGO 서비스");
+            helper.setFrom(fromEmail, "와따잇 (WTE,What To Eat?) 서비스");
             helper.setTo(toEmail);
-            helper.setSubject("💔 IGO 매장 서비스 탈퇴 완료 안내");
+            helper.setSubject("💔 와따잇 (WTE,What To Eat?) 매장 서비스 탈퇴 완료 안내");
 
             String emailContent = createWithdrawalNotificationContent(storeName);
             helper.setText(emailContent, true);
@@ -214,7 +214,7 @@ public class EmailService {
                 <!DOCTYPE html>
                 <html>
                 <head>
-                <meta charset="UTF-8">
+                <meta charset=\"UTF-8\">
                 <style>
                 body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
                 .container { max-width: 600px; margin: 0 auto; padding: 20px; }
@@ -228,14 +228,14 @@ public class EmailService {
                 </style>
                 </head>
                 <body>
-                <div class="container">
-                <div class="header">
+                <div class=\"container\">
+                <div class=\"header\">
                 <h1>📧 이메일 인증</h1>
-                <p>IGO 매장 이메일 인증을 완료해주세요</p>
+                <p>와따잇 (WTE,What To Eat?) 매장 이메일 인증을 완료해주세요</p>
                 </div>
-                <div class="content">
+                <div class=\"content\">
                 <h2>안녕하세요, %s님!</h2>
-                <p>IGO 매장 관리 시스템에 가입해주셔서 감사합니다.</p>
+                <p>와따잇 (WTE,What To Eat?) 매장 관리 시스템에 가입해주셔서 감사합니다.</p>
                 <p>서비스 이용을 위해 <strong>이메일 인증</strong>을 완료해주세요.</p>
                 
                 <div style="text-align: center; margin: 30px 0;">
@@ -281,7 +281,7 @@ public class EmailService {
                 </div>
                 </div>
                 <div class="footer">
-                <p>IGO 매장 관리 시스템 | 문의: support@igo.ai.kr</p>
+                <p>와따잇 (WTE,What To Eat?) 매장 관리 시스템 | 문의: support@wte.ai.kr</p>
                 <p>이 이메일은 자동으로 발송되었습니다.</p>
                 </div>
                 </div>
@@ -302,7 +302,7 @@ public class EmailService {
                     <!DOCTYPE html>
                     <html>
                     <head>
-                        <meta charset="UTF-8">
+                        <meta charset=\"UTF-8\">
                         <style>
                             body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
                             .container { max-width: 600px; margin: 0 auto; padding: 20px; }
@@ -313,14 +313,14 @@ public class EmailService {
                         </style>
                     </head>
                     <body>
-                        <div class="container">
-                            <div class="header">
+                        <div class=\"container\">
+                            <div class=\"header\">
                                 <h1>🔐 로그인 알림</h1>
-                                <p>IGO 매장 계정에 로그인되었습니다</p>
+                                <p>와따잇 (WTE,What To Eat?) 매장 계정에 로그인되었습니다</p>
                             </div>
-                            <div class="content">
+                            <div class=\"content\">
                                 <h2>로그인 정보</h2>
-                                <div class="info-box">
+                                <div class=\"info-box\">
                                     <p><strong>매장명:</strong> %s</p>
                                     <p><strong>로그인 시간:</strong> %s</p>
                                     <p><strong>IP 주소:</strong> %s</p>
@@ -330,8 +330,8 @@ public class EmailService {
                                 <p>본인의 로그인이 맞다면 이 이메일을 무시하셔도 됩니다.</p>
                                 <p><strong>⚠️ 본인의 로그인이 아니라면 즉시 비밀번호를 변경하고 고객센터에 연락해주세요.</strong></p>
                             </div>
-                            <div class="footer">
-                                <p>IGO 매장 관리 시스템 | 문의: support@igo.ai.kr</p>
+                            <div class=\"footer\">
+                                <p>와따잇 (WTE,What To Eat?) 매장 관리 시스템 | 문의: support@wte.ai.kr</p>
                             </div>
                         </div>
                     </body>
@@ -356,7 +356,7 @@ public class EmailService {
                     <!DOCTYPE html>
                     <html>
                     <head>
-                        <meta charset="UTF-8">
+                        <meta charset=\"UTF-8\">
                         <style>
                             body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
                             .container { max-width: 600px; margin: 0 auto; padding: 20px; }
@@ -368,13 +368,13 @@ public class EmailService {
                         </style>
                     </head>
                     <body>
-                        <div class="container">
-                            <div class="header">
+                        <div class=\"container\">
+                            <div class=\"header\">
                                 <h1>⚠️ 보안 경고</h1>
-                                <p>새로운 기기에서 로그인이 감지되었습니다</p>
+                                <p>새로운 기기에서 와따잇 (WTE,What To Eat?) 계정 로그인이 감지되었습니다</p>
                             </div>
-                            <div class="content">
-                                <div class="alert-box">
+                            <div class=\"content\">
+                                <div class=\"alert-box\">
                                     <h2>🚨 즉시 확인 필요</h2>
                                     <p><strong>매장명:</strong> %s</p>
                                     <p><strong>로그인 시간:</strong> %s</p>
@@ -393,8 +393,8 @@ public class EmailService {
                 
                                 <a href="%s" class="button">즉시 계정 보안 강화</a>
                             </div>
-                            <div class="footer">
-                                <p>IGO 매장 관리 시스템 보안팀 | 긴급 문의: security@igo.ai.kr</p>
+                            <div class=\"footer\">
+                                <p>와따잇 (WTE,What To Eat?) 매장 관리 시스템 보안팀 | 긴급 문의: security@wte.ai.kr</p>
                             </div>
                         </div>
                     </body>
@@ -418,7 +418,7 @@ public class EmailService {
                 <!DOCTYPE html>
                 <html>
                 <head>
-                <meta charset="UTF-8">
+                <meta charset=\"UTF-8\">
                 <style>
                 body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
                 .container { max-width: 600px; margin: 0 auto; padding: 20px; }
@@ -430,12 +430,12 @@ public class EmailService {
                 </style>
                 </head>
                 <body>
-                <div class="container">
-                <div class="header">
+                <div class=\"container\">
+                <div class=\"header\">
                 <h1>🔑 비밀번호 재설정</h1>
-                <p>IGO 매장 비밀번호를 재설정해주세요</p>
+                <p>와따잇 (WTE,What To Eat?) 매장 비밀번호를 재설정해주세요</p>
                 </div>
-                <div class="content">
+                <div class=\"content\">
                 <h2>안녕하세요, %s님!</h2>
                 <p>비밀번호 재설정 요청을 받았습니다.</p>
                 <p>아래 버튼을 클릭하여 비밀번호를 재설정해주세요.</p>
@@ -461,7 +461,7 @@ public class EmailService {
                 </div>
                 </div>
                 <div class="footer">
-                <p>IGO 매장 관리 시스템 | 문의: support@igo.ai.kr</p>
+                <p>와따잇 (WTE,What To Eat?) 매장 관리 시스템 | 문의: support@wte.ai.kr</p>
                 <p>이 이메일은 자동으로 발송되었습니다.</p>
                 </div>
                 </div>
@@ -478,7 +478,7 @@ public class EmailService {
                 <!DOCTYPE html>
                 <html>
                 <head>
-                <meta charset="UTF-8">
+                <meta charset=\"UTF-8\">
                 <style>
                 body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
                 .container { max-width: 600px; margin: 0 auto; padding: 20px; }
@@ -493,40 +493,40 @@ public class EmailService {
                 </style>
                 </head>
                 <body>
-                <div class="container">
-                <div class="header">
-                <h1>💔 IGO 서비스 탈퇴 완료</h1>
+                <div class=\"container\">
+                <div class=\"header\">
+                <h1>💔 와따잇 (WTE,What To Eat?) 서비스 탈퇴 완료</h1>
                 <p>%s님의 회원탈퇴가 완료되었습니다</p>
                 </div>
-                <div class="content">
-                <div class="thank-you">
+                <div class=\"content\">
+                <div class=\"thank-you\">
                 <h2>🙏 감사의 인사</h2>
-                <p><strong>%s</strong>님, 그동안 IGO 매장 관리 서비스를 이용해주셔서 진심으로 감사합니다.</p>
+                <p><strong>%s</strong>님, 그동안 와따잇 (WTE,What To Eat?) 매장 관리 서비스를 이용해주셔서 진심으로 감사합니다.</p>
                 <p>저희 서비스와 함께해주신 모든 시간들이 소중했습니다.</p>
                 </div>
                 <li>✅ <strong>주문 내역 삭제</strong> - 모든 주문 및 리뷰 데이터</li>
                 <li>✅ <strong>개인정보 완전 삭제</strong> - 복구 불가능한 영구 삭제</li>
                 </ul>
 
-                <div class="info-box">
+                <div class=\"info-box\">
                 <h3>⚠️ 중요 안내사항</h3>
                 <ul>
-                <li>삭제된 데이터는 <span class="highlight">복구가 불가능</span>합니다</li>
+                <li>삭제된 데이터는 <span class=\"highlight\">복구가 불가능</span>합니다</li>
                 <li>동일한 이메일로 재가입이 가능합니다</li>
                 <li>재가입 시 이전 데이터는 복원되지 않습니다</li>
                 <li>고객이 보유했던 쿠폰은 모두 사용할 수 없게 됩니다</li>
                 </ul>
                 </div>
 
-                <div class="comeback">
+                <div class=\"comeback\">
                 <h3>🌟 언제든지 다시 돌아오세요!</h3>
                 <p>앞으로 더 나은 서비스로 준비하여 기다리겠습니다.</p>
                 <p>사업이 번창하시길 진심으로 응원합니다!</p>
-                <p><strong>IGO와 함께했던 모든 순간에 감사드립니다. 💚</strong></p>
+                <p><strong>와따잇 (WTE,What To Eat?)과 함께했던 모든 순간에 감사드립니다. 💚</strong></p>
                 </div>
                 
                 
-                <div class="alert">
+                <div class=\"alert\">
                 <h3>❗ 본인이 직접 탈퇴를 신청하지 않으셨나요?</h3>
                 <p>
         만약 본인이 직접 회원탈퇴를 신청하지 않으셨다면, 즉시 고객센터로 연락해주시기 바랍니다.
@@ -534,22 +534,22 @@ public class EmailService {
                 <h3>📞 문의사항</h3>
                 <p>탈퇴와 관련하여 궁금한 점이 있으시면 언제든지 연락해주세요.</p>
                 <ul>
-                <li><strong>고객센터 이메일:</strong> support@igo.ai.kr</li>
+                <li><strong>고객센터 이메일:</strong> support@wte.ai.kr</li>
                 <li><strong>전화:</strong> 1588-0000</li>
                 <li><strong>운영시간:</strong> 평일 09:00 ~ 18:00</li>
                 </ul>
                 </div>
 
-                <div style="text-align: center; margin: 30px 0; padding: 20px; background: #f0f8ff; border-radius: 8px;">
+                <div style=\"text-align: center; margin: 30px 0; padding: 20px; background: #f0f8ff; border-radius: 8px;\">
                 <h3>🎯 새로운 시작을 응원합니다!</h3>
                 <p>%s님의 앞날에 항상 행운이 함께하시길 바랍니다.</p>
-                <p><em>"모든 끝은 새로운 시작입니다"</em></p>
+                <p><em>\"모든 끝은 새로운 시작입니다\"</em></p>
                 </div>
                 </div>
-                <div class="footer">
-                <p><strong>IGO 서비스 운영팀</strong></p>
+                <div class=\"footer\">
+                <p><strong>와따잇 (WTE,What To Eat?) 서비스 운영팀</strong></p>
                 <p>이 이메일은 회원탈퇴 완료 확인을 위해 자동으로 발송되었습니다.</p>
-                <p>© 2025 IGO. All rights reserved.</p>
+                <p>© 2025 와따잇 (WTE,What To Eat?). All rights reserved.</p>
                 </div>
                 </div>
                 </body>
