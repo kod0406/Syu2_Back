@@ -28,15 +28,15 @@ public interface MenuRecommendationCacheRepository extends JpaRepository<MenuRec
     // 매장별 최신 추천 조회
     Optional<MenuRecommendationCache> findTopByStoreOrderByCreatedAtDesc(Store store);
 
+    // 매장별 캐시 삭제
+    @Modifying
+    @Query("DELETE FROM MenuRecommendationCache m WHERE m.store.storeId = :storeId")
+    void deleteByStoreId(@Param("storeId") Long storeId);
+
     // 만료된 캐시 삭제
     @Modifying
     @Query("DELETE FROM MenuRecommendationCache m WHERE m.expiredAt < :now")
     void deleteExpiredCache(@Param("now") LocalDateTime now);
-
-    // 매장별 추천 히스토리 조회
-    List<MenuRecommendationCache> findByStoreAndCreatedAtAfterOrderByCreatedAtDesc(
-        Store store, LocalDateTime since
-    );
 
     // 특정 조건의 캐시 조회 (중복 방지용)
     Optional<MenuRecommendationCache> findByStoreAndWeatherConditionAndSeason(
