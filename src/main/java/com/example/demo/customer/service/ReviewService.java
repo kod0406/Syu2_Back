@@ -42,7 +42,8 @@ public class ReviewService {
         List<CustomerStatistics> unreviewedList = customerStatisticsRepository.findByCustomerAndReviewedFalse(customer);
 
         return unreviewedList.stream()
-                .filter(stat -> !"UserPointUsedOrNotUsed".equals(stat.getOrderDetails())) // 이 조건을 추가
+                .filter(stat -> !"UserPointUsedOrNotUsed".equals(stat.getOrderDetails())
+                        && !stat.getOrderDetails().startsWith("CouponUsed")) // 이 조건을 추가
                 .map(stat -> new UnreviewedStatisticsDto(
                         stat.getId(),
                         stat.getStore().getStoreName(),
