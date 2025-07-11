@@ -28,10 +28,7 @@ import java.util.List;
 public class ReviewService {
 
     private final CustomerStatisticsRepository customerStatisticsRepository;
-    private final S3UploadService s3UploadService;
     private final CustomerReviewCollectRepository customerReviewCollectRepository;
-    private final StoreRepository storeRepository;
-    private final StoreMenuRepository storeMenuRepository;
     private final OrderGroupRepository orderGroupRepository;
 
     @PersistenceContext
@@ -59,13 +56,16 @@ public class ReviewService {
     public void saveReview(Customer customer, ReviewWriteDTO reviewWriteDTO) {
         CustomerStatistics customerStatistics = customerStatisticsRepository.findById(reviewWriteDTO.getStatisticsId()).orElse(null);
         Store store = customerStatistics.getStore();
-        StoreMenu storeMenu = storeMenuRepository.findByMenuName(customerStatistics.getOrderDetails());
+        // 메뉴 이름으로 검색하는 대신 CustomerStatistics에서 직접 참조
+        StoreMenu storeMenu = customerStatistics.getStoreMenu();
 
         CustomerReviewCollect reviewCollect = reviewWriteDTO.toEntity(customer, store, customerStatistics, storeMenu);
         customerReviewCollectRepository.save(reviewCollect);
         customerStatistics.markAsReviewed();
 
-        storeMenu.updateRating(reviewWriteDTO.getReviewRating());
+        if (storeMenu != null) {
+            storeMenu.updateRating(reviewWriteDTO.getReviewRating());
+        }
     }
 
     public List<CustomerReviewDto> getReviewsByMenu(Long menuId) {
