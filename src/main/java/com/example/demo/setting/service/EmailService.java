@@ -46,7 +46,7 @@ public class EmailService {
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
             // fromEmail이 null이거나 빈 문자열인 경우 처리
-            String safeFromEmail = (fromEmail != null && !fromEmail.trim().isEmpty()) ? fromEmail.trim() : "no-reply@igo.ai.kr";
+            String safeFromEmail = (fromEmail != null && !fromEmail.trim().isEmpty()) ? fromEmail.trim() : "no-reply@wte.ai.kr";
 
             helper.setFrom(safeFromEmail, "와따잇 (WTE,What To Eat?) 이메일 인증");
             helper.setTo(toEmail.trim());
@@ -275,7 +275,7 @@ public class EmailService {
                 <ol>
                 <li>위의 인증 버튼을 클릭하세요</li>
                 <li>브라우저에서 인증 완료 메시지를 확인하세요</li>
-                <li>IGO 매장 관리 시스템에 로그인하세요</li>
+                <li>와따잇! 매장 관리 시스템에 로그인하세요</li>
                 <li>매장 정보를 설정하고 메뉴를 등록하세요</li>
                 </ol>
                 </div>
