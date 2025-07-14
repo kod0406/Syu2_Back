@@ -11,6 +11,8 @@ import com.example.demo.store.entity.StoreMenu;
 import com.example.demo.benefit.entity.Coupon;
 import com.example.demo.benefit.repository.CustomerCouponRepository;
 import com.example.demo.customer.repository.CustomerStatisticsRepository;
+import com.example.demo.recommendation.repository.MenuRecommendationCacheRepository;
+import com.example.demo.recommendation.repository.MenuRecommendationHistoryRepository;
 import com.example.demo.store.repository.QRCodeRepository;
 import com.example.demo.store.repository.StoreRepository;
 import com.example.demo.setting.util.TokenRedisService;
@@ -41,6 +43,8 @@ public class StoreService {
     private final TokenRedisService tokenRedisService;
     private final com.example.demo.setting.service.EmailService emailService;
     private final StoreLocationService storeLocationService; // 추가
+    private final MenuRecommendationCacheRepository menuRecommendationCacheRepository; // 추가
+    private final MenuRecommendationHistoryRepository menuRecommendationHistoryRepository; // 추가
 
     @Value("${frontend.url}")
     private String frontendUrl;
@@ -125,6 +129,22 @@ public class StoreService {
             log.info("[Redis 토큰 삭제] 이메일: {}", store.getOwnerEmail());
         } catch (Exception e) {
             log.warn("[Redis 토큰 삭제 실패] 이메일: {}, 에러: {}", store.getOwnerEmail(), e.getMessage());
+        }
+
+        // 3.5. 메뉴 추천 캐시 삭제
+        try {
+            menuRecommendationCacheRepository.deleteByStoreId(storeId);
+            log.info("[메뉴 추천 캐시 삭제] 매장 ID: {}", storeId);
+        } catch (Exception e) {
+            log.warn("[메뉴 추천 캐시 삭제 실패] 매장 ID: {}, 에러: {}", storeId, e.getMessage());
+        }
+
+        // 3.6. 메뉴 추천 히스토리 삭제
+        try {
+            menuRecommendationHistoryRepository.deleteByStoreId(storeId);
+            log.info("[메뉴 추천 히스토리 삭제] 매장 ID: {}", storeId);
+        } catch (Exception e) {
+            log.warn("[메뉴 추천 히스토리 삭제 실패] 매장 ID: {}, 에러: {}", storeId, e.getMessage());
         }
 
         // 4. Store 엔티티 삭제 (cascade로 인해 연관된 엔티티들이 자동 삭제됨)

@@ -52,8 +52,4 @@ public class CustomerStatistics {
         this.reviewed = true;
     }
 
-    public void setOrderGroup(){
-
-    }
-
 }
