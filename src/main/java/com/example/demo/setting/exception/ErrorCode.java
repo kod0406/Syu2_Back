@@ -29,7 +29,7 @@ public enum ErrorCode {
     CUSTOMER_COUPON_NOT_FOUND("U007", "해당 UUID의 쿠폰을 찾을 수 없습니다."),
 
     //비밀번호
-    PASSWORD_EXCEPTION("USER001", "비밀번호 오류"),
+    PASSWORD_EXCEPTION("USER001", "비밀번호가 일치하지 않습니다."),
 
     //이메일 인증 관련
     EMAIL_NOT_VERIFIED("AUTH001", "이메일 인증이 필요합니다. 메일함을 확인해주세요."),

@@ -375,7 +375,7 @@ public class StoreController {
 
             // 이메일 미인증 에러인 경우 특별 처리
             if (e.getErrorCode().getCode().equals("AUTH001")) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(
+                return ResponseEntity.badRequest().body(Map.of(
                         "message", e.getMessage(),
                         "errorCode", e.getErrorCode().getCode(),
                         "needEmailVerification", true,
