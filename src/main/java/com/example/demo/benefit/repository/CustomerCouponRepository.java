@@ -13,7 +13,17 @@ import java.util.Optional;
 
 public interface CustomerCouponRepository extends JpaRepository<CustomerCoupon, String> {
     Optional<CustomerCoupon> findByCustomerIdAndCouponId(Long customerId, Long couponId);
-    List<CustomerCoupon> findByCustomerId(Long customerId);
+
+
+    @Query("""
+    SELECT cc FROM CustomerCoupon cc
+    JOIN FETCH cc.coupon c
+    JOIN FETCH c.store
+    WHERE cc.customer.customerId = :customerId
+""")
+    List<CustomerCoupon> findByCustomerId(@Param("customerId") Long customerId);
+
+//    List<CustomerCoupon> findByCustomerId(Long customerId);
 
     // 만료된 CustomerCoupon 삭제
     @Modifying
