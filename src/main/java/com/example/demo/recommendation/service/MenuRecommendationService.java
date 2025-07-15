@@ -501,7 +501,7 @@ public class MenuRecommendationService {
 
     // 관악/동작권 (대학가+주거)
     else if (location.contains("관악") || location.contains("동작") || location.contains("사당") || location.contains("신림")) {
-        return "2024년 샤로수길 로컬브랜드 상권 선정, 대학생과 신혼부부 중심, 저렴한 가격대와 푸짐한 양, 배달 주문 많음, 야식 수요 높음";
+        return "2025년 샤로수길 로컬브랜드 상권 선정, 대학생과 신혼부부 중심, 저렴한 가격대와 푸짐한 양, 배달 주문 많음, 야식 수요 높음";
     }
 
     // 양천/강서권 (가정형, 신도시)
