@@ -441,16 +441,90 @@ public class MenuRecommendationService {
     }
 
     private String getLocationTrend(String location) {
-        if (location.contains("마포구")) {
-            return "젊은층 많음, 트렌디한 메뉴 선호, SNS 마케팅 효과적, 홍대/합정 유동인구";
-        } else if (location.contains("강남")) {
-            return "고소득층, 프리미엄 메뉴 선호, 비즈니스 미팅 장소, 높은 서비스 기대";
-        } else if (location.contains("송파") || location.contains("잠실")) {
-            return "가족 단위 고객, 아이 친화적 메뉴, 대형 매장 선호, 주말 매출 집중";
-        } else {
-            return "지역 주민 중심, 가성비 중시, 단골 고객 관리 중요, 입소문 마케팅 효과적";
-        }
+    // 강남권 (고소득층, 비즈니스 중심)
+    if (location.contains("강남") || location.contains("역삼") || location.contains("테헤란")) {
+        return "일평균 유동인구 40-50만명, 20대 여성(패션/뷰티) + 30-40대 남성 직장인, 프리미엄 메뉴 선호, 월세 3.3㎡당 100만원 수준, 체험형 팝업스토어 효과적";
     }
+    else if (location.contains("서초")) {
+        return "고소득층 밀집, 비즈니스 미팅 장소, 브런치와 파인다이닝 인기, 높은 서비스 기대, 프리미엄 가격대 수용";
+    }
+
+    // 홍대 상권 (특화 독립)
+    else if (location.contains("홍대") || location.contains("홍익대")) {
+        return "전국 최대 클럽/pub 밀집지역, 20대 초반 주 타겟, 심야 매출 집중(21시~새벽2시), 인스타그램 필수 마케팅, 빠른 회전율 중시, 저렴한 가격대와 포토존 필수, 주말 외지인 95% 이상";
+    }
+
+    // 홍대/마포권 (젊은층, 트렌디)
+    else if (location.contains("마포구") || location.contains("상수") || location.contains("합정") || location.contains("망원")) {
+        return "골목상권 특화, 발견하는 재미 중시, 단골가게 문화 발달, 발레파킹 문화 없음, 젊은층 트렌디한 메뉴 선호, SNS 마케팅 필수";
+    }
+
+    // 잠실/송파권 (가족형, 대형상권)
+    else if (location.contains("송파") || location.contains("잠실")) {
+        return "업무시설과 대단위 주거시설 고루 분포, 수요층 안정적, 가족 단위 고객, 아이 친화적 메뉴, 주말 매출 집중, 백화점/몰 연계 고객층";
+    }
+
+    // 건대/성수권 (젊은층, 핫플레이스)
+    else if (location.contains("광진") || location.contains("성동") || location.contains("건대") || location.contains("성수")) {
+        return "대학상권 침체로 성수동으로 유동 증가, 개별 특성 뚜렷한 개인 사업장 위주, 향수/수제화/소품샵 특화, 특별함과 감성 중시, 유흥 이미지 탈피 필요";
+    }
+
+    // 이태원/용산권 (외국인, 고급화)
+    else if (location.contains("용산") || location.contains("이태원") || location.contains("한남") || location.contains("용리단길")) {
+        return "서울 중심부 접근성 우수, 강북-강남 약속장소로 인기, 대기업 직장인 점심 수요, 대단지 아파트 고정 수요층, 외국 콘셉트 특색 있는 점포 증가";
+    }
+
+    // 신촌/연대권 (대학가)
+    else if (location.contains("서대문") || location.contains("신촌") || location.contains("연대") || location.contains("이화여대")) {
+        return "서울시 창업위험도 '위험' 지역 유일, 10대 대학상권 중 최하위 성장률 3.1%, 온라인 쇼핑 확산으로 유동인구 감소, 저렴한 가격대와 대용량 메뉴 필수";
+    }
+
+    // 강북/노원권 (가정형, 실용적)
+    else if (location.contains("강북") || location.contains("노원")) {
+        return "근처 거주민 중심 소비, 상반기 눈에 띄는 매출 성장세, 특화거리 체계적 육성, 가성비 최우선, 동네 단골 관리 중요";
+    }
+
+    // 성북/동대문권 (주거+문화예술)
+    else if (location.contains("성북") || location.contains("동대문") || location.contains("중랑") || location.contains("성신여대")) {
+        return "역사·문화·예술 중심지, 만해 한용운 심우장 등 근현대 문화예술 흔적, 카페/갤러리/로컬상점 매력적 골목상권, 2025년 로컬브랜드 상권 선정, 여성인구 많음";
+    }
+
+    // 종로/중구권 (관광+전통)
+    else if (location.contains("종로") || location.contains("중구") || location.contains("명동") || location.contains("경동시장")) {
+        return "명동 상권 부활, 재래시장 맛집 입소문, 최근 2년 음식업종 매출 평균 증가율 33.3% (서울 최고), 관광객과 직장인 혼재, 전통음식 수요 높음";
+    }
+
+    // 영등포/구로권 (직장인, 오피스)
+    else if (location.contains("영등포") || location.contains("구로") || location.contains("금천") || location.contains("가산디지털단지")) {
+        return "가산디지털단지 상권 활성화 주목, 외식 물가 상승률 상대적 낮음, 직장인 밀집지역, 점심 도시락과 회식 수요, 테이크아웃 선호";
+    }
+
+    // 관악/동작권 (대학가+주거)
+    else if (location.contains("관악") || location.contains("동작") || location.contains("사당") || location.contains("신림")) {
+        return "2024년 샤로수길 로컬브랜드 상권 선정, 대학생과 신혼부부 중심, 저렴한 가격대와 푸짐한 양, 배달 주문 많음, 야식 수요 높음";
+    }
+
+    // 양천/강서권 (가정형, 신도시)
+    else if (location.contains("양천") || location.contains("강서") || location.contains("목동")) {
+        return "저수지 상권으로 떠오름, 목동 상반기 눈에 띄는 매출 성장세, 신도시 가정 고객, 아이 동반 식사, 주차 편의 중시, 브랜드 프랜차이즈 선호";
+    }
+
+    // 은평/서대문 외곽권 (주거 밀집)
+    else if (location.contains("은평") || location.contains("불광") || location.contains("연신내")) {
+        return "전통적 거주지역, 서민과 중산층 혼재, 저가형이나 필수 가전 중심 구매, 객단가 30-50만원 (서울 평균 60만원보다 낮음), 재개발로 상권 변화 중";
+    }
+
+    // 창동/도봉권 (저수지 상권)
+    else if (location.contains("창동") || location.contains("도봉")) {
+        return "2025년 저수지 상권으로 주목, 상반기 눈에 띄는 매출 성장세, 근처 배후 거주민 중심, 한 번 유입된 인구가 그 안에서 소비하는 패턴";
+    }
+
+    // 기본값 (일반 주거지역)
+    else {
+        return "지역 주민 중심, 가성비 중시, 단골 고객 관리 중요, 입소문 마케팅 효과적, 서울시 상권분석 서비스 활용 권장";
+    }
+}
+
 
     private String buildStructuredAnalysisRequest(StoreWeatherInfo weatherInfo,
                                                   boolean hasMenuData,
@@ -620,8 +694,6 @@ public class MenuRecommendationService {
 
         return context.toString();
     }
-
-    // ===== 🔥 완전 개선된 프롬프트 엔지니어링 끝 =====
 
     // AI 응답을 구조화된 형태로 정리 (HTML 포맷팅 적용)
     private String formatAIResponse(String rawResponse) {
