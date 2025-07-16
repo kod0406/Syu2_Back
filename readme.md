@@ -9,11 +9,28 @@
 - 사장님들에게는 단순한 주문 도구를 넘어, 비즈니스 성장을 위한 다양한 운영 지원 기능을 제공합니다.
 - 고객의 긍정적인 리뷰가 또 다른 고객을 유입시키고, 이는 매장의 성장으로 이어지는 선순환 구조를 만드는 것이 본 프로젝트의 핵심입니다.
 
-# 🚀 WTE 프로젝트 실행 가이드
+<br>
 
-WTE 프로젝트를 로컬 환경에서 설정하고 실행하기 위한 가이드입니다.
+## 🌟 팀원 구성  
+| ![김재현](https://github.com/kod0406.png) | ![류재열](https://github.com/fbwoduf112.png?size=100) | ![이남현](https://github.com/hyun3138.png?size=100) |
+| :------: |  :------: | :------: |
+| [**김재현**](https://github.com/kod0406)<br/>팀장 | [**류재열**](https://github.com/fbwoduf112)<br/>팀원 | [**이남현**](https://github.com/hyun3138)<br/>팀원 |
 
 <br>
+
+## 1. 프로젝트 기술 스택
+| 구분              | 주요 기술 스택                                                                       |
+| :---------------- |:-------------------------------------------------------------------------------|
+| **⚙️ Back-end**   | `Java` `Spring Boot` `JPA` `MySQL` `Redis` `AWS S3` `JWT` `OAuth 2.0`          |
+| **🎨 Front-end**  | `React` `TypeScript` `Axios` `Tailwind CSS`                                    |
+| **🚀 DevOps**     | `Docker` `GitHub Actions` `Nginx` `PM2` `AWS RDS` `AWS S3`                     |
+| **🤝 협업 도구**  | `GitHub` `Notion` `Swagger` `Postman`                                          |
+| **🔗 외부 API**   | `Kakao SDK` `Naver SDK` `Google Gemini` `OpenWeatherMap API` `GeoLocation API` |
+
+# 2. WTE 프로젝트 실행 가이드
+
+>WTE 프로젝트를 로컬 환경에서 설정하고 실행하기 위한 가이드입니다.
+
 
 ## 📝 목차
 
@@ -227,6 +244,22 @@ gemini.api.key=[Google Gemini API 키]
 gemini.api.url=https://generativelanguage.googleapis.com/v1beta/models/[모델명]:generateContent
 
 # ====================================
+# 스케줄러 및 캐시 설정
+# ====================================
+# 추천 스케줄러 활성화
+recommendation.scheduler.enabled=true
+# 추천 스케줄러 크론 표현식
+recommendation.scheduler.cron=0 0 * * * ?
+# 캐시 유지 시간(초)
+recommendation.cache.duration=3600
+# 캐시 키 생성 단위 (분 단위)
+recommendation.cache.key-unit-minutes=60
+# 최근 체크 단위 (분 단위)
+recommendation.cache.recent-check-minutes=5
+# 쿠폰 정리 스케줄러 크론 표현식
+coupon.cleanup.cron=0 0 0,12 * * ?
+
+# ====================================
 # SMTP (메일 발송)
 # ====================================
 spring.mail.host=smtp.gmail.com
@@ -258,5 +291,5 @@ sentiment.weight.negation.strong=1.0
 sentiment.weight.negation.basic=0.5
 sentiment.negation.search.range=5
 ```
-
 </details>
+
