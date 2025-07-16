@@ -234,30 +234,30 @@ Syu2_Back/
 
 ## 📝 목차
 
-1.  [시스템 요구사항](#-시스템-요구사항)
-2.  [실행 방법](#-실행-방법)
+1.  [시스템 요구사항](#시스템-요구사항)
+2.  [실행 방법](#실행-방법)
     -   [Back-end](#1-back-end-실행)
     -   [Front-end](#2-front-end-실행)
-3.  [데이터베이스 접속](#-데이터베이스-접속-mysql-workbench)
-4.  [API 문서 확인](#-api-문서-swagger-ui)
-5.  [환경 변수 설정](#-환경-변수-설정-applicationproperties)
+3.  [데이터베이스 접속](#데이터베이스-접속-mysql-workbench)
+4.  [API 문서 확인](#api-문서-swagger-ui)
+5.  [환경 변수 설정](#환경-변수-설정-applicationproperties)
 
 <br>
 
-## 💻 시스템 요구사항
+##  시스템 요구사항
 
 프로젝트 실행을 위해 아래 환경을 구성해야 합니다.
 
 ### 🔧 필수 실행 환경
 
-| 구성 요소 | 버전 | 비고 |
-|:---------|:-----|:-----|
-| **JDK** | `17` 이상 | Java 개발 키트 |
-| **Gradle** | `7.x` 이상 | 빌드 도구 |
-| **npm** | `10.x` 이상 | Node.js 패키지 매니저 |
-| **MySQL** | `8.x` 이상 | 관계형 데이터베이스 |
-| **Redis** | `6.x` 이상 | 인메모리 데이터베이스 |
-| **Docker** | `20.x` 이상 | 컨테이너 환경 (선택사항) |
+| 구성 요소      | 버전        | 비고              |
+|:-----------|:----------|:----------------|
+| **JDK**    | `17` 이상   | Java 개발 키트      |
+| **Gradle** | `7.x` 이상  | 빌드 도구           |
+| **npm**    | `10.x` 이상 | Node.js 패키지 매니저 |
+| **MySQL**  | `8.x` 이상  | 관계형 데이터베이스      |
+| **Redis**  | `6.x` 이상  | 인메모리 데이터베이스     |
+| **Docker** | `20.x` 이상 | 컨테이너 환경 (선택사항)  |
 
 <br>
 
@@ -300,7 +300,7 @@ Syu2_Back/
 
 <br>
 
-## 🏃‍♂️ 실행 방법
+##  실행 방법
 
 ### 1. Back-end 실행
 
@@ -317,7 +317,7 @@ cd Syu2_Back
 #### 환경 설정
 
 1.  `src/main/resources/` 경로에 `application.properties` 파일을 생성합니다.
-2.  아래의 [환경 변수 설정](#-환경-변수-설정-applicationproperties) 섹션을 참고하여 본인의 로컬 환경에 맞게 파일 내용을 채워넣습니다.
+2.  아래의 [환경 변수 설정](#⚙️-환경-변수-설정-applicationproperties) 섹션을 참고하여 본인의 로컬 환경에 맞게 파일 내용을 채워넣습니다.
 
 #### 애플리케이션 실행 (2가지 방법)
 
@@ -376,7 +376,7 @@ npm start
 
 <br>
 
-## 🗄️ 데이터베이스 접속 (MySQL Workbench)
+## 데이터베이스 접속 (MySQL Workbench)
 
 MySQL Workbench를 사용하여 원격 RDS 또는 로컬 DB에 접속하고 관리하는 방법입니다.
 
@@ -406,7 +406,7 @@ MySQL Workbench 홈 화면에서 `+` 버튼을 눌러 새 연결을 생성합니
 
 <br>
 
-## 📖 API 문서 (Swagger UI)
+## API 문서 (Swagger UI)
 
 백엔드 애플리케이션이 실행 중일 때, 아래 주소로 접속하여 API 명세를 확인하고 테스트할 수 있습니다.
 
@@ -415,7 +415,7 @@ MySQL Workbench 홈 화면에서 `+` 버튼을 눌러 새 연결을 생성합니
 
 <br>
 
-## ⚙️ 환경 변수 설정 (`application.properties`)
+## 환경 변수 설정 (`application.properties`)
 
 백엔드 프로젝트의 `src/main/resources/` 경로에 `application.properties` 파일을 생성하고, 아래 예시를 바탕으로 자신의 키와 정보를 입력해야 합니다.
 
