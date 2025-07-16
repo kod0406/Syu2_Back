@@ -420,7 +420,7 @@ MySQL Workbench 홈 화면에서 `+` 버튼을 눌러 새 연결을 생성합니
 백엔드 프로젝트의 `src/main/resources/` 경로에 `application.properties` 파일을 생성하고, 아래 예시를 바탕으로 자신의 키와 정보를 입력해야 합니다.
 
 <details>
-<summary><strong>클릭하여 전체 환경 변수 예시 보기</strong></summary>
+<summary><strong>전체 환경 변수 예시 보기</strong></summary>
 
 ```properties
 # ====================================
