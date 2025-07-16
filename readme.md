@@ -193,7 +193,7 @@
 | 구분               | 주요 기술 스택                                                                       |
 |:-----------------|:-------------------------------------------------------------------------------|
 | **⚙️ Back-end**  | `Java` `Spring Boot` `JPA` `MySQL` `Redis` `AWS S3` `JWT` `OAuth 2.0`          |
-| **🎨 Front-end** | `React` `TypeScript` `Axios` `Tailwind CSS`  `npm`                             |
+| **🎨 Front-end** | `React` `TypeScript` `Axios` `Tailwind CSS`  `Npm`                             |
 | **🚀 DevOps**    | `Docker` `GitHub Actions` `Nginx` `PM2` `AWS RDS` `AWS S3`                     |
 | **🤝 협업 도구**     | `GitHub` `Notion` `Swagger` `Postman`                                          |
 | **🔗 외부 API**    | `Kakao SDK` `Naver SDK` `Google Gemini` `OpenWeatherMap API` `GeoLocation API` |
@@ -317,7 +317,7 @@ cd Syu2_Back
 #### 환경 설정
 
 1.  `src/main/resources/` 경로에 `application.properties` 파일을 생성합니다.
-2.  아래의 [환경 변수 설정](#⚙️-환경-변수-설정-applicationproperties) 섹션을 참고하여 본인의 로컬 환경에 맞게 파일 내용을 채워넣습니다.
+2.  아래의 [환경 변수 설정](#환경-변수-설정-applicationproperties) 섹션을 참고하여 본인의 로컬 환경에 맞게 파일 내용을 채워넣습니다.
 
 #### 애플리케이션 실행 (2가지 방법)
 
