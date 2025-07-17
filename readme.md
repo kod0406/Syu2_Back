@@ -304,7 +304,7 @@ Syu2_Back/
 
 ```bash
 # 1. 프로젝트를 클론합니다.
-git clone https://github.com/[Your-GitHub-ID]/Syu2_Back.git
+git clone https://github.com/kod0406/Syu2_Back.git
 
 # 2. 프로젝트 디렉토리로 이동합니다.
 cd Syu2_Back
@@ -347,7 +347,7 @@ java -jar build/libs/WTE-project-0.0.1-SNAPSHOT.jar
 
 ```bash
 # 1. 프로젝트를 클론합니다.
-git clone https://github.com/[Your-GitHub-ID]/Syu2_Front.git
+git clone https://github.com/kod0406/Syu2_Front.git
 
 # 2. 프로젝트 디렉토리로 이동합니다.
 cd Syu2_Front
