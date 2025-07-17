@@ -280,7 +280,7 @@ Syu2_Back/
 - Spring Security
 
 **🎨 UI & View**
-- Thymeleaf (서버사이드 템플릿 엔진)
+- React
 - Swagger (springdoc-openapi) - API 문서화
 
 **🔧 Utility Libraries**
